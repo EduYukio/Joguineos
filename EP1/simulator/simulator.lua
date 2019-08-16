@@ -26,8 +26,8 @@ function SIMULATOR.round(attacker, defender, weapons)
 
   if(attacker.hp == 0 or defender.hp == 0) then return end
 
-  local attackerAtkSpd = CALCULATE.calculateAtkSpd(attacker, weapons)
-  local defenderAtkSpd = CALCULATE.calculateAtkSpd(defender, weapons)
+  local attackerAtkSpd = CALCULATE.atkSpd(attacker, weapons)
+  local defenderAtkSpd = CALCULATE.atkSpd(defender, weapons)
 
   if (attackerAtkSpd - defenderAtkSpd >= 4) then
     SIMULATOR.attack(attacker, defender, weapons)
@@ -39,11 +39,11 @@ end
 function SIMULATOR.attack(attacker, defender, weapons)
   if(attacker.hp == 0 or defender.hp == 0) then return end
 
-  local hitChance = CALCULATE.calculateHitChance(attacker, defender, weapons)
+  local hitChance = CALCULATE.hitChance(attacker, defender, weapons)
 
   local randomNumber = math.floor((math.random(100) + math.random(100))/2)
   if(randomNumber <= hitChance) then
-    local critChance = CALCULATE.calculateCritChance(attacker, defender, weapons)
+    local critChance = CALCULATE.critChance(attacker, defender, weapons)
     local critical = false
 
     if(math.random(100) <= critChance) then

@@ -1,23 +1,23 @@
 local CALCULATE = {}
 
-function CALCULATE.calculateAtkSpd(unit, weapons)
+function CALCULATE.atkSpd(unit, weapons)
   return unit.spd - math.max(0, weapons[unit.weapon].wt - unit.str)
 end
 
-function CALCULATE.calculateTriangleBonus(attackWeapon, defenseWeapon)
+function CALCULATE.triangleBonus(attackWeapon, defenseWeapon)
   local table = require "triangleBonusTable"
 
   return table[attackWeapon.kind][defenseWeapon.kind]
 end
 
-function CALCULATE.calculateHitChance(attacker, defender, weapons)
+function CALCULATE.hitChance(attacker, defender, weapons)
   local attackWeapon = weapons[attacker.weapon]
   local defenseWeapon = weapons[defender.weapon]
 
-  local triangleBonus = CALCULATE.calculateTriangleBonus(attackWeapon,
+  local triangleBonus = CALCULATE.triangleBonus(attackWeapon,
                         defenseWeapon)
 
-  local defenderAttackSpeed = CALCULATE.calculateAtkSpd(defender, weapons)
+  local defenderAttackSpeed = CALCULATE.atkSpd(defender, weapons)
   local acc = attackWeapon.hit + attacker.skl*2 +
               attacker.lck + triangleBonus*10
   local avo = (defenderAttackSpeed*2) + defender.lck
@@ -25,7 +25,7 @@ function CALCULATE.calculateHitChance(attacker, defender, weapons)
   return math.max(0, math.min(100, acc - avo))
 end
 
-function CALCULATE.calculateCritChance(attacker, defender, weapons)
+function CALCULATE.critChance(attacker, defender, weapons)
   local attackWeapon = weapons[attacker.weapon]
 
   local critRate = attackWeapon.crt + (math.floor(attacker.skl/2))
@@ -38,7 +38,7 @@ function CALCULATE.calculateDamage(attacker, defender, weapons, critical)
   local attackWeapon = weapons[attacker.weapon]
   local defenseWeapon = weapons[defender.weapon]
 
-  local triangleBonus = CALCULATE.calculateTriangleBonus(attackWeapon,
+  local triangleBonus = CALCULATE.triangleBonus(attackWeapon,
                         defenseWeapon)
 
   local criticalBonus = 1
