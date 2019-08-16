@@ -5,7 +5,8 @@ return {
     lance = -1,
     wind = 0,
     thunder = 0,
-    fire = 0
+    fire = 0,
+    bow = 0
   },
   axe = {
     sword = -1,
@@ -13,7 +14,8 @@ return {
     lance = 1,
     wind = 0,
     thunder = 0,
-    fire = 0
+    fire = 0,
+    bow = 0
   },
   lance = {
     sword = 1,
@@ -21,7 +23,8 @@ return {
     lance = 0,
     wind = 0,
     thunder = 0,
-    fire = 0
+    fire = 0,
+    bow = 0
   },
   wind = {
     sword = 0,
@@ -29,7 +32,8 @@ return {
     lance = 0,
     wind = 0,
     thunder = 1,
-    fire = -1
+    fire = -1,
+    bow = 0
   },
   thunder = {
     sword = 0,
@@ -37,7 +41,8 @@ return {
     lance = 0,
     wind = -1,
     thunder = 0,
-    fire = 1
+    fire = 1,
+    bow = 0
   },
   fire = {
     sword = 0,
@@ -45,6 +50,16 @@ return {
     lance = 0,
     wind = 1,
     thunder = -1,
-    fire = 0
+    fire = 0,
+    bow = 0
+  },
+  bow = {
+    sword = 0,
+    axe = 0,
+    lance = 0,
+    wind = 0,
+    thunder = 0,
+    fire = 0,
+    bow = 0
   }
 }
