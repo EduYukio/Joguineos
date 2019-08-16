@@ -33,14 +33,14 @@ function SIMULATOR.calculateAttackSpeed(unit)
 end
 
 function SIMULATOR.calculateHitChance(attacker, defender)
-  local attackerWeapon = attacker.weapons[attacker.weapon]
-  local defenderWeapon = defender.weapons[attacker.weapon]
+  local attackWeapon = attacker.weapons[attacker.weapon]
+  local defenseWeapon = defender.weapons[defender.weapon]
+
+  local triangleBonus = SIMULATOR.calculateTriangleBonus(attackWeapon,
+                        defenseWeapon)
 
   local defenderAttackSpeed = SIMULATOR.calculateAttackSpeed(defender)
-  local triangleBonus = SIMULATOR.calculateTriangleBonus(attackerWeapon,
-                        defenderWeapon)
-
-  local acc = attackerWeapon.hit + attacker.skl*2 +
+  local acc = attackWeapon.hit + attacker.skl*2 +
               attacker.lck + triangleBonus*10
   local avo = (defenderAttackSpeed*2) + defender.lck
 
@@ -48,12 +48,40 @@ function SIMULATOR.calculateHitChance(attacker, defender)
 end
 
 function SIMULATOR.calculateCriticalChance(attacker, defender)
-  local attackerWeapon = attacker.weapons[attacker.weapon]
+  local attackWeapon = attacker.weapons[attacker.weapon]
 
-  local critRate = attackerWeapon.crt + (math.floor(attacker.skl/2))
+  local critRate = attackWeapon.crt + (math.floor(attacker.skl/2))
   local dodge = defender.lck
 
   return math.max(0, math.min(100, critRate - dodge))
+end
+
+function SIMULATOR.calculateDamage(attacker, defender, critical)
+  local attackWeapon = attacker.weapons[attacker.weapon]
+  local defenseWeapon = defender.weapons[defender.weapon]
+
+  local triangleBonus = SIMULATOR.calculateTriangleBonus(attackWeapon,
+                        defenseWeapon)
+
+  local criticalBonus = 1
+  if(critical) then
+    criticalBonus = 3
+  end
+
+  local effBonus = 1
+  if(attackWeapon.eff and defender.trait and
+     attackWeapon.eff == defender.trait) then
+    effBonus = 2
+  end
+
+  local power = (attackWeapon.mt + triangleBonus)*effBonus
+  if(attackWeapon.kind == "sword" or "axe" or "lance") then
+    power = power + attacker.str - defender.def
+  else
+    power = power + attacker.mag - defender.res
+  end
+
+  return power*criticalBonus
 end
 
 -- result = SIMULATOR.run(scenario_input)
