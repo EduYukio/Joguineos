@@ -53,7 +53,12 @@ function CALCULATE.calculateDamage(attacker, defender, weapons, critical)
   end
 
   local power = (attackWeapon.mt + triangleBonus)*effBonus
-  local physicalWeapons = {"sword", "axe", "lance", "bow"}
+  local physicalWeapons = {
+    sword = true,
+    axe = true,
+    lance = true,
+    bow = true
+  }
   if(physicalWeapons[attackWeapon.kind] ~= nil ) then
     power = power + attacker.str - defender.def
   else
