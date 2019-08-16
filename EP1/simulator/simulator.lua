@@ -42,10 +42,18 @@ function SIMULATOR.calculateHitChance(attacker, defender)
 
   local acc = attackerWeapon.hit + attacker.skl*2 +
               attacker.lck + triangleBonus*10
-
   local avo = (defenderAttackSpeed*2) + defender.lck
 
   return math.max(0, math.min(100, acc - avo))
+end
+
+function SIMULATOR.calculateCriticalChance(attacker, defender)
+  local attackerWeapon = attacker.weapons[attacker.weapon]
+
+  local critRate = attackerWeapon.crt + (math.floor(attacker.skl/2))
+  local dodge = defender.lck
+
+  return math.max(0, math.min(100, critRate - dodge))
 end
 
 -- result = SIMULATOR.run(scenario_input)
