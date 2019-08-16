@@ -5,9 +5,9 @@ local CALCULATE = require "calculate"
 function SIMULATOR.run(scenario_input)
   math.randomseed(scenario_input.seed)
 
-  for _, fighters in pairs(scenario_input.fights) do
-    local attacker = scenario_input.units[fighters[1]]
-    local defender = scenario_input.units[fighters[2]]
+  for _, fighter in pairs(scenario_input.fights) do
+    local attacker = scenario_input.units[fighter[1]]
+    local defender = scenario_input.units[fighter[2]]
 
     SIMULATOR.round(attacker, defender, scenario_input.weapons)
   end
@@ -40,8 +40,8 @@ function SIMULATOR.attack(attacker, defender, weapons)
   if(attacker.hp == 0 or defender.hp == 0) then return end
 
   local hitChance = CALCULATE.hitChance(attacker, defender, weapons)
-
   local randomNumber = math.floor((math.random(100) + math.random(100))/2)
+
   if(randomNumber <= hitChance) then
     local critChance = CALCULATE.critChance(attacker, defender, weapons)
     local critical = false
@@ -50,9 +50,9 @@ function SIMULATOR.attack(attacker, defender, weapons)
       critical = true
     end
 
-    local damage = CALCULATE.calculateDamage(attacker, defender, weapons, critical)
-
+    local damage = CALCULATE.damage(attacker, defender, weapons, critical)
     defender.hp = defender.hp - damage
+
     if (defender.hp <= 0) then
       defender.hp = 0
     end

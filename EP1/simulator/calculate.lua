@@ -34,7 +34,7 @@ function CALCULATE.critChance(attacker, defender, weapons)
   return math.max(0, math.min(100, critRate - dodge))
 end
 
-function CALCULATE.calculateDamage(attacker, defender, weapons, critical)
+function CALCULATE.damage(attacker, defender, weapons, critical)
   local attackWeapon = weapons[attacker.weapon]
   local defenseWeapon = weapons[defender.weapon]
 
