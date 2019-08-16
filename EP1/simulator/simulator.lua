@@ -1,12 +1,9 @@
-
 local SIMULATOR = {}
 
 function SIMULATOR.run(scenario_input)
-  local fights = scenario_input.fights
+  math.randomseed(scenario_input.seed)
 
-  for attacker, defender in pairs(fights) do
-    -- local attacker = k
-    -- local defender = v
+  for attacker, defender in pairs(scenario_input.fights) do
     SIMULATOR.round(attacker, defender)
   end
 
@@ -16,10 +13,33 @@ end
 function SIMULATOR.round(attacker, defender)
   attacker:attack(defender)
   defender:attack(attacker)
+
+  local attackerAtkSpd = SIMULATOR.calculateAtkSpd(attacker)
+  local defenderAtkSpd = SIMULATOR.calculateAtkSpd(defender)
+
+  if (attackerAtkSpd - defenderAtkSpd >= 4) then
+    attacker:attack(defender)
+  elseif (defenderAtkSpd - attackerAtkSpd >= 4) then
+    defender:attack(attacker)
+  end
 end
 
--- function SIMULATOR.attack(unit)
-function SIMULATOR.attack()
+function SIMULATOR.attack(attacker, defender)
+  local hitChance = SIMULATOR.calculateHitChance(attacker, defender)
+  local damage = 0
+
+  if((math.random(100) + math.random(100) / 2) <= hitChance) then
+    local critChance = SIMULATOR.calculateCritChance(attacker, defender)
+    local critical = false
+
+    if(math.random(100) <= critChance) then
+      critical = true
+    end
+
+    damage = SIMULATOR.calculateDamage(attacker, defender, critical)
+  end
+
+  return damage
 end
 
 function SIMULATOR.calculateTriangleBonus(attackWeapon, defenseWeapon)
@@ -28,7 +48,7 @@ function SIMULATOR.calculateTriangleBonus(attackWeapon, defenseWeapon)
   return table[attackWeapon][defenseWeapon]
 end
 
-function SIMULATOR.calculateAttackSpeed(unit)
+function SIMULATOR.calculateAtkSpd(unit)
   return unit.spd - math.max(0, unit.wt - unit.str)
 end
 
@@ -39,7 +59,7 @@ function SIMULATOR.calculateHitChance(attacker, defender)
   local triangleBonus = SIMULATOR.calculateTriangleBonus(attackWeapon,
                         defenseWeapon)
 
-  local defenderAttackSpeed = SIMULATOR.calculateAttackSpeed(defender)
+  local defenderAttackSpeed = SIMULATOR.calculateAtkSpd(defender)
   local acc = attackWeapon.hit + attacker.skl*2 +
               attacker.lck + triangleBonus*10
   local avo = (defenderAttackSpeed*2) + defender.lck
@@ -47,7 +67,7 @@ function SIMULATOR.calculateHitChance(attacker, defender)
   return math.max(0, math.min(100, acc - avo))
 end
 
-function SIMULATOR.calculateCriticalChance(attacker, defender)
+function SIMULATOR.calculateCritChance(attacker, defender)
   local attackWeapon = attacker.weapons[attacker.weapon]
 
   local critRate = attackWeapon.crt + (math.floor(attacker.skl/2))
