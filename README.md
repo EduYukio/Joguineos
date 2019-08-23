@@ -1,2 +1,2 @@
 # Joguineos
-Repository for the discipline "MAC0346 - Programação para Jogos Digitais (2019)"
+Exercises for the university discipline "Digital game programming".
