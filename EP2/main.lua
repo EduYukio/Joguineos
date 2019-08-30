@@ -1,7 +1,8 @@
 --luacheck: globals love
 
 local map
-local layers
+local tileLayers
+local objectLayers
 
 local tileQuads
 local tileSheet
@@ -17,8 +18,8 @@ local function worldToScreenCoords(x, y, z)
 end
 
 local function drawTileLayers()
-  for i = 1, #layers do
-    local currentLayer = layers[i]
+  for i = 1, #tileLayers do
+    local currentLayer = tileLayers[i]
 
     for j = 1, currentLayer.height * currentLayer.width do
       local tileID = currentLayer.data[j]
@@ -33,10 +34,10 @@ local function drawTileLayers()
   end
 end
 
-local function extractTileLayers()
+local function extractMapLayers(type)
   local t = {}
-  for _, layer in ipairs(map.layers) do
-    if(layer.type == "tilelayer") then
+  for _, layer in ipairs(map.tileLayers) do
+    if(layer.type == type) then
       table.insert(t, layer)
     end
   end
@@ -55,8 +56,8 @@ end
 
 local function createTileQuads()
   local quads = {}
-  for i = 1, #layers do
-    local currentLayer = layers[i]
+  for i = 1, #tileLayers do
+    local currentLayer = tileLayers[i]
 
     for j = 1, currentLayer.height * currentLayer.width do
       local tileID = currentLayer.data[j]
@@ -76,7 +77,8 @@ function love.load(args)
 
   extractTileInfos()
 
-  layers = extractTileLayers()
+  tileLayers = extractMapLayers("tilelayer")
+  objectLayers = extractMapLayers("objectgroup")
   tileQuads = createTileQuads()
   tileQuads[0] = true
 end
