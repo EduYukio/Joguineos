@@ -31,22 +31,39 @@ function love.load(args)
   columns = tileSet.columns
 
   for i = 1, layerHeight*layerWidth do
+  -- for i = 10, 10 do
     local tileID = currentLayer.data[i]
-    -- local lines = map.tilesets[0].tilecount/columns
 
     if(not quads[tileID]) then
-      -- print("criou quad")
-      local x0 = tileWidth * (tileID - 1)%columns
-      local y0 = tileHeight * math.floor((tileID-1)/columns)
-      local x1 = x0 + tileWidth
-      local y1 = y0 + tileHeight
+      -- print("criou o quad "..tileID)
 
-      quads[tileID] = love.graphics.newQuad(x0,y0, x1, y1, tileSheet:getDimensions())
+      local x0 = tileWidth * ((tileID - 1)%columns)
+      local y0 = tileHeight * math.floor((tileID-1)/columns)
+
+      quads[tileID] = love.graphics.newQuad(x0,y0, tileWidth, tileHeight, tileSheet:getDimensions())
     end
   end
 end
 
 
 function love.draw()
-	love.graphics.print(map.luaversion, 200, 200)
+  -- print(map.tilesets[1])
+  -- currentLayer = map.layers[1] --L00
+
+  -- love.graphics.draw(tileSheet, quads[2], 200, 200)
+  love.graphics.scale(0.5,0.5)
+
+  for j = 1, layerHeight*layerWidth do
+    local tileID = currentLayer.data[j]
+    if(tileID ~= 0) then
+      -- print(tileID)
+      local x = (j-1)%columns
+      local y = math.floor((j-1)/columns)
+      local z = currentLayer.offsety
+
+      local xMonitor = (x-y)*(tileWidth/2)
+      local yMonitor = (x+y)*(tileHeight/4) + z
+      love.graphics.draw(tileSheet, quads[tileID], xMonitor, yMonitor)
+    end
+  end
 end
