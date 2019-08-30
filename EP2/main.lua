@@ -13,6 +13,13 @@ local tileWidth
 local columns
 local layers
 
+local function worldToScreenCoords(x, y, z)
+  local xScreen = (x - y) * (tileWidth / 2)
+  local yScreen = (x + y) * (tileHeight / 4) + z
+
+  return xScreen, yScreen
+end
+
 function love.load(args)
   local mapName = args[1]
   local mapFile = love.filesystem.load("maps/".. mapName ..".lua")
@@ -65,10 +72,9 @@ function love.draw()
         local y = math.floor((j - 1) / layerHeight)
         local z = currentLayer.offsety
 
-        local xMonitor = (x - y) * (tileWidth / 2)
-        local yMonitor = (x + y) * (tileHeight / 4) + z
-        love.graphics.draw(tileSheet, quads[tileID], xMonitor, yMonitor)
+        love.graphics.draw(tileSheet, quads[tileID], worldToScreenCoords(x,y,z))
       end
     end
   end
 end
+
