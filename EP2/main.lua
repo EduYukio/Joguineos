@@ -31,12 +31,9 @@ function love.load(args)
   columns = tileSet.columns
 
   for i = 1, layerHeight*layerWidth do
-  -- for i = 10, 10 do
     local tileID = currentLayer.data[i]
 
     if(not quads[tileID]) then
-      -- print("criou o quad "..tileID)
-
       local x0 = tileWidth * ((tileID - 1)%columns)
       local y0 = tileHeight * math.floor((tileID-1)/columns)
 
@@ -47,24 +44,15 @@ end
 
 
 function love.draw()
-  -- print(map.tilesets[1])
-  -- currentLayer = map.layers[1] --L00
-
-  -- love.graphics.draw(tileSheet, quads[2], 200, 200)
   love.graphics.translate(550,50)
   love.graphics.scale(0.5,0.5)
 
   for j = 1, layerHeight*layerWidth do
     local tileID = currentLayer.data[j]
     if(tileID ~= 0) then
-      -- print(tileID)
       local x = (j-1)%layerWidth
       local y = math.floor((j-1)/layerHeight
         )
-      -- print("j: "..j)
-      -- print("x: "..x)
-      -- print("y: "..y)
-      -- print("")
 
       local z = currentLayer.offsety
 
