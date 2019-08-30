@@ -51,14 +51,21 @@ function love.draw()
   -- currentLayer = map.layers[1] --L00
 
   -- love.graphics.draw(tileSheet, quads[2], 200, 200)
+  love.graphics.translate(550,50)
   love.graphics.scale(0.5,0.5)
 
   for j = 1, layerHeight*layerWidth do
     local tileID = currentLayer.data[j]
     if(tileID ~= 0) then
       -- print(tileID)
-      local x = (j-1)%columns
-      local y = math.floor((j-1)/columns)
+      local x = (j-1)%layerWidth
+      local y = math.floor((j-1)/layerHeight
+        )
+      -- print("j: "..j)
+      -- print("x: "..x)
+      -- print("y: "..y)
+      -- print("")
+
       local z = currentLayer.offsety
 
       local xMonitor = (x-y)*(tileWidth/2)
