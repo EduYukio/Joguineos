@@ -1,17 +1,13 @@
 --luacheck: globals love
 
 local map
-local tileSheet
+local layers
 
-local quads
-local currentLayer
-local layerHeight
-local layerWidth
-local tileSet
+local tileQuads
+local tileSheet
 local tileHeight
 local tileWidth
-local columns
-local layers
+local tileColumns
 
 local function worldToScreenCoords(x, y, z)
   local xScreen = (x - y) * (tileWidth / 2)
@@ -20,61 +16,75 @@ local function worldToScreenCoords(x, y, z)
   return xScreen, yScreen
 end
 
-function love.load(args)
-  local mapName = args[1]
-  local mapFile = love.filesystem.load("maps/".. mapName ..".lua")
-  map = mapFile()
-
-  tileSheet = love.graphics.newImage("maps/tilesheet_complete.png")
-
-  layers = {}
-  for _, layer in ipairs(map.layers) do
-    if(layer.type == "tilelayer") then
-      table.insert(layers, layer)
-    end
-  end
-
-  tileSet = map.tilesets[1]
-  tileHeight = tileSet.tileheight
-  tileWidth = tileSet.tilewidth
-  columns = tileSet.columns
-
-  quads = {}
-  quads[0] = true
+local function drawTileLayers()
   for i = 1, #layers do
-    currentLayer = layers[i]
-    layerHeight = currentLayer.height
-    layerWidth = currentLayer.width
+    local currentLayer = layers[i]
 
-    for j = 1, layerHeight * layerWidth do
+    for j = 1, currentLayer.height * currentLayer.width do
       local tileID = currentLayer.data[j]
+      if(tileID ~= 0) then
+        local x = (j - 1) % currentLayer.width
+        local y = math.floor((j - 1) / currentLayer.height)
+        local z = currentLayer.offsety
 
-      if(not quads[tileID]) then
-        local x0 = tileWidth * ((tileID - 1) % columns)
-        local y0 = tileHeight * math.floor((tileID - 1) / columns)
-
-        quads[tileID] = love.graphics.newQuad(x0, y0, tileWidth, tileHeight, tileSheet:getDimensions())
+        love.graphics.draw(tileSheet, tileQuads[tileID], worldToScreenCoords(x,y,z))
       end
     end
   end
+end
+
+local function extractTileLayers()
+  local t = {}
+  for _, layer in ipairs(map.layers) do
+    if(layer.type == "tilelayer") then
+      table.insert(t, layer)
+    end
+  end
+
+  return t
+end
+
+local function extractTileInfos()
+  tileSheet = love.graphics.newImage("maps/tilesheet_complete.png")
+  local tileSet = map.tilesets[1]
+
+  tileHeight = tileSet.tileheight
+  tileWidth = tileSet.tilewidth
+  tileColumns = tileSet.columns
+end
+
+local function createTileQuads()
+  local quads = {}
+  for i = 1, #layers do
+    local currentLayer = layers[i]
+
+    for j = 1, currentLayer.height * currentLayer.width do
+      local tileID = currentLayer.data[j]
+      if(not quads[tileID]) then
+        quads[tileID] = love.graphics.newQuad(
+          tileWidth * ((tileID - 1) % tileColumns),
+          tileHeight * math.floor((tileID - 1) / tileColumns),
+          tileWidth, tileHeight, tileSheet:getDimensions())
+      end
+    end
+  end
+  return quads
+end
+
+function love.load(args)
+  map = love.filesystem.load("maps/".. args[1] ..".lua")()
+
+  extractTileInfos()
+
+  layers = extractTileLayers()
+  tileQuads = createTileQuads()
+  tileQuads[0] = true
 end
 
 function love.draw()
   love.graphics.translate(550,120)
   love.graphics.scale(0.5,0.5)
 
-  for i = 1, #layers do
-    currentLayer = layers[i]
-    for j = 1, layerHeight * layerWidth do
-      local tileID = currentLayer.data[j]
-      if(tileID ~= 0) then
-        local x = (j - 1) % layerWidth
-        local y = math.floor((j - 1) / layerHeight)
-        local z = currentLayer.offsety
-
-        love.graphics.draw(tileSheet, quads[tileID], worldToScreenCoords(x,y,z))
-      end
-    end
-  end
+  drawTileLayers()
 end
 
