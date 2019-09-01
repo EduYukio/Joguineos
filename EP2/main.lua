@@ -20,15 +20,15 @@ local tileFloorWidth
 local tileFloorHeight
 
 local function worldToScreenCoords(x, y, z, offX, offY)
-  local xScreen = (x - y) * (tileFloorWidth / 2) + offX
-  local yScreen = (x + y) * (tileFloorHeight / 2) + z + offY
+  local xScreen = (x - y)*(tileFloorWidth/2) + offX
+  local yScreen = (x + y)*(tileFloorHeight/2) + z + offY
 
   return xScreen, yScreen
 end
 
 local function calculateQuadStartCoord(id, width, height, columns)
-    local x0 = width * ((id - 1) % columns)
-    local y0 = height * math.floor((id - 1) / columns)
+    local x0 = width*((id - 1)%columns)
+    local y0 = height*math.floor((id - 1)/columns)
 
     return x0, y0
 end
@@ -46,14 +46,14 @@ local function drawTileLayers()
   for i = 1, #tileLayers do
     local currentLayer = tileLayers[i]
 
-    for j = 1, currentLayer.height * currentLayer.width do
+    for j = 1, currentLayer.height*currentLayer.width do
       local tileID = currentLayer.data[j]
-      if(tileID ~= 0) then
-        local x = (j - 1) % currentLayer.width
-        local y = math.floor((j - 1) / currentLayer.height)
+      if (tileID ~= 0) then
+        local x = (j - 1)%currentLayer.width
+        local y = math.floor((j - 1)/currentLayer.height)
         local z = currentLayer.offsety
 
-        love.graphics.draw(tileSheet, tileQuads[tileID], worldToScreenCoords(x,y,z,0,0))
+        love.graphics.draw(tileSheet, tileQuads[tileID], worldToScreenCoords(x, y, z, 0, 0))
       end
     end
   end
@@ -74,9 +74,9 @@ end
 local function extractSprites(objectLayer)
   local t = {}
 
-  for _, layer in ipairs(objectLayer.objects) do
-    if(layer.type == "sprite") then
-      table.insert(t, layer)
+  for _, object in ipairs(objectLayer.objects) do
+    if(object.type == "sprite") then
+      table.insert(t, object)
     end
   end
 
@@ -95,9 +95,29 @@ local function extractFrames(sprite)
   return t
 end
 
+local function loadSpriteSheet(sprite)
+  if(not spriteSheets[sprite.name]) then
+    spriteSheets[sprite.name] = love.graphics.newImage("chars/".. sprite.name ..".png")
+  end
+end
+
+local function createFrameQuads(sprite, spriteSheet, quads)
+  local frameTable = extractFrames(sprite)
+
+  for frame = 1, #frameTable do
+    local spriteWidth, spriteHeight = calculateQuadDimensions(sprite, spriteSheet)
+
+    local x0, y0 = calculateQuadStartCoord(frameTable[frame], spriteWidth, spriteHeight, sprite.properties.columns)
+
+    local newQuad = love.graphics.newQuad(x0, y0, spriteWidth, spriteHeight, spriteSheet:getDimensions())
+
+    table.insert(quads[sprite.id], newQuad)
+  end
+end
+
 local function extractTileInfos()
-  tileSheet = love.graphics.newImage("maps/tilesheet_complete.png")
   local tileSet = map.tilesets[1]
+  tileSheet = love.graphics.newImage("maps/"..tileSet.image)
 
   tileHeight = tileSet.tileheight
   tileWidth = tileSet.tilewidth
@@ -112,9 +132,9 @@ local function createTileQuads()
   for i = 1, #tileLayers do
     local currentLayer = tileLayers[i]
 
-    for j = 1, currentLayer.height * currentLayer.width do
+    for j = 1, currentLayer.height*currentLayer.width do
       local tileID = currentLayer.data[j]
-      if(not quads[tileID]) then
+      if (not quads[tileID]) then
         local x0, y0 = calculateQuadStartCoord(tileID, tileWidth, tileHeight, tileColumns)
         quads[tileID] = love.graphics.newQuad(x0, y0, tileWidth, tileHeight, tileSheet:getDimensions())
       end
@@ -125,31 +145,19 @@ end
 
 local function createSpriteQuads()
   local quads = {}
-
   for i = 1, #objectLayers do
     local currentLayer = objectLayers[i]
     local sprites = extractSprites(currentLayer)
+
     for j = 1, #sprites do
       local sprite = sprites[j]
-      if(not spriteSheets[sprite.name]) then
-        spriteSheets[sprite.name] = love.graphics.newImage("chars/".. sprite.name ..".png")
-      end
+      loadSpriteSheet(sprite)
       local spriteSheet = spriteSheets[sprite.name]
-
-      local frameTable = extractFrames(sprite)
-
       quads[sprite.id] = {}
-      for k = 1, #frameTable do
-        local spriteWidth, spriteHeight = calculateQuadDimensions(sprite, spriteSheet)
-        local x0, y0 = calculateQuadStartCoord(frameTable[k], spriteWidth, spriteHeight, sprite.properties.columns)
 
-        local newQuad = love.graphics.newQuad(x0, y0, spriteWidth, spriteHeight, spriteSheet:getDimensions())
-
-        table.insert(quads[sprite.id], newQuad)
-      end
+      createFrameQuads(sprite, spriteSheet, quads)
     end
   end
-
   return quads
 end
 
@@ -166,6 +174,7 @@ local function drawSprite(sprite, layerOffset)
     currentFrame = 1
     spriteQuad = spriteQuads[sprite.id][currentFrame]
   end
+
   love.graphics.draw(spriteSheet, spriteQuad, worldToScreenCoords(x, y, layerOffset, offX, offY))
 end
 
@@ -191,16 +200,15 @@ function love.load(args)
   objectLayers = extractMapLayers("objectgroup")
 
   tileQuads = createTileQuads()
-  tileQuads[0] = true
 
   spriteSheets = {}
   spriteQuads = createSpriteQuads()
 end
 
 function love.draw()
+  love.graphics.setBackgroundColor(1/255, 253/255, 254/255, 1)
   love.graphics.translate(550,20)
   -- love.graphics.scale(0.75,0.75)
-  love.graphics.setBackgroundColor( 1/255, 253/255, 254/255, 1)
 
   drawTileLayers()
   drawObjectLayers()
@@ -210,8 +218,8 @@ local dtotal = 0
 function love.update(dt)
   dtotal = dtotal + dt
   if dtotal >= 1/animationFPS then
-    dtotal = dtotal - 1/animationFPS
     currentFrame = currentFrame + 1
+    dtotal = dtotal - 1/animationFPS
   end
 end
 
