@@ -8,6 +8,9 @@ local tileQuads
 local spriteQuads
 local spriteSheets
 
+local animationFPS = 10
+local currentFrame = 1
+
 local tileSheet
 local tileHeight
 local tileWidth
@@ -134,6 +137,7 @@ local function createSpriteQuads()
       local spriteSheet = spriteSheets[sprite.name]
 
       local frameTable = extractFrames(sprite)
+
       quads[sprite.id] = {}
       for k = 1, #frameTable do
         local spriteWidth, spriteHeight = calculateQuadDimensions(sprite, spriteSheet)
@@ -157,7 +161,12 @@ local function drawSprite(sprite, layerOffset)
   local offX = sprite.properties.offsetx
   local offY = sprite.properties.offsety
 
-  love.graphics.draw(spriteSheet, spriteQuads[sprite.id][4], worldToScreenCoords(x,y,layerOffset, offX, offY))
+  local spriteQuad = spriteQuads[sprite.id][currentFrame]
+  if(not spriteQuad) then
+    currentFrame = 1
+    spriteQuad = spriteQuads[sprite.id][currentFrame]
+  end
+  love.graphics.draw(spriteSheet, spriteQuad, worldToScreenCoords(x, y, layerOffset, offX, offY))
 end
 
 local function drawObjectLayers()
@@ -184,17 +193,25 @@ function love.load(args)
   tileQuads = createTileQuads()
   tileQuads[0] = true
 
-
   spriteSheets = {}
   spriteQuads = createSpriteQuads()
 end
 
 function love.draw()
-  love.graphics.translate(550,120)
-  love.graphics.scale(0.75,0.75)
+  love.graphics.translate(550,20)
+  -- love.graphics.scale(0.75,0.75)
   love.graphics.setBackgroundColor( 1/255, 253/255, 254/255, 1)
 
   drawTileLayers()
   drawObjectLayers()
+end
+
+local dtotal = 0
+function love.update(dt)
+  dtotal = dtotal + dt
+  if dtotal >= 1/animationFPS then
+    dtotal = dtotal - 1/animationFPS
+    currentFrame = currentFrame + 1
+  end
 end
 
