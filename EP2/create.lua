@@ -17,11 +17,12 @@ end
 function Create.frameQuads(sprite, spriteSheet, quads)
   local frameTable = Extract.frames(sprite)
   for frame = 1, #frameTable do
-    local spriteWidth, spriteHeight = Calculate.quadDimensions(sprite, spriteSheet)
+    local spriteWidth, spriteHeight =
+      Calculate.quadDimensions(sprite, spriteSheet)
 
-    local x0, y0 = Calculate.quadCoords(frameTable[frame],
-                                   spriteWidth, spriteHeight,
-                                   sprite.properties.columns)
+    local x0, y0 =
+      Calculate.quadCoords(frameTable[frame], spriteWidth, spriteHeight,
+                           sprite.properties.columns)
 
     local newQuad =
       love.graphics.newQuad(x0, y0, spriteWidth, spriteHeight,

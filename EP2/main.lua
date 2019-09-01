@@ -5,13 +5,10 @@ local Create = require "create"
 local Draw = require "draw"
 
 local map
-
-local tileLayers
 local objectLayers
-
+local tileLayers
 local tileQuads
 local spriteQuads
-
 local tileData
 
 local function extractTileData()

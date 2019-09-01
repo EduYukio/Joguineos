@@ -3,10 +3,9 @@
 local Draw = {}
 
 local currentFrame = 1
-local animationFPS = 10
+local animationFPS = 1
 local tileFloorWidth
 local tileFloorHeight
-
 
 local function worldToScreenCoords(x, y, z, offX, offY)
   local xScreen = (x - y)*(tileFloorWidth/2) + offX
@@ -16,11 +15,9 @@ local function worldToScreenCoords(x, y, z, offX, offY)
 end
 
 function Draw.tileLayers(tileData)
-	tileFloorWidth = tileData.tileFloorWidth
-	tileFloorHeight = tileData.tileFloorHeight
+	tileFloorWidth, tileFloorHeight = tileData.tileFloorWidth, tileData.tileFloorHeight
   for i = 1, #tileData.tileLayers do
     local currentLayer = tileData.tileLayers[i]
-
     for j = 1, currentLayer.height*currentLayer.width do
       local tileID = currentLayer.data[j]
       if (tileID ~= 0) then
@@ -43,6 +40,7 @@ function Draw.sprite(sprite, spriteQuads, spriteSheets, layerOffset)
   local offX = sprite.properties.offsetx
   local offY = sprite.properties.offsety
 
+  animationFPS = sprite.properties.fps
   local spriteQuad = spriteQuads[sprite.id][currentFrame]
   if (not spriteQuad) then
     currentFrame = 1
