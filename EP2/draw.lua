@@ -15,7 +15,7 @@ local function worldToScreenCoords(x, y, z, offX, offY)
 end
 
 function Draw.tileLayers(tileData)
-	tileFloorWidth, tileFloorHeight = tileData.tileFloorWidth, tileData.tileFloorHeight
+  tileFloorWidth, tileFloorHeight = tileData.tileFloorWidth, tileData.tileFloorHeight
   for i = 1, #tileData.tileLayers do
     local currentLayer = tileData.tileLayers[i]
     for j = 1, currentLayer.height*currentLayer.width do
@@ -34,21 +34,25 @@ end
 
 function Draw.sprite(sprite, spriteQuads, spriteSheets, layerOffset)
   local spriteSheet = spriteSheets[sprite.name]
-
   local x = sprite.x/sprite.width
   local y = sprite.y/sprite.height
   local offX = sprite.properties.offsetx
   local offY = sprite.properties.offsety
-
   animationFPS = sprite.properties.fps
   local spriteQuad = spriteQuads[sprite.id][currentFrame]
   if (not spriteQuad) then
     currentFrame = 1
     spriteQuad = spriteQuads[sprite.id][currentFrame]
   end
-
-  love.graphics.draw(spriteSheet, spriteQuad,
-                     worldToScreenCoords(x, y, layerOffset, offX, offY))
+  local xScale = 1
+  local flipOffset = 0
+  local quadWidth = select(3, spriteQuad:getViewport())
+  if (sprite.properties.flip) then
+    xScale = -1
+    flipOffset = quadWidth
+  end
+  local xScreen,yScreen = worldToScreenCoords(x, y, layerOffset, offX, offY)
+  love.graphics.draw(spriteSheet, spriteQuad, xScreen, yScreen, 0, xScale, 1, flipOffset)
 end
 
 function Draw.objectLayers(objectLayers, spriteQuads, spriteSheets)

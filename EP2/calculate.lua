@@ -1,9 +1,9 @@
 local Calculate = {}
 
 function Calculate.tileQuadCoords(id, tileData)
-	local width = tileData.tileWidth
-	local height = tileData.tileHeight
-	local columns = tileData.tileColumns
+  local width = tileData.tileWidth
+  local height = tileData.tileHeight
+  local columns = tileData.tileColumns
 
   local x0 = width*((id - 1)%columns)
   local y0 = height*math.floor((id - 1)/columns)
