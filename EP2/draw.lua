@@ -32,27 +32,34 @@ function Draw.tileLayers(tileData)
   end
 end
 
+local function drawQuad(quad, flip, x, y, spriteSheet, offSets)
+  local xScreen, yScreen =
+    worldToScreenCoords(x, y, offSets.z, offSets.x, offSets.y)
+
+  if (flip) then
+    local quadWidth = select(3, quad:getViewport())
+    love.graphics.draw(spriteSheet, quad, xScreen, yScreen, 0, -1, 1, quadWidth)
+  else
+    love.graphics.draw(spriteSheet, quad, xScreen, yScreen)
+  end
+end
+
 function Draw.sprite(sprite, spriteQuads, spriteSheets, layerOffset)
   local spriteSheet = spriteSheets[sprite.name]
   local x = sprite.x/sprite.width
   local y = sprite.y/sprite.height
-  local offX = sprite.properties.offsetx
-  local offY = sprite.properties.offsety
   animationFPS = sprite.properties.fps
   local spriteQuad = spriteQuads[sprite.id][currentFrame]
   if (not spriteQuad) then
     currentFrame = 1
     spriteQuad = spriteQuads[sprite.id][currentFrame]
   end
-  local xScale = 1
-  local flipOffset = 0
-  local quadWidth = select(3, spriteQuad:getViewport())
-  if (sprite.properties.flip) then
-    xScale = -1
-    flipOffset = quadWidth
-  end
-  local xScreen,yScreen = worldToScreenCoords(x, y, layerOffset, offX, offY)
-  love.graphics.draw(spriteSheet, spriteQuad, xScreen, yScreen, 0, xScale, 1, flipOffset)
+  local offSets = {
+    x = sprite.properties.offsetx,
+    y = sprite.properties.offsety,
+    z = layerOffset
+  }
+  drawQuad(spriteQuad, sprite.properties.flip, x, y, spriteSheet, offSets)
 end
 
 function Draw.objectLayers(objectLayers, spriteQuads, spriteSheets)
