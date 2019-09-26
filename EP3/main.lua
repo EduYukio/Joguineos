@@ -24,7 +24,12 @@ function love.load(args)
   end
 end
 
-function love.update(dt)
-  print(entities[1].name)
-  print(entities[1].properties.control.acceleration)
+-- function love.update(dt)
+--   print(entities[1].name)
+--   print(entities[1].properties.control.acceleration)
+-- end
+
+function love.draw()
+  love.graphics.translate(1280/2, 600/2)
+  love.graphics.circle("line", 0, 0, 1000)
 end
