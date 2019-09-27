@@ -5,7 +5,7 @@ class = require "class"
 class.Field()
 
 function Field:_init() -- luacheck: ignore
-  -- self.name = name
+  self.strength = 1
 end
 
 function Field:update() -- luacheck: ignore

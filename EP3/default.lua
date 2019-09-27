@@ -1,4 +1,4 @@
-local Vec = require 'class' ()
+local Vec = require 'common/vec' ()
 
 return {
   position = {

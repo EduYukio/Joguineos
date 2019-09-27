@@ -5,7 +5,7 @@ class = require "class"
 class.Body()
 
 function Body:_init() -- luacheck: ignore
-  -- self.name = name
+  self.size = 8
 end
 
 function Body:update() -- luacheck: ignore
