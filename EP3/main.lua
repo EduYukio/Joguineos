@@ -100,18 +100,19 @@ function love.draw()
 
   -- love.graphics.scale(0.3,0.3)
 
-  love.graphics.setColor(1, 1, 1)
-  love.graphics.circle("line", 0, 0, 1000)
-
   for _, entity in ipairs(entities) do
+    local x, y = entity.position.point:get()
     if(entity.name == "player") then
+      love.graphics.translate(-x, -y)
+
       love.graphics.setColor(1, 1, 1)
-      local x, y = entity.position.point:get()
-      love.graphics.polygon('fill', x-3, y-4, x+3, y-4, x+0, y+6)
+      love.graphics.polygon('fill', x - 3, y - 4, x + 3, y - 4, x + 0, y + 6)
     else
       love.graphics.setColor(0, 1, 0)
-      local xPos, yPos = entity.position.point:get()
-      love.graphics.circle("line", xPos, yPos, 8)
+      love.graphics.circle("line", x, y, 8)
     end
   end
+
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.circle("line", 0, 0, 1000)
 end

@@ -20,9 +20,8 @@ function Control:_init(acceleration, max_speed) -- luacheck: ignore
   end
 end
 
-local direction
 local function handleInput()
-  direction = Vec(0,0)
+  local direction = Vec(0,0)
 
   if love.keyboard.isDown("up") then
     direction.y = -1
