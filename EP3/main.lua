@@ -1,11 +1,13 @@
 --luacheck: globals love class
 
 local scene
+local inputHandler
 local entities = {}
 
 class = require "class"
 local Vec = require 'common/vec'
 
+require "component/inputHandler"
 require "component/position"
 require "component/movement"
 require "component/body"
@@ -52,6 +54,7 @@ function love.load(args)
   math.randomseed(os.time())
 
   scene = love.filesystem.load("scene/" .. args[1] .. ".lua")()
+  inputHandler = InputHandler() -- luacheck: ignore
 
   for i = 1, #scene do
     for _ = 1, scene[i].n do
@@ -76,8 +79,9 @@ function love.update(dt)
       currentMotion = entity.movement.motion
     end
 
+    local direction = inputHandler:update()
     if entity.control then
-      updatedMotion = entity.control:update(dt, currentMotion)
+      updatedMotion = entity.control:update(dt, currentMotion, direction)
     end
 
     if entity.position then

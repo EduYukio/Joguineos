@@ -1,10 +1,7 @@
 --luacheck: globals love class
 
-
 class = require "class"
 class.Control()
-
-local Vec = require 'common/vec'
 
 function Control:_init(acceleration, max_speed) -- luacheck: ignore
   if not acceleration then
@@ -20,32 +17,8 @@ function Control:_init(acceleration, max_speed) -- luacheck: ignore
   end
 end
 
-local function handleInput()
-  local direction = Vec(0,0)
-
-  if love.keyboard.isDown("up") then
-    direction.y = -1
-  end
-
-  if love.keyboard.isDown("down") then
-    direction.y = 1
-  end
-
-  if love.keyboard.isDown("left") then
-    direction.x = -1
-  end
-
-  if love.keyboard.isDown("right") then
-    direction.x = 1
-  end
-
-  return direction
-end
-
-function Control:update(dt, v0) -- luacheck: ignore
-  local i = handleInput()
-
-  local v = i*(self.acceleration*dt) + v0
+function Control:update(dt, v0, direction) -- luacheck: ignore
+  local v = direction*(self.acceleration*dt) + v0
 
   v:clamp(self.max_speed)
 
