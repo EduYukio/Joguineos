@@ -7,7 +7,6 @@ local Vec = require 'common/vec'
 
 function Position:_init(point) -- luacheck: ignore
   if not point then
-    -- self.point = Vec(0,0)
     local randomX = math.random(-900, 900)
 
     local maxY = math.sqrt(900^2 - randomX^2)
@@ -19,5 +18,8 @@ function Position:_init(point) -- luacheck: ignore
   end
 end
 
-function Position:update() -- luacheck: ignore
+function Position:update(x) -- luacheck: ignore
+  if x then
+    self.point = x
+  end
 end
