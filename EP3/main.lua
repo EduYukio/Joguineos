@@ -2,7 +2,10 @@
 
 local InputHandler = require "component/inputHandler"
 local Entity = require "entity/entity"
+
 local Calculate = require "common/calculate"
+local Update = require "common/update"
+local Get = require "common/get"
 
 local pointingAngle = 0
 local entities = {}
@@ -26,51 +29,45 @@ end
 
 function love.update(dt)
   for _, entity in ipairs(entities) do
-    local updatedMotion
-    local updatedPosition
-    local currentMotion
-    local currentPosition
-
-    if entity.movement then
-      currentMotion = entity.movement.motion
-    end
-
     direction = InputHandler.update()
-    if entity.control then
-      updatedMotion = entity.control:update(dt, currentMotion, direction)
-    end
 
-    if entity.position then
-      currentPosition = entity.position.point
-    end
+    local currentMotion = Get.currentMotion(entity)
+    local newMotion = Update.control(entity, dt, currentMotion, direction)
 
-    if entity.movement then
-      updatedPosition = entity.movement:update(dt, updatedMotion, currentPosition)
-    end
+    local currentPosition = Get.currentPosition(entity)
+    local newPosition = Update.movement(entity, dt, newMotion, currentPosition)
 
-    if entity.position then
-      entity.position:update(updatedPosition)
-    end
-
-    if entity.body then
-      entity.body:update(entity, entities)
-    end
+    Update.position(entity, newPosition)
+    Update.body(entity, entities)
   end
 end
 
-local function rotatePlayerToFaceDirection(x, y)
+local function rotateToFaceDirection(x, y)
   pointingAngle = Calculate.pointingAngle(direction, pointingAngle)
-  local triangleVertexes = {x - 3, y - 4, x + 3, y - 4, x + 0, y + 6}
-  love.graphics.push()
-
   love.graphics.translate(x - 1.5, y - 2)
   love.graphics.rotate(pointingAngle)
   love.graphics.translate(-x + 1.5, -y + 2)
+end
 
+local function drawPlayer(x, y)
+  local triangleVertexes = {x - 3, y - 4, x + 3, y - 4, x + 0, y + 6}
+
+  love.graphics.push()
+
+  rotateToFaceDirection(x, y)
   love.graphics.setColor(1, 1, 1)
   love.graphics.polygon('fill', triangleVertexes)
 
   love.graphics.pop()
+end
+
+local function drawNonPlayerEntities(entity, x, y)
+  love.graphics.setColor(0, 1, 0)
+  if entity.body then
+    love.graphics.circle("fill", x, y, entity.body.size)
+  else
+    love.graphics.circle("line", x, y, 8)
+  end
 end
 
 function love.draw()
@@ -81,14 +78,9 @@ function love.draw()
     local x, y = entity.position.point:get()
     if entity.name == "player" then
       love.graphics.translate(-x, -y)
-      rotatePlayerToFaceDirection(x, y)
+      drawPlayer(x, y)
     else
-      love.graphics.setColor(0, 1, 0)
-      if entity.body then
-        love.graphics.circle("fill", x, y, entity.body.size)
-      else
-        love.graphics.circle("line", x, y, 8)
-      end
+      drawNonPlayerEntities(entity, x, y)
     end
   end
 

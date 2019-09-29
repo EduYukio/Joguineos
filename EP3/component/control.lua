@@ -16,8 +16,8 @@ function Control:_init(acceleration, max_speed)
   end
 end
 
-function Control:update(dt, v0, direction)
-  local v = direction*(self.acceleration*dt) + v0
+function Control:update(dt, currentMotion, direction)
+  local v = direction*(self.acceleration*dt) + currentMotion
 
   v:clamp(self.max_speed)
 
