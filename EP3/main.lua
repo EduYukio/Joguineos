@@ -1,46 +1,13 @@
 --luacheck: globals love
 
+local InputHandler = require "component/inputHandler"
 local Entity = require "entity/entity"
+local Auxiliary = require "common/auxiliary"
 
-local scene
-local direction
 local pointingAngle = 0
 local entities = {}
-
-local InputHandler = require "component/inputHandler"
-local function calculatePointingAngle(previousAngle)
-  local x, y = direction:get()
-  local angle = 0
-  local step = math.pi/4
-
-  if x == -1 then
-    if y == 1 then
-      angle = step
-    elseif y == 0 then
-      angle = 2*step
-    elseif y == -1 then
-      angle = 3*step
-    end
-  elseif x == 0 then
-    if y == 1 then
-      angle = 0
-    elseif y == 0 then
-      angle = previousAngle
-    elseif y == -1 then
-      angle = 4*step
-    end
-  elseif x == 1 then
-    if y == 1 then
-      angle = -1*step
-    elseif y == 0 then
-      angle = -2*step
-    elseif y == -1 then
-      angle = -3*step
-    end
-  end
-
-  return angle
-end
+local direction
+local scene
 
 
 function love.load(args)
@@ -98,8 +65,6 @@ end
 function love.draw()
   love.graphics.translate(1280/2, 600/2)
 
-  -- love.graphics.scale(0.3,0.3)
-
   for _, entity in ipairs(entities) do
     local x, y = entity.position.point:get()
     if(entity.name == "player") then
@@ -108,7 +73,7 @@ function love.draw()
 
       love.graphics.push()
       love.graphics.translate(x - 1.5, y - 2)
-      pointingAngle = calculatePointingAngle(pointingAngle)
+      pointingAngle = Auxiliary.calculatePointingAngle(direction, pointingAngle)
       love.graphics.rotate(pointingAngle)
       love.graphics.translate(-x + 1.5, -y + 2)
       love.graphics.polygon('fill', x - 3, y - 4, x + 3, y - 4, x + 0, y + 6)
