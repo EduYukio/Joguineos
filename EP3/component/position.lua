@@ -18,8 +18,14 @@ function Position:_init(point) -- luacheck: ignore
   end
 end
 
-function Position:update(x) -- luacheck: ignore
-  if x then
-    self.point = x
+function Position:update(updatedPosition) -- luacheck: ignore
+  if updatedPosition then
+    self.point = updatedPosition
+  end
+
+  local x, y = self.point:get()
+  if x^2 + y^2 >= 1000^2 then
+    self.point.x = -x
+    self.point.y = -y
   end
 end
