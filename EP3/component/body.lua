@@ -1,12 +1,12 @@
---luacheck: globals love class
+--luacheck: globals love
 
+local Body = require "class"()
 
-class = require "class"
-class.Body()
-
-function Body:_init() -- luacheck: ignore
+function Body:_init()
   self.size = 8
 end
 
-function Body:update() -- luacheck: ignore
+function Body:update()
 end
+
+return Body

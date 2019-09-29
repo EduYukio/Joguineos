@@ -1,12 +1,12 @@
---luacheck: globals love class
+--luacheck: globals love
 
+local Charge = require "class"()
 
-class = require "class"
-class.Charge()
-
-function Charge:_init() -- luacheck: ignore
+function Charge:_init()
   self.strength = 1
 end
 
-function Charge:update() -- luacheck: ignore
+function Charge:update()
 end
+
+return Charge

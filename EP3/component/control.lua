@@ -1,9 +1,8 @@
---luacheck: globals love class
+--luacheck: globals love
 
-class = require "class"
-class.Control()
+local Control = require "class"()
 
-function Control:_init(acceleration, max_speed) -- luacheck: ignore
+function Control:_init(acceleration, max_speed)
   if not acceleration then
     self.acceleration = 0.0
   else
@@ -17,10 +16,12 @@ function Control:_init(acceleration, max_speed) -- luacheck: ignore
   end
 end
 
-function Control:update(dt, v0, direction) -- luacheck: ignore
+function Control:update(dt, v0, direction)
   local v = direction*(self.acceleration*dt) + v0
 
   v:clamp(self.max_speed)
 
   return v
 end
+
+return Control

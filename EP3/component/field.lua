@@ -1,12 +1,12 @@
---luacheck: globals love class
+--luacheck: globals love
 
+local Field = require "class"()
 
-class = require "class"
-class.Field()
-
-function Field:_init() -- luacheck: ignore
+function Field:_init()
   self.strength = 1
 end
 
-function Field:update() -- luacheck: ignore
+function Field:update()
 end
+
+return Field

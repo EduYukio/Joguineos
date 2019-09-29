@@ -1,25 +1,23 @@
---luacheck: globals love class
+--luacheck: globals love
 
 local scene
-local inputHandler
 local direction
 local pointingAngle = 0
 local entities = {}
 
-class = require "class"
 local Vec = require 'common/vec'
 
-require "component/inputHandler"
-require "component/position"
-require "component/movement"
-require "component/body"
-require "component/control"
-require "component/field"
-require "component/charge"
+local Entity = require "class"()
+local InputHandler = require "component/inputHandler"
 
-class.Entity()
+local Position = require "component/position"
+local Movement = require "component/movement"
+local Body = require "component/body"
+local Control = require "component/control"
+local Field = require "component/field"
+local Charge = require "component/charge"
 
-function Entity:_init(name, initialState) -- luacheck: ignore
+function Entity:_init(name, initialState)
   self.name = name
   self.initialState = initialState
 
@@ -27,16 +25,16 @@ function Entity:_init(name, initialState) -- luacheck: ignore
   if not position then
     self.position = nil
   elseif name == "player" then
-    self.position = Position(Vec(0,0)) -- luacheck: ignore
+    self.position = Position(Vec(0,0))
   else
-    self.position = Position(position.point) -- luacheck: ignore
+    self.position = Position(position.point)
   end
 
   local movement = initialState.movement
   if not movement then
     self.movement = nil
   else
-    self.movement = Movement(movement.motion) -- luacheck: ignore
+    self.movement = Movement(movement.motion)
   end
 
   self.body = nil
@@ -45,14 +43,12 @@ function Entity:_init(name, initialState) -- luacheck: ignore
   if not control then
     self.control = nil
   else
-    self.control = Control(control.acceleration, control.max_speed) -- luacheck: ignore
+    self.control = Control(control.acceleration, control.max_speed)
   end
 
   self.field = nil
   self.charge = nil
 end
-
-
 
 local function calculatePointingAngle(previousAngle)
   local x, y = direction:get()
@@ -94,13 +90,12 @@ function love.load(args)
   math.randomseed(os.time())
 
   scene = love.filesystem.load("scene/" .. args[1] .. ".lua")()
-  inputHandler = InputHandler() -- luacheck: ignore
 
   for i = 1, #scene do
     for _ = 1, scene[i].n do
       local name = scene[i].entity
       local initialState = require("entity/" .. name)
-      local entity = Entity(name, initialState) -- luacheck: ignore
+      local entity = Entity(name, initialState)
       table.insert(entities, entity)
     end
   end
@@ -119,7 +114,7 @@ function love.update(dt)
       currentMotion = entity.movement.motion
     end
 
-    direction = inputHandler:update()
+    direction = InputHandler.update()
     if entity.control then
       updatedMotion = entity.control:update(dt, currentMotion, direction)
     end

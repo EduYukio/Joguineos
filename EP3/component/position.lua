@@ -1,11 +1,9 @@
---luacheck: globals love class
+--luacheck: globals love
 
-class = require "class"
-class.Position()
-
+local Position = require "class"()
 local Vec = require 'common/vec'
 
-function Position:_init(point) -- luacheck: ignore
+function Position:_init(point)
   if not point then
     local randomX = math.random(-900, 900)
 
@@ -18,7 +16,7 @@ function Position:_init(point) -- luacheck: ignore
   end
 end
 
-function Position:update(updatedPosition) -- luacheck: ignore
+function Position:update(updatedPosition)
   if updatedPosition then
     self.point = updatedPosition
   end
@@ -29,3 +27,5 @@ function Position:update(updatedPosition) -- luacheck: ignore
     self.point.y = -y
   end
 end
+
+return Position

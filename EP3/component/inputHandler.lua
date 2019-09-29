@@ -1,11 +1,9 @@
---luacheck: globals love class
+--luacheck: globals love
 
-class = require "class"
-class.InputHandler()
-
+local InputHandler = require "class"()
 local Vec = require 'common/vec'
 
-function InputHandler:update() -- luacheck: ignore
+function InputHandler.update()
 	local direction = Vec(0,0)
 
   if love.keyboard.isDown("up") then
@@ -26,3 +24,5 @@ function InputHandler:update() -- luacheck: ignore
 
   return direction
 end
+
+return InputHandler
