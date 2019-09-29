@@ -3,34 +3,45 @@
 local Body = require "class"()
 
 function Body:_init(size)
-	if not size then
-	  self.size = 8
-	else
-	  self.size = size
-	end
+  if not size then
+    self.size = 8
+  else
+    self.size = size
+  end
 end
 
-local function handleCollision(entity, distance, sumOfRadiuses)
+local function handleCollision(other, distance, sumOfRadiuses)
   local intersectionLength = sumOfRadiuses - distance:length()
   local outDirection = distance:normalized()
 
-  local x2 = entity.position.point
-  entity.position.point = x2 + outDirection*intersectionLength
+  local x2 = other.position.point
+  other.position.point = x2 + outDirection*intersectionLength
 
-  local v2 = entity.movement.motion
-  entity.movement.motion = v2 - (outDirection*v2)*outDirection
+  if other.movement then
+    local v2 = other.movement.motion
+    other.movement.motion = v2 - (outDirection*v2)*outDirection
+  end
 end
 
 function Body:update(entity, entities)
-	for _, other in ipairs(entities) do
-	  local distance = entity.position.point - other.position.point
-	  local sumOfRadiuses = self.size + other.body.size
+  for _, other in ipairs(entities) do
+    if not entity.body then return end
 
-	  if distance:length() < sumOfRadiuses then
-	    handleCollision(entity, distance, sumOfRadiuses)
-	    -- return?
-	  end
-	end
+    local otherSize
+    if other.body then
+      otherSize = other.body.size
+    else
+      otherSize = 8
+    end
+
+    local sumOfRadiuses = self.size + otherSize
+    local distance = other.position.point - entity.position.point
+
+    if distance:length() < sumOfRadiuses then
+      handleCollision(other, distance, sumOfRadiuses)
+      -- return?
+    end
+  end
 end
 
 return Body
