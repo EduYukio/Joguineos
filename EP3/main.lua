@@ -9,7 +9,6 @@ local entities = {}
 local direction
 local scene
 
-
 function love.load(args)
   math.randomseed(os.time())
 
@@ -56,9 +55,6 @@ function love.update(dt)
     if entity.body then
       entity.body:update(entity, entities)
     end
-
-    if entity.field    then entity.field:update()    end
-    if entity.charge   then entity.charge:update()   end
   end
 end
 

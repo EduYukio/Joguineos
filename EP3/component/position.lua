@@ -5,7 +5,7 @@ local Vec = require 'common/vec'
 
 function Position:_init(point)
   if not point then
-    local maxRadius = 800
+    local maxRadius = 750
     local randomX = math.random(-maxRadius, maxRadius)
 
     local maxY = math.sqrt(maxRadius^2 - randomX^2)
