@@ -2,6 +2,8 @@
 
 local scene
 local inputHandler
+local direction
+local pointingAngle = 0
 local entities = {}
 
 class = require "class"
@@ -50,6 +52,44 @@ function Entity:_init(name, initialState) -- luacheck: ignore
   self.charge = nil
 end
 
+
+
+local function calculatePointingAngle(previousAngle)
+  local x, y = direction:get()
+  local angle = 0
+  local step = math.pi/4
+
+  if x == -1 then
+    if y == 1 then
+      angle = step
+    elseif y == 0 then
+      angle = 2*step
+    elseif y == -1 then
+      angle = 3*step
+    end
+  elseif x == 0 then
+    if y == 1 then
+      angle = 0
+    elseif y == 0 then
+      angle = previousAngle
+    elseif y == -1 then
+      angle = 4*step
+    end
+  elseif x == 1 then
+    if y == 1 then
+      angle = -1*step
+    elseif y == 0 then
+      angle = -2*step
+    elseif y == -1 then
+      angle = -3*step
+    end
+  end
+
+  return angle
+end
+
+
+
 function love.load(args)
   math.randomseed(os.time())
 
@@ -79,7 +119,7 @@ function love.update(dt)
       currentMotion = entity.movement.motion
     end
 
-    local direction = inputHandler:update()
+    direction = inputHandler:update()
     if entity.control then
       updatedMotion = entity.control:update(dt, currentMotion, direction)
     end
@@ -108,9 +148,15 @@ function love.draw()
     local x, y = entity.position.point:get()
     if(entity.name == "player") then
       love.graphics.translate(-x, -y)
-
       love.graphics.setColor(1, 1, 1)
+
+      love.graphics.push()
+      love.graphics.translate(x - 1.5, y - 2)
+      pointingAngle = calculatePointingAngle(pointingAngle)
+      love.graphics.rotate(pointingAngle)
+      love.graphics.translate(-x + 1.5, -y + 2)
       love.graphics.polygon('fill', x - 3, y - 4, x + 3, y - 4, x + 0, y + 6)
+      love.graphics.pop()
     else
       love.graphics.setColor(0, 1, 0)
       love.graphics.circle("line", x, y, 8)
@@ -120,3 +166,4 @@ function love.draw()
   love.graphics.setColor(1, 1, 1)
   love.graphics.circle("line", 0, 0, 1000)
 end
+
