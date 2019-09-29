@@ -2,7 +2,7 @@
 
 local InputHandler = require "component/inputHandler"
 local Entity = require "entity/entity"
-local Auxiliary = require "common/auxiliary"
+local Calculate = require "common/calculate"
 
 local pointingAngle = 0
 local entities = {}
@@ -58,22 +58,30 @@ function love.update(dt)
   end
 end
 
+local function rotatePlayerToFaceDirection(x, y)
+  pointingAngle = Calculate.pointingAngle(direction, pointingAngle)
+  local triangleVertexes = {x - 3, y - 4, x + 3, y - 4, x + 0, y + 6}
+  love.graphics.push()
+
+  love.graphics.translate(x - 1.5, y - 2)
+  love.graphics.rotate(pointingAngle)
+  love.graphics.translate(-x + 1.5, -y + 2)
+
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.polygon('fill', triangleVertexes)
+
+  love.graphics.pop()
+end
+
 function love.draw()
-  love.graphics.translate(1280/2, 600/2)
+  local screenWidth, screenHeight = love.graphics.getDimensions()
+  love.graphics.translate(screenWidth/2, screenHeight/2)
 
   for _, entity in ipairs(entities) do
     local x, y = entity.position.point:get()
-    if(entity.name == "player") then
+    if entity.name == "player" then
       love.graphics.translate(-x, -y)
-      love.graphics.setColor(1, 1, 1)
-
-      love.graphics.push()
-      love.graphics.translate(x - 1.5, y - 2)
-      pointingAngle = Auxiliary.calculatePointingAngle(direction, pointingAngle)
-      love.graphics.rotate(pointingAngle)
-      love.graphics.translate(-x + 1.5, -y + 2)
-      love.graphics.polygon('fill', x - 3, y - 4, x + 3, y - 4, x + 0, y + 6)
-      love.graphics.pop()
+      rotatePlayerToFaceDirection(x, y)
     else
       love.graphics.setColor(0, 1, 0)
       if entity.body then

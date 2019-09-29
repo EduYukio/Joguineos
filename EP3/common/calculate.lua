@@ -1,6 +1,6 @@
-local Auxiliary = {}
+local Calculate = {}
 
-function Auxiliary.calculatePointingAngle(direction, previousAngle)
+function Calculate.pointingAngle(direction, previousAngle)
   local x, y = direction:get()
   local angle = 0
   local step = math.pi/4
@@ -34,4 +34,4 @@ function Auxiliary.calculatePointingAngle(direction, previousAngle)
   return angle
 end
 
-return Auxiliary
+return Calculate
