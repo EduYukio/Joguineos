@@ -5,9 +5,10 @@ local Vec = require 'common/vec'
 
 function Position:_init(point)
   if not point then
-    local randomX = math.random(-900, 900)
+    local maxRadius = 800
+    local randomX = math.random(-maxRadius, maxRadius)
 
-    local maxY = math.sqrt(900^2 - randomX^2)
+    local maxY = math.sqrt(maxRadius^2 - randomX^2)
     local randomY = math.random(-maxY, maxY)
 
     self.point = Vec(randomX, randomY)
