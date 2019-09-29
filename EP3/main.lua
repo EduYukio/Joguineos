@@ -39,7 +39,7 @@ function Entity:_init(name, initialState)
 
   local body = initialState.body
   if not body then
-    self.body = Body()
+    self.body = nil
   else
     self.body = Body(body.size)
   end
@@ -162,7 +162,11 @@ function love.draw()
       love.graphics.pop()
     else
       love.graphics.setColor(0, 1, 0)
-      love.graphics.circle("line", x, y, 8)
+      if entity.body then
+        love.graphics.circle("fill", x, y, entity.body.size)
+      else
+        love.graphics.circle("line", x, y, 8)
+      end
     end
   end
 
