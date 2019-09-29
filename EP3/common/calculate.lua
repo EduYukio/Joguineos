@@ -1,37 +1,38 @@
 local Calculate = {}
 
+local function facingLeft(y, step)
+  if y ==  1 then return step end
+  if y ==  0 then return 2*step end
+  if y == -1 then return 3*step end
+end
+
+local function facingCenter(y, step, previousAngle)
+  if y ==  1 then return 0 end
+  if y ==  0 then return previousAngle end
+  if y == -1 then return 4*step end
+end
+
+local function facingRight(y, step)
+  if y ==  1 then return -1*step end
+  if y ==  0 then return -2*step end
+  if y == -1 then return -3*step end
+end
+
 function Calculate.pointingAngle(direction, previousAngle)
   local x, y = direction:get()
-  local angle = 0
   local step = math.pi/4
 
   if x == -1 then
-    if y == 1 then
-      angle = step
-    elseif y == 0 then
-      angle = 2*step
-    elseif y == -1 then
-      angle = 3*step
-    end
-  elseif x == 0 then
-    if y == 1 then
-      angle = 0
-    elseif y == 0 then
-      angle = previousAngle
-    elseif y == -1 then
-      angle = 4*step
-    end
-  elseif x == 1 then
-    if y == 1 then
-      angle = -1*step
-    elseif y == 0 then
-      angle = -2*step
-    elseif y == -1 then
-      angle = -3*step
-    end
+    return facingLeft(y, step)
   end
 
-  return angle
+  if x == 0 then
+    return facingCenter(y, step, previousAngle)
+  end
+
+  if x == 1 then
+    return facingRight(y, step)
+  end
 end
 
 return Calculate

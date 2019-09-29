@@ -26,6 +26,7 @@ end
 
 function Draw.nonPlayerEntities(entity, x, y)
   love.graphics.setColor(0, 1, 0)
+
   if entity.body then
     love.graphics.circle("fill", x, y, entity.body.size)
   else
