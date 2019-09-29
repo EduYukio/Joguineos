@@ -14,8 +14,6 @@ local Position = require "component/position"
 local Movement = require "component/movement"
 local Body = require "component/body"
 local Control = require "component/control"
-local Field = require "component/field"
-local Charge = require "component/charge"
 
 function Entity:_init(name, initialState)
   self.name = name
