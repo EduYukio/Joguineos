@@ -27,11 +27,9 @@ function Body:update(entity, entities)
   for _, other in ipairs(entities) do
     if not entity.body then return end
 
-    local otherSize
+    local otherSize = 8
     if other.body then
       otherSize = other.body.size
-    else
-      otherSize = 8
     end
 
     local sumOfRadiuses = self.size + otherSize
@@ -39,7 +37,6 @@ function Body:update(entity, entities)
 
     if distance:length() < sumOfRadiuses then
       handleCollision(other, distance, sumOfRadiuses)
-      -- return?
     end
   end
 end
