@@ -32,12 +32,17 @@ function Entity:_init(name, initialState)
 
   local movement = initialState.movement
   if not movement then
-    self.movement = nil
+    self.movement = Movement()
   else
     self.movement = Movement(movement.motion)
   end
 
-  self.body = nil
+  local body = initialState.body
+  if not body then
+    self.body = Body()
+  else
+    self.body = Body(body.size)
+  end
 
   local control = initialState.control
   if not control then
@@ -85,7 +90,6 @@ local function calculatePointingAngle(previousAngle)
 end
 
 
-
 function love.load(args)
   math.randomseed(os.time())
 
@@ -108,8 +112,6 @@ function love.update(dt)
     local currentMotion
     local currentPosition
 
-    if entity.body     then entity.body:update()     end
-
     if entity.movement then
       currentMotion = entity.movement.motion
     end
@@ -127,7 +129,13 @@ function love.update(dt)
       updatedPosition = entity.movement:update(dt, updatedMotion, currentPosition)
     end
 
-    if entity.position then entity.position:update(updatedPosition) end
+    if entity.position then
+      entity.position:update(updatedPosition)
+    end
+
+    if entity.body then
+      entity.body:update(entity, entities)
+    end
 
     if entity.field    then entity.field:update()    end
     if entity.charge   then entity.charge:update()   end
