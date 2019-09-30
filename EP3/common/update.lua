@@ -15,7 +15,7 @@ function Update.movement(entity, dt, newMotion, currentPosition)
 end
 
 function Update.position(entity, newPosition)
-  if entity.position then
+  if entity.position and newPosition then
     entity.position:update(newPosition)
   end
 end

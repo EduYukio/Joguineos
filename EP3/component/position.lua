@@ -17,10 +17,8 @@ function Position:_init(point)
   end
 end
 
-function Position:update(updatedPosition)
-  if updatedPosition then
-    self.point = updatedPosition
-  end
+function Position:update(newPosition)
+  self.point = newPosition
 
   local x, y = self.point:get()
   if x^2 + y^2 >= 1000^2 then
