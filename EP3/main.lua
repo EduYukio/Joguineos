@@ -1,11 +1,9 @@
 --luacheck: globals love
 
-local InputHandler = require "component/inputHandler"
 local Entity = require "entity/entity"
-
 local Update = require "common/update"
-local Get = require "common/get"
 local Draw = require "common/draw"
+local Get = require "common/get"
 
 local entities = {}
 local direction
@@ -28,7 +26,7 @@ end
 
 function love.update(dt)
   for _, entity in ipairs(entities) do
-    direction = InputHandler.update()
+    direction = Update.inputHandler(entity)
 
     local currentMotion = Get.currentMotion(entity)
     local newMotion = Update.control(entity, dt, currentMotion, direction)
@@ -44,17 +42,17 @@ end
 function love.draw()
   local screenWidth, screenHeight = love.graphics.getDimensions()
   love.graphics.translate(screenWidth/2, screenHeight/2)
-
   for _, entity in ipairs(entities) do
-    local x, y = entity.position.point:get()
-    if entity.name == "player" then
-      love.graphics.translate(-x, -y)
-      Draw.player(x, y, direction)
-    else
-      Draw.nonPlayerEntities(entity, x, y)
+    if entity.position then
+      local x, y = entity.position.point:get()
+      if entity.name == "player" then
+        love.graphics.translate(-x, -y)
+        Draw.player(x, y, direction)
+      else
+        Draw.nonPlayerEntities(entity, x, y)
+      end
     end
   end
-
   love.graphics.setColor(1, 1, 1)
   love.graphics.circle("line", 0, 0, 1000)
 end

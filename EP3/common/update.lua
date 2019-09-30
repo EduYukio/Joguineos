@@ -1,13 +1,15 @@
 local Update = {}
 
+local InputHandler = require "component/inputHandler"
+
 function Update.control(entity, dt, currentMotion, direction)
-  if entity.control then
+  if entity.control and currentMotion then
     return entity.control:update(dt, currentMotion, direction)
   end
 end
 
 function Update.movement(entity, dt, newMotion, currentPosition)
-  if entity.movement then
+  if entity.movement and newMotion and currentPosition then
     return entity.movement:update(dt, newMotion, currentPosition)
   end
 end
@@ -19,9 +21,13 @@ function Update.position(entity, newPosition)
 end
 
 function Update.body(entity, entities)
-  if entity.body then
+  if entity.body and entity.position then
     entity.body:update(entity, entities)
   end
+end
+
+function Update.inputHandler()
+  return InputHandler.update()
 end
 
 return Update

@@ -25,7 +25,7 @@ end
 
 function Body:update(entity, entities)
   for _, other in ipairs(entities) do
-    if not entity.body then return end
+    if not entity.body or not other.position then return end
 
     local otherSize = 8
     if other.body then

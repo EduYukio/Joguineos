@@ -11,14 +11,10 @@ function Movement:_init(motion)
 	end
 end
 
-function Movement:update(dt, updatedMotion, currentPosition)
-	if updatedMotion then
-		self.motion = updatedMotion
-	end
+function Movement:update(dt, newMotion, currentPosition)
+	self.motion = newMotion
 
-	local x = currentPosition + self.motion*dt
-
-	return x
+	return currentPosition + self.motion*dt
 end
 
 return Movement

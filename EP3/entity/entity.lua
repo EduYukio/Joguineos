@@ -23,9 +23,7 @@ end
 local function setMovement(initMovement)
   local movement
 
-  if not initMovement then
-    movement = Movement()
-  else
+  if initMovement then
     movement = Movement(initMovement.motion)
   end
 
@@ -35,9 +33,7 @@ end
 local function setControl(initControl)
   local control
 
-  if not initControl then
-    control = nil
-  else
+  if initControl then
     control = Control(initControl.acceleration, initControl.max_speed)
   end
 
@@ -47,9 +43,7 @@ end
 local function setBody(initBody)
   local body
 
-  if not initBody then
-    body = nil
-  else
+  if initBody then
     body = Body(initBody.size)
   end
 
