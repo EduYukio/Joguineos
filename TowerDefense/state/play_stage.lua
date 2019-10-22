@@ -59,6 +59,11 @@ end
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
   self.atlas:add(unit, pos, unit:get_appearance())
+
+  local lifeBarPos = pos:clone()
+  lifeBarPos:add(Vec(0, -22))
+  unit.lifebar = self.atlas:add({}, lifeBarPos, 'lifebar')
+
   return unit
 end
 
@@ -82,6 +87,7 @@ function PlayStageState:update(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
     sprite_instance.position:add(Vec(-1, 1) * 10 * dt)
+    monster.lifebar.position:add(Vec(-1, 1) * 10 * dt)
   end
 end
 

@@ -37,6 +37,10 @@ return {
     priest = {
       frame = { 24, 0 },
       color = 'white'
+    },
+    lifebar = {
+      frame = { 20, 15 },
+      color = 'green'
     }
   }
 }

@@ -5,6 +5,7 @@ function Unit:_init(specname)
   local spec = require('database.units.' .. specname)
   self.spec = spec
   self.hp = spec.max_hp
+  self.lifebar = nil
 end
 
 function Unit:get_name()
