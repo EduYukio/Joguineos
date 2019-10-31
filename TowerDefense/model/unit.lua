@@ -5,7 +5,11 @@ function Unit:_init(specname)
   local spec = require('database.units.' .. specname)
   self.spec = spec
   self.hp = spec.max_hp
-  self.lifebar = nil
+  self.category = spec.category
+  if self.category == "tower" then
+    self.range = spec.range
+    self.damage = spec.damage
+  end
 end
 
 function Unit:get_name()
@@ -18,6 +22,10 @@ end
 
 function Unit:get_hp()
   return self.hp, self.spec.max_hp
+end
+
+function Unit:get_category()
+  return self.category
 end
 
 return Unit
