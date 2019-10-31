@@ -56,13 +56,17 @@ function PlayStageState:_load_units()
   self.monsters = {}
 end
 
+local function createLifeBar(unit, pos, stage)
+  local lifeBarPos = pos:clone()
+  lifeBarPos:add(Vec(0, -22))
+  unit.lifebar = stage.atlas:add({}, lifeBarPos, 'lifebar')
+end
+
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
   self.atlas:add(unit, pos, unit:get_appearance())
 
-  local lifeBarPos = pos:clone()
-  lifeBarPos:add(Vec(0, -22))
-  unit.lifebar = self.atlas:add({}, lifeBarPos, 'lifebar')
+  createLifeBar(unit, pos, self)
 
   return unit
 end
