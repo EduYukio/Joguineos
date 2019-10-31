@@ -5,6 +5,7 @@ local Vec = require 'common.vec'
 local Cursor = require 'view.cursor'
 local SpriteAtlas = require 'view.sprite_atlas'
 local BattleField = require 'view.battlefield'
+local Laser = require 'view.laser'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -21,6 +22,7 @@ function PlayStageState:_init(stack)
   self.stats = nil
   self.monsters = nil
   self.towers = nil
+  self.laser = nil
 end
 
 function PlayStageState:enter(params)
@@ -32,6 +34,7 @@ end
 function PlayStageState:leave()
   self:view('bg'):remove('battlefield')
   self:view('fg'):remove('atlas')
+  self:view('fg'):remove('laser')
   self:view('bg'):remove('cursor')
   self:view('hud'):remove('stats')
 end
@@ -40,10 +43,12 @@ function PlayStageState:_load_view()
   self.battlefield = BattleField()
   self.atlas = SpriteAtlas()
   self.cursor = Cursor(self.battlefield)
+  self.laser = Laser()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 16, top))
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
+  self:view('fg'):add('laser', self.laser)
   self:view('bg'):add('cursor', self.cursor)
   self:view('hud'):add('stats', self.stats)
 end
@@ -58,17 +63,16 @@ function PlayStageState:_load_units()
   self.towers = {}
 end
 
-local function create_life_bar(unit, pos, stage)
+function PlayStageState:create_life_bar(unit, pos)
   local lifeBarPos = pos:clone()
   lifeBarPos:add(Vec(0, -22))
-  unit.lifebar = stage.atlas:add({}, lifeBarPos, 'lifebar')
+  unit.lifebar = self.atlas:add({}, lifeBarPos, 'lifebar')
 end
 
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
   self.atlas:add(unit, pos, unit:get_appearance())
-
-  create_life_bar(unit, pos, self)
+  self:create_life_bar(unit, pos)
 
   return unit
 end
@@ -108,6 +112,15 @@ function PlayStageState:find_nearest_monster(tower, monsters)
   end
 end
 
+function PlayStageState:find_target_and_add_laser(tower)
+  tower.target = self:find_nearest_monster(tower, self.monsters)
+  if tower.target then
+    local tower_position = self.atlas:get(tower).position
+    local monster_position = self.atlas:get(tower.target).position
+    self.laser:add(tower, tower_position, monster_position)
+  end
+end
+
 function PlayStageState:tower_attack(tower, dt)
   local sprite_instance = self.atlas:get(tower.target)
   sprite_instance.position:add(Vec(-1, 1) * 20 * dt)
@@ -138,16 +151,15 @@ function PlayStageState:update(dt)
   -- towers attack management
   for tower in pairs(self.towers) do
     if tower.target then
-      --verifica se ta na range e tals
       local distance = self:distance_to_monster(tower, tower.target)
       if distance > tower.range then
-        tower.target = self:find_nearest_monster(tower, self.monsters)
+        self.laser:remove(tower)
+        self:find_target_and_add_laser(tower)
       else
         self:tower_attack(tower, dt)
       end
     else
-      --procura o target mais proximo
-      tower.target = self:find_nearest_monster(tower, self.monsters)
+      self:find_target_and_add_laser(tower)
     end
   end
 end
