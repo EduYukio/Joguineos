@@ -9,7 +9,10 @@ end
 function Lifebars:add(unit, pos)
   local lifeBarsPos = pos:clone()
   lifeBarsPos:add(Vec(0, -22))
-  self.list[unit] = lifeBarsPos
+  self.list[unit] = {
+    position = lifeBarsPos,
+    x_scale = 1
+  }
 end
 
 function Lifebars:remove(unit)
@@ -17,7 +20,11 @@ function Lifebars:remove(unit)
 end
 
 function Lifebars:add_position(unit, value)
-  self.list[unit] = self.list[unit] + value
+  self.list[unit].position = self.list[unit].position + value
+end
+
+function Lifebars:x_scale(unit, value)
+  self.list[unit].x_scale = value
 end
 
 function Lifebars:draw()
@@ -26,15 +33,19 @@ function Lifebars:draw()
 
   g.setColor(0, 1, 0)
 
-  for _, lifebar_position in pairs(self.list) do
+  for _, lifebar in pairs(self.list) do
 
-    local x1, y1 = lifebar_position:get()
+    local x1, y1 = lifebar.position:get()
+    local x_scale = lifebar.x_scale
+
     local x_offset = 12
     local y_offset = 2
     x1 = x1 - x_offset
     y1 = y1 - y_offset
 
-    love.graphics.rectangle("fill", x1, y1, 24, 5)
+    local bar_width = 24*x_scale
+    local bar_height = 5
+    love.graphics.rectangle("fill", x1, y1, bar_width, bar_height)
   end
 
   g.pop()

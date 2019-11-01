@@ -76,6 +76,12 @@ function PlayStageState:_create_unit_at(specname, pos)
   return unit
 end
 
+function PlayStageState:remove_unit(unit)
+  self.lifebars:remove(unit)
+  self.atlas:remove(unit)
+  self.monsters[unit] = nil
+end
+
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
     local tower = self:_create_unit_at('warrior', Vec(self.cursor:get_position()))
@@ -120,10 +126,22 @@ function PlayStageState:find_target_and_add_laser(tower)
   end
 end
 
-function PlayStageState:tower_attack(tower, dt)
-  local sprite_instance = self.atlas:get(tower.target)
-  sprite_instance.position:add(Vec(-1, 1) * 20 * dt)
-  self.lifebars:add_position(tower.target, Vec(-1, 1) * 20 * dt)
+function PlayStageState:tower_attack(tower)
+  local monster = tower.target
+  monster.hp = monster.hp - tower.damage
+  local hp_percentage = monster.hp/monster.max_hp
+  self.lifebars:x_scale(monster, hp_percentage)
+
+  if monster.hp <= 0 then
+    self:remove_unit(monster)
+  end
+end
+
+function PlayStageState:check_if_monster_died(monster, tower)
+  if self.monsters[monster] == nil then
+    self.lasers:remove(tower)
+    tower.target = nil
+  end
 end
 
 function PlayStageState:update(dt)
@@ -151,12 +169,17 @@ function PlayStageState:update(dt)
   -- towers attack management
   for tower in pairs(self.towers) do
     if tower.target then
+      self:check_if_monster_died(tower.target, tower)
+    end
+
+    if tower.target then
       local distance = self:distance_to_monster(tower, tower.target)
+
       if distance > tower.range then
         self.lasers:remove(tower)
         self:find_target_and_add_laser(tower)
       else
-        self:tower_attack(tower, dt)
+        self:tower_attack(tower)
       end
     else
       self:find_target_and_add_laser(tower)
