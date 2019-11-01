@@ -1,5 +1,6 @@
 
 local Lasers = require 'common.class' ()
+local PALETTE_DB = require 'database.palette'
 
 function Lasers:_init()
   self.list = {}
@@ -21,7 +22,7 @@ function Lasers:draw()
   local g = love.graphics
   g.push()
 
-  g.setColor(0.6, 0, 0)
+  g.setColor(PALETTE_DB.red)
 
   for _, laser in pairs(self.list) do
     local x1, y1 = laser[1]:get()
