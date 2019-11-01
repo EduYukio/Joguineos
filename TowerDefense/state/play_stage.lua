@@ -86,6 +86,18 @@ function PlayStageState:check_if_can_create_unit(unit, pos)
   return true
 end
 
+function PlayStageState:check_if_monster_hit_castle(monster)
+  local monster_sprite = self.atlas:get(monster)
+  local castle_sprite = self.atlas:get(self.castle)
+
+  local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
+  if monster_position == castle_sprite.position then
+    return true
+  end
+
+  return false
+end
+
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
   if not self:check_if_can_create_unit(unit, pos) then
@@ -99,9 +111,14 @@ function PlayStageState:_create_unit_at(specname, pos)
 end
 
 function PlayStageState:remove_unit(unit)
+  if unit.category == "monster" then
+    self.monsters[unit] = nil
+  elseif unit.category == "castle" then
+    --TODO: fazer um menu de game over
+    self:pop()
+  end
   self.lifebars:remove(unit)
   self.atlas:remove(unit)
-  self.monsters[unit] = nil
 end
 
 function PlayStageState:on_mousepressed(_, _, button)
@@ -151,6 +168,18 @@ function PlayStageState:find_target_and_add_laser(tower)
   end
 end
 
+function PlayStageState:take_damage(who, damage)
+  local unit = who
+  unit.hp = unit.hp - damage
+
+  local hp_percentage = unit.hp / unit.max_hp
+  self.lifebars:x_scale(unit, hp_percentage)
+
+  if unit.hp <= 0 then
+    self:remove_unit(unit)
+  end
+end
+
 function PlayStageState:tower_attack(tower)
   local monster = tower.target
   monster.hp = monster.hp - tower.damage
@@ -187,13 +216,19 @@ function PlayStageState:update(dt)
   -- position monsters
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    local speed = 30 * dt
+    local speed = 100 * dt
     local x_dir = -7.5 * monster.direction
     local y_dir = 15
     local direction = Vec(x_dir, y_dir):normalized()
     local delta_s = direction * speed
+
     sprite_instance.position:add(delta_s)
     self.lifebars:add_position(monster, delta_s)
+
+    if self:check_if_monster_hit_castle(monster) then
+      self:take_damage(self.castle, 1)
+      self:remove_unit(monster)
+    end
   end
 
   -- towers attack management
@@ -209,7 +244,7 @@ function PlayStageState:update(dt)
         self.lasers:remove(tower)
         self:find_target_and_add_laser(tower)
       else
-        self:tower_attack(tower)
+        self:take_damage(tower.target, tower.damage)
       end
     else
       self:find_target_and_add_laser(tower)
