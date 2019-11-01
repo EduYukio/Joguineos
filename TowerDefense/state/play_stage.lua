@@ -5,7 +5,8 @@ local Vec = require 'common.vec'
 local Cursor = require 'view.cursor'
 local SpriteAtlas = require 'view.sprite_atlas'
 local BattleField = require 'view.battlefield'
-local Laser = require 'view.laser'
+local Lasers = require 'view.lasers'
+local Lifebars = require 'view.lifebars'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -22,7 +23,8 @@ function PlayStageState:_init(stack)
   self.stats = nil
   self.monsters = nil
   self.towers = nil
-  self.laser = nil
+  self.lasers = nil
+  self.lifebars = nil
 end
 
 function PlayStageState:enter(params)
@@ -35,6 +37,7 @@ function PlayStageState:leave()
   self:view('bg'):remove('battlefield')
   self:view('fg'):remove('atlas')
   self:view('fg'):remove('laser')
+  self:view('fg'):remove('lifebar')
   self:view('bg'):remove('cursor')
   self:view('hud'):remove('stats')
 end
@@ -43,12 +46,14 @@ function PlayStageState:_load_view()
   self.battlefield = BattleField()
   self.atlas = SpriteAtlas()
   self.cursor = Cursor(self.battlefield)
-  self.laser = Laser()
+  self.lasers = Lasers()
+  self.lifebars = Lifebars()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 16, top))
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
-  self:view('fg'):add('laser', self.laser)
+  self:view('fg'):add('laser', self.lasers)
+  self:view('fg'):add('lifebar', self.lifebars)
   self:view('bg'):add('cursor', self.cursor)
   self:view('hud'):add('stats', self.stats)
 end
@@ -63,16 +68,10 @@ function PlayStageState:_load_units()
   self.towers = {}
 end
 
-function PlayStageState:create_life_bar(unit, pos)
-  local lifeBarPos = pos:clone()
-  lifeBarPos:add(Vec(0, -22))
-  unit.lifebar = self.atlas:add({}, lifeBarPos, 'lifebar')
-end
-
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
   self.atlas:add(unit, pos, unit:get_appearance())
-  self:create_life_bar(unit, pos)
+  self.lifebars:add(unit, pos)
 
   return unit
 end
@@ -117,14 +116,14 @@ function PlayStageState:find_target_and_add_laser(tower)
   if tower.target then
     local tower_position = self.atlas:get(tower).position
     local monster_position = self.atlas:get(tower.target).position
-    self.laser:add(tower, tower_position, monster_position)
+    self.lasers:add(tower, tower_position, monster_position)
   end
 end
 
 function PlayStageState:tower_attack(tower, dt)
   local sprite_instance = self.atlas:get(tower.target)
   sprite_instance.position:add(Vec(-1, 1) * 20 * dt)
-  tower.target.lifebar.position:add(Vec(-1, 1) * 20 * dt)
+  self.lifebars:add_position(tower.target, Vec(-1, 1) * 20 * dt)
 end
 
 function PlayStageState:update(dt)
@@ -144,8 +143,9 @@ function PlayStageState:update(dt)
   -- position monsters
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    sprite_instance.position:add(Vec(-1, 1) * 10 * dt)
-    monster.lifebar.position:add(Vec(-1, 1) * 10 * dt)
+    local new_position = Vec(-1, 1) * 10 * dt
+    sprite_instance.position:add(new_position)
+    self.lifebars:add_position(monster, new_position)
   end
 
   -- towers attack management
@@ -153,7 +153,7 @@ function PlayStageState:update(dt)
     if tower.target then
       local distance = self:distance_to_monster(tower, tower.target)
       if distance > tower.range then
-        self.laser:remove(tower)
+        self.lasers:remove(tower)
         self:find_target_and_add_laser(tower)
       else
         self:tower_attack(tower, dt)
