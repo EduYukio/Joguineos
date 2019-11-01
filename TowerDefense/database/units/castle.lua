@@ -1,8 +1,8 @@
 
 return {
-  name = "Capital",
+  name = "Castle",
   max_hp = 100,
-  appearance = 'citadel',
+  appearance = 'castle',
 	category = "castle"
 }
 

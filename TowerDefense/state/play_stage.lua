@@ -61,15 +61,37 @@ end
 function PlayStageState:_load_units()
   local pos = self.battlefield:tile_to_screen(-6, 6)
   self.units = {}
-  self:_create_unit_at('capital', pos)
+  self.castle = self:_create_unit_at('castle', pos)
   self.wave = Wave(self.stage.waves[1])
   self.wave:start()
   self.monsters = {}
   self.towers = {}
 end
 
+function PlayStageState:check_if_can_create_unit(unit, pos)
+  if unit.category == "tower" then
+    local castle_sprite = self.atlas:get(self.castle)
+    if castle_sprite.position == pos then
+      return false
+    end
+
+    for tower in pairs(self.towers) do
+      local tower_sprite = self.atlas:get(tower)
+      if tower_sprite.position == pos then
+        return false
+      end
+    end
+  end
+
+  return true
+end
+
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
+  if not self:check_if_can_create_unit(unit, pos) then
+    return false
+  end
+
   self.atlas:add(unit, pos, unit:get_appearance())
   self.lifebars:add(unit, pos)
 
@@ -85,8 +107,11 @@ end
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
     local tower = self:_create_unit_at('warrior', Vec(self.cursor:get_position()))
-    self.towers[tower] = true
-    tower.target = nil
+
+    if tower then
+      self.towers[tower] = true
+      tower.target = nil
+    end
   end
 end
 

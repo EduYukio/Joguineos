@@ -60,6 +60,10 @@ function Vec:__div(other)
   end
 end
 
+function Vec:__eq(other)
+  return self.x == other.x and self.y == other.y
+end
+
 function Vec:dot(other)
   return self.x * other.x + self.y * other.y
 end

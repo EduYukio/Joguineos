@@ -10,7 +10,7 @@ return {
       frame = { 24, 25 },
       color = 'red'
     },
-    citadel = {
+    castle = {
       frame = { 5, 19 },
       color = 'white'
     },
