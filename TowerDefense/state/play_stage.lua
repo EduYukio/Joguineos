@@ -180,17 +180,6 @@ function PlayStageState:take_damage(who, damage)
   end
 end
 
-function PlayStageState:tower_attack(tower)
-  local monster = tower.target
-  monster.hp = monster.hp - tower.damage
-  local hp_percentage = monster.hp / monster.max_hp
-  self.lifebars:x_scale(monster, hp_percentage)
-
-  if monster.hp <= 0 then
-    self:remove_unit(monster)
-  end
-end
-
 function PlayStageState:check_if_monster_died(monster, tower)
   if self.monsters[monster] == nil then
     self.lasers:remove(tower)
