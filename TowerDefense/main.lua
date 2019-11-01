@@ -6,6 +6,8 @@ local _game
 local _stack
 
 function love.load()
+  math.randomseed(os.time())
+
   _game = {
     bg_view = View(),
     fg_view = View(),

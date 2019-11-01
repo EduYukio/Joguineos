@@ -59,7 +59,7 @@ function PlayStageState:_load_view()
 end
 
 function PlayStageState:_load_units()
-  local pos = self.battlefield:tile_to_screen(-6, 6)
+  local pos = self.battlefield:tile_to_screen(0, 7)
   self.units = {}
   self.castle = self:_create_unit_at('castle', pos)
   self.wave = Wave(self.stage.waves[1])
@@ -154,7 +154,7 @@ end
 function PlayStageState:tower_attack(tower)
   local monster = tower.target
   monster.hp = monster.hp - tower.damage
-  local hp_percentage = monster.hp/monster.max_hp
+  local hp_percentage = monster.hp / monster.max_hp
   self.lifebars:x_scale(monster, hp_percentage)
 
   if monster.hp <= 0 then
@@ -172,13 +172,14 @@ end
 function PlayStageState:update(dt)
   self.wave:update(dt)
   local pending = self.wave:poll()
-  local rand = love.math.random
 
   -- spawn monsters
   while pending > 0 do
-    local x, y = rand(5, 7), -rand(5, 7)
+    local rng = math.random(-1, 1)
+    local x, y = 7 * rng, -7
     local pos = self.battlefield:tile_to_screen(x, y)
     local monster = self:_create_unit_at('green_slime', pos)
+    monster.direction = rng
     self.monsters[monster] = true
     pending = pending - 1
   end
@@ -186,9 +187,13 @@ function PlayStageState:update(dt)
   -- position monsters
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    local new_position = Vec(-1, 1) * 10 * dt
-    sprite_instance.position:add(new_position)
-    self.lifebars:add_position(monster, new_position)
+    local speed = 30 * dt
+    local x_dir = -7.5 * monster.direction
+    local y_dir = 15
+    local direction = Vec(x_dir, y_dir):normalized()
+    local delta_s = direction * speed
+    sprite_instance.position:add(delta_s)
+    self.lifebars:add_position(monster, delta_s)
   end
 
   -- towers attack management

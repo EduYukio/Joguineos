@@ -51,7 +51,7 @@ function ChooseStageState:on_keypressed(key)
     self.menu:next()
   elseif key == 'up' then
     self.menu:previous()
-  elseif key == 'return' then
+  elseif key == 'return' or key == 'kpenter' then
     local option = self.menu:current_option()
     local params = { stage = self.stages[option] }
     return self:push('play_stage', params)
