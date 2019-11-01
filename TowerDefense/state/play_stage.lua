@@ -187,11 +187,10 @@ function PlayStageState:check_if_monster_died(monster, tower)
   end
 end
 
-function PlayStageState:update(dt)
+function PlayStageState:spawn_monsters(dt)
   self.wave:update(dt)
   local pending = self.wave:poll()
 
-  -- spawn monsters
   while pending > 0 do
     local rng = math.random(-1, 1)
     local x, y = 7 * rng, -7
@@ -201,8 +200,9 @@ function PlayStageState:update(dt)
     self.monsters[monster] = true
     pending = pending - 1
   end
+end
 
-  -- position monsters
+function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
     local speed = 100 * dt
@@ -219,8 +219,9 @@ function PlayStageState:update(dt)
       self:remove_unit(monster)
     end
   end
+end
 
-  -- towers attack management
+function PlayStageState:manage_tower_attack()
   for tower in pairs(self.towers) do
     if tower.target then
       self:check_if_monster_died(tower.target, tower)
@@ -239,6 +240,12 @@ function PlayStageState:update(dt)
       self:find_target_and_add_laser(tower)
     end
   end
+end
+
+function PlayStageState:update(dt)
+  self:spawn_monsters(dt)
+  self:position_monsters(dt)
+  self:manage_tower_attack()
 end
 
 return PlayStageState
