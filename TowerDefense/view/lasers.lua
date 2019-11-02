@@ -11,7 +11,10 @@ function Lasers:get_position()
 end
 
 function Lasers:add(unit, tower_position, monster_position)
-  self.list[unit] = {tower_position, monster_position}
+  self.list[unit] = {
+    tower_position = tower_position,
+    monster_position = monster_position
+  }
 end
 
 function Lasers:remove(unit)
@@ -25,8 +28,8 @@ function Lasers:draw()
   g.setColor(PALETTE_DB.red)
 
   for _, laser in pairs(self.list) do
-    local x1, y1 = laser[1]:get()
-    local x2, y2 = laser[2]:get()
+    local x1, y1 = laser.tower_position:get()
+    local x2, y2 = laser.monster_position:get()
     g.line(x1,y1, x2,y2)
   end
 
