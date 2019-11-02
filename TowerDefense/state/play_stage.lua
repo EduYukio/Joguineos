@@ -121,8 +121,8 @@ function PlayStageState:remove_unit(unit)
   if unit.category == "monster" then
     self.monsters[unit] = nil
   elseif unit.category == "castle" then
-    --TODO: fazer um menu de game over
-    self:pop()
+    self.game_over = true
+    return
   end
   self.lifebars:remove(unit)
   self.atlas:remove(unit)
@@ -305,9 +305,21 @@ function PlayStageState:manage_tower_attack()
 end
 
 function PlayStageState:update(dt)
-  self:spawn_monsters(dt)
-  self:position_monsters(dt)
-  self:manage_tower_attack()
+  if self.game_over then
+    self.waiting_time = self.waiting_time + dt
+    if self.waiting_time < 3 then
+      self.messages:write("Game Over :(", Vec(230, 150))
+    else
+      self.game_over = false
+      self.waiting_time = 0
+      self:pop()
+      return
+    end
+  else
+    self:spawn_monsters(dt)
+    self:position_monsters(dt)
+    self:manage_tower_attack()
+  end
 end
 
 return PlayStageState
