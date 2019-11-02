@@ -1,9 +1,10 @@
 
 local Wave = require 'common.class' ()
 
-function Wave:_init(spawns)
-  self.spawns = spawns
-  self.delay = 3
+function Wave:_init(wave_info)
+  self.wave_info = wave_info
+  self.default_delay = 3
+  self.delay = self.default_delay
   self.left = nil
   self.pending = 0
 end

@@ -7,6 +7,7 @@ local SpriteAtlas = require 'view.sprite_atlas'
 local BattleField = require 'view.battlefield'
 local Lasers = require 'view.lasers'
 local Lifebars = require 'view.lifebars'
+local Messages = require 'view.messages'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -25,6 +26,7 @@ function PlayStageState:_init(stack)
   self.towers = nil
   self.lasers = nil
   self.lifebars = nil
+  self.messages = nil
 end
 
 function PlayStageState:enter(params)
@@ -36,8 +38,9 @@ end
 function PlayStageState:leave()
   self:view('bg'):remove('battlefield')
   self:view('fg'):remove('atlas')
-  self:view('fg'):remove('laser')
-  self:view('fg'):remove('lifebar')
+  self:view('fg'):remove('lasers')
+  self:view('fg'):remove('lifebars')
+  self:view('fg'):remove('messages')
   self:view('bg'):remove('cursor')
   self:view('hud'):remove('stats')
 end
@@ -48,12 +51,14 @@ function PlayStageState:_load_view()
   self.cursor = Cursor(self.battlefield)
   self.lasers = Lasers()
   self.lifebars = Lifebars()
+  self.messages = Messages()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 16, top))
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
-  self:view('fg'):add('laser', self.lasers)
-  self:view('fg'):add('lifebar', self.lifebars)
+  self:view('fg'):add('lasers', self.lasers)
+  self:view('fg'):add('lifebars', self.lifebars)
+  self:view('fg'):add('messages', self.messages)
   self:view('bg'):add('cursor', self.cursor)
   self:view('hud'):add('stats', self.stats)
 end
@@ -62,8 +67,10 @@ function PlayStageState:_load_units()
   local pos = self.battlefield:tile_to_screen(0, 7)
   self.units = {}
   self.castle = self:_create_unit_at('castle', pos)
-  self.wave = Wave(self.stage.waves[1])
+  self.current_wave = 1
+  self.wave = Wave(self.stage.waves[self.current_wave])
   self.wave:start()
+  self.waiting_time = 0
   self.monsters = {}
   self.towers = {}
 end
@@ -188,24 +195,79 @@ function PlayStageState:check_if_monster_died(monster, tower)
 end
 
 function PlayStageState:spawn_monsters(dt)
+  if self.must_spawn_new_wave then
+    self.waiting_time = self.waiting_time + dt
+    if self.waiting_time < 1 then
+      self.messages:write("Next wave in 3...", Vec(190, 150))
+    elseif self.waiting_time < 2 then
+      self.messages:write("Next wave in 2...", Vec(190, 150))
+    elseif self.waiting_time < 3 then
+      self.messages:write("Next wave in 1...", Vec(190, 150))
+    else
+      self.must_spawn_new_wave = false
+      self.waiting_time = 0
+      self.messages:clear()
+      self.wave:start()
+      self.wave.delay = self.wave.default_delay
+    end
+  elseif self.player_won then
+    self.waiting_time = self.waiting_time + dt
+    if self.waiting_time < 4 then
+      self.messages:write("You Win!", Vec(250, 150))
+    else
+      self.player_won = false
+      self.waiting_time = 0
+      self:pop()
+      return
+    end
+  end
+
+  if self.waiting_time ~= 0 then return end
+
   self.wave:update(dt)
   local pending = self.wave:poll()
 
   while pending > 0 do
-    local rng = math.random(-1, 1)
-    local x, y = 7 * rng, -7
+    local spawn_location = math.random(-1, 1)
+    local x, y = 7 * spawn_location, -7
     local pos = self.battlefield:tile_to_screen(x, y)
-    local monster = self:_create_unit_at('green_slime', pos)
-    monster.direction = rng
-    self.monsters[monster] = true
-    pending = pending - 1
+
+    local monster = nil
+    for name, quantity in pairs(self.wave.wave_info) do
+      if quantity > 0 then
+        monster = self:_create_unit_at(name, pos)
+        self.wave.wave_info[name] = self.wave.wave_info[name] - 1
+        break
+      end
+    end
+
+    if not monster then
+      -- check if there are monsters on the field
+      if next(self.monsters) == nil then
+        self.current_wave = self.current_wave + 1
+        self.wave_index = self.stage.waves[self.current_wave]
+
+        if self.wave_index then
+          self.must_spawn_new_wave = true
+          self.wave = Wave(self.wave_index)
+          self.wave.delay = 0
+        else
+          self.player_won = true
+        end
+      end
+      break
+    else
+      monster.direction = spawn_location
+      self.monsters[monster] = true
+      pending = pending - 1
+    end
   end
 end
 
 function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    local speed = 100 * dt
+    local speed = 60 * dt
     local x_dir = -7.5 * monster.direction
     local y_dir = 15
     local direction = Vec(x_dir, y_dir):normalized()
