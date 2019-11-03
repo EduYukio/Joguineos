@@ -10,38 +10,87 @@ return {
       frame = { 24, 25 },
       color = 'red'
     },
-    castle = {
-      frame = { 5, 19 },
-      color = 'white'
-    },
     cursor = {
       frame = { 29, 14 },
       color = 'gray'
     },
-    slime = {
-      frame = { 27, 8 },
-      color = 'green'
-    },
-    blue_slime = {
-      frame = { 27, 8 },
-      color = 'blue'
-    },
-    knight = {
-      frame = { 28, 0 },
-      color = 'blue'
-    },
-    archer = {
-      frame = { 32, 0 },
-      color = 'red'
-    },
-    priest = {
-      frame = { 24, 0 },
+    castle1 = {
+      frame = { 5, 19 },
       color = 'white'
     },
-    lifebar = {
-      frame = { 20, 15 },
-      color = 'green'
-    }
+    castle2 = {
+      frame = { 6, 19 },
+      color = 'white'
+    },
+    --
+    -- DMG Towers
+    --
+    archer1 = {
+      frame = { 28, 1 },
+      color = 'blue'
+    },
+    archer2 = {
+      frame = { 32, 0 },
+      color = 'blue'
+    },
+    knight1 = {
+      frame = { 27, 0 },
+      color = 'blue'
+    },
+    knight2 = {
+      frame = { 29, 0 },
+      color = 'blue'
+    },
+    mage1 = {
+      frame = { 24, 6 },
+      color = 'blue'
+    },
+    mage2 = {
+      frame = { 25, 6 },
+      color = 'blue'
+    },
+    --
+    -- Support Towers
+    --
+    sword = {
+      frame = { 0, 30 },
+      color = 'blue'
+    },
+    cthullu = {
+      frame = { 25, 8 },
+      color = 'blue'
+    },
+    ghost = {
+      frame = { 27, 6 },
+      color = 'blue'
+    },
+    farmer = {
+      frame = { 31, 2 },
+      color = 'blue'
+    },
+    --
+    --Monsters
+    --
+    slime = {
+      frame = { 27, 8 },
+      color = 'red'
+    },
+    bat = {
+      frame = { 26, 8 },
+      color = 'red'
+    },
+    golem = {
+      frame = { 30, 6 },
+      color = 'red'
+    },
+    blinker = {
+      frame = { 22, 6 },
+      color = 'red'
+    },
+    summoner = {
+      frame = { 24, 1 },
+      color = 'red'
+    },
   }
 }
 
