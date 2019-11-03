@@ -7,10 +7,10 @@ function Unit:_init(specname)
   self.max_hp = spec.max_hp
   self.hp = spec.max_hp
   self.category = spec.category
-  if self.category == "tower" then
-    self.range = spec.range
-    self.damage = spec.damage
-  end
+  self.range = spec.range
+  self.damage = spec.damage
+  self.speed = spec.speed
+  self.special = spec.special
 end
 
 function Unit:get_name()

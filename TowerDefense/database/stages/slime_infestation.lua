@@ -2,9 +2,9 @@
 return {
   title = 'Slime Infestation',
   waves = {
-    { green_slime = 2 },
-    { green_slime = 3 },
-    { green_slime = 4 },
+    { slime = 2 },
+    { slime = 3 },
+    { slime = 4 },
   }
 }
 

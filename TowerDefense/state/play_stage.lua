@@ -130,7 +130,7 @@ end
 
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
-    local tower = self:_create_unit_at('warrior', Vec(self.cursor:get_position()))
+    local tower = self:_create_unit_at('archer1', Vec(self.cursor:get_position()))
 
     if tower then
       self.towers[tower] = true
