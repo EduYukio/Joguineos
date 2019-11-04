@@ -1,7 +1,7 @@
 
 local MonsterRoutes = require 'common.class' ()
 
-function MonsterRoutes:draw()
+function MonsterRoutes:draw() -- luacheck: no self
   local g = love.graphics
   g.push()
 
