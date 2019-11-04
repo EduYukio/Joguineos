@@ -8,7 +8,7 @@ function UI_Towers:_init(position)
   self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
   self.font:setFilter('nearest', 'nearest')
 
-  local x0 = 598
+  local x0 = 596
   local y0 = 171
   local sq = 32
   local h_gap = sq*1.5
@@ -33,10 +33,12 @@ function UI_Towers:draw()
   g.setColor(PALETTE_DB.white)
   g.translate((self.position+Vec(8,0)):get())
   g.print("Towers:")
-  g.translate(-16, self.font:getHeight())
+  g.translate(-18, self.font:getHeight())
+
   local first_x = 16
   local first_y = 16
   local w,h = 36,36
+
   g.rectangle("line", 0, 16, w, h )
   g.rectangle("line", first_x*3, first_y, w, h )
   g.rectangle("line", first_x*6, first_y, w, h )
