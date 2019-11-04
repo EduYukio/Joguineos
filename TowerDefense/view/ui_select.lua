@@ -101,6 +101,8 @@ function UI_Select:_init(position)
     Box.from_vec(Vec(x0+h_gap*2, y00),      halfsize),
     Box.from_vec(Vec(x0+h_gap, y00+v_gap),  halfsize),
   }
+
+  self.selected_box = self.boxes[1]
 end
 
 function UI_Select:draw()
@@ -119,6 +121,9 @@ function UI_Select:draw()
   for _, v in ipairs(self.boxes) do
     g.rectangle('line', v:get_rectangle())
   end
+
+  g.setColor(PALETTE_DB.white)
+  g.rectangle('line', self.selected_box:get_rectangle())
 
   g.pop()
 end

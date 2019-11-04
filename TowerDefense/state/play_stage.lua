@@ -219,6 +219,7 @@ function PlayStageState:on_mousepressed(_, _, button)
           local appearance = self.ui_select.sprites[i].appearance
           if category == "tower" then
             self.selected_tower = appearance
+            self.ui_select.selected_box = self.ui_select.boxes[i]
           elseif category == "upgrade" then
             self:upgrade_unit(appearance)
           end
