@@ -8,8 +8,7 @@ local BattleField = require 'view.battlefield'
 local Lasers = require 'view.lasers'
 local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
-local UI_Towers = require 'view.ui_towers'
-local UI_Upgrades = require 'view.ui_upgrades'
+local UI_Select = require 'view.ui_select'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -29,8 +28,7 @@ function PlayStageState:_init(stack)
   self.lasers = nil
   self.lifebars = nil
   self.messages = nil
-  self.ui_towers = nil
-  self.ui_upgrades = nil
+  self.ui_select = nil
 end
 
 function PlayStageState:enter(params)
@@ -46,8 +44,7 @@ function PlayStageState:leave()
   self:view('bg'):remove('cursor')
   self:view('hud'):remove('lifebars')
   self:view('hud'):remove('stats')
-  self:view('hud'):remove('ui_towers')
-  self:view('hud'):remove('ui_upgrades')
+  self:view('hud'):remove('ui_select')
   self:view('hud'):remove('messages')
 end
 
@@ -60,42 +57,79 @@ function PlayStageState:_load_view()
   self.messages = Messages()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 32, top))
-  self.ui_towers = UI_Towers(Vec(right + 32, top + 57))
-  self.ui_upgrades = UI_Upgrades(Vec(right + 32, top + 280))
-  self:add_ui_towers_sprites()
-  self:add_ui_upgrades_sprites()
+  self.ui_select = UI_Select(Vec(right + 32, top + 57))
+  self:add_ui_select_sprites()
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
   self:view('fg'):add('lasers', self.lasers)
   self:view('bg'):add('cursor', self.cursor)
   self:view('hud'):add('lifebars', self.lifebars)
   self:view('hud'):add('stats', self.stats)
-  self:view('hud'):add('ui_towers', self.ui_towers)
-  self:view('hud'):add('ui_upgrades', self.ui_upgrades)
+  self:view('hud'):add('ui_select', self.ui_select)
   self:view('hud'):add('messages', self.messages)
 end
 
 function PlayStageState:_load_units()
-  local pos = self.battlefield:tile_to_screen(0, 7)
   self.units = {}
-  self.castle = self:_create_unit_at('castle', pos)
+  self.castle_pos = self.battlefield:tile_to_screen(0, 7)
+  self.castle = self:_create_unit_at('castle', self.castle_pos)
   self.current_wave = 1
   self.wave = Wave(self.stage.waves[self.current_wave])
   self.wave:start()
-  self.waiting_time = 0
   self.monsters = {}
   self.towers = {}
+
+  self.waiting_time = 0
+  self.selected_tower = 'archer1'
 end
 
-function PlayStageState:add_ui_towers_sprites()
-  for _,v in pairs(self.ui_towers.sprites) do
+function PlayStageState:add_ui_select_sprites()
+  for _,v in pairs(self.ui_select.sprites) do
     self.atlas:add(v.name, v.pos, v.appearance)
   end
 end
 
-function PlayStageState:add_ui_upgrades_sprites()
-  for _,v in pairs(self.ui_upgrades.sprites) do
-    self.atlas:add(v.name, v.pos, v.appearance)
+function PlayStageState:upgrade_unit(appearance)
+  if appearance == "castle2" then
+    self:remove_unit(self.castle)
+    self.castle = self:_create_unit_at('castle2', self.castle_pos)
+    return
+  end
+
+  if appearance == "archer2" then
+    self.ui_select.sprites[1].appearance = appearance
+    self:upgrade_towers("Archer", appearance)
+  elseif appearance == "knight2" then
+    self.ui_select.sprites[2].appearance = appearance
+    self:upgrade_towers("Knight", appearance)
+  elseif appearance == "mage2" then
+    self.ui_select.sprites[3].appearance = appearance
+    self:upgrade_towers("Mage", appearance)
+  end
+
+  self:add_ui_select_sprites()
+  self:upgrade_selected_tower(appearance)
+end
+
+function PlayStageState:upgrade_towers(tower_name, appearance)
+  for tower in pairs(self.towers) do
+    if tower.name == tower_name then
+      local pos = self.atlas:get(tower).position
+      self:remove_unit(tower)
+      local new_tower = self:_create_unit_at(appearance, pos)
+      self.towers[new_tower] = true
+    end
+  end
+end
+
+function PlayStageState:upgrade_selected_tower(appearance)
+  local curr = self.selected_tower
+  if appearance == "archer2" and curr == "archer1" then
+    self.selected_tower = "archer2"
+  elseif appearance == "knight2" and curr == "knight1" then
+    self.selected_tower = "knight2"
+  elseif appearance == "mage2" and curr == "mage1" then
+    self.selected_tower = "mage2"
   end
 end
 
@@ -135,8 +169,8 @@ function PlayStageState:_create_unit_at(specname, pos)
     return false
   end
 
-  self.atlas:add(unit, pos, unit:get_appearance())
   self.lifebars:add(unit, pos)
+  self.atlas:add(unit, pos, unit:get_appearance())
 
   return unit
 end
@@ -144,21 +178,53 @@ end
 function PlayStageState:remove_unit(unit)
   if unit.category == "monster" then
     self.monsters[unit] = nil
+  elseif unit.category == "tower" then
+    self.lasers:remove(unit)
+    self.towers[unit] = nil
   elseif unit.category == "castle" then
-    self.game_over = true
-    return
+    self.castle = nil
   end
+
   self.lifebars:remove(unit)
   self.atlas:remove(unit)
 end
 
+function PlayStageState:take_damage(who, damage)
+  local unit = who
+  unit.hp = unit.hp - damage
+
+  local hp_percentage = unit.hp / unit.max_hp
+  self.lifebars:x_scale(unit, hp_percentage)
+
+  if unit.hp <= 0 then
+    if unit.category == "castle" then
+      self.game_over = true
+    end
+    self:remove_unit(unit)
+  end
+end
+
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
-    local tower = self:_create_unit_at('archer1', Vec(self.cursor:get_position()))
-
-    if tower then
-      self.towers[tower] = true
-      tower.target = nil
+    local mouse_pos = Vec(love.mouse.getPosition())
+    if self.battlefield.bounds:is_inside(mouse_pos) then
+      local tower = self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
+      if tower then
+        self.towers[tower] = true
+      end
+    else
+      for i,v in ipairs(self.ui_select.boxes) do
+        if v:is_inside(mouse_pos) then
+          local category = self.ui_select.sprites[i].category
+          local appearance = self.ui_select.sprites[i].appearance
+          if category == "tower" then
+            self.selected_tower = appearance
+          elseif category == "upgrade" then
+            self:upgrade_unit(appearance)
+          end
+          break
+        end
+      end
     end
   end
 end
@@ -196,18 +262,6 @@ function PlayStageState:find_target_and_add_laser(tower)
     local tower_position = self.atlas:get(tower).position
     local monster_position = self.atlas:get(tower.target).position
     self.lasers:add(tower, tower_position, monster_position)
-  end
-end
-
-function PlayStageState:take_damage(who, damage)
-  local unit = who
-  unit.hp = unit.hp - damage
-
-  local hp_percentage = unit.hp / unit.max_hp
-  self.lifebars:x_scale(unit, hp_percentage)
-
-  if unit.hp <= 0 then
-    self:remove_unit(unit)
   end
 end
 
