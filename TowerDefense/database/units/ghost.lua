@@ -8,7 +8,7 @@ return {
   damage = p.damage.none,
   target = p.target.single,
   special = {
-    slow = p.slow_factor,
+    slow = p.slow_factor.high,
   },
   category = "tower"
 }

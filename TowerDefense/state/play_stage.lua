@@ -221,12 +221,15 @@ function PlayStageState:tower_do_action(tower)
     local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff
 
     self:take_damage(target, damage)
-  -- else
-    -- if special.slow then
-      --dá slow nos bixo
+  else
+    if special.slow then
+      local speed_after_slow = target.base_speed/special.slow
+      if target.speed > speed_after_slow then
+        tower.target.speed = speed_after_slow
+      end
     -- elseif special.farm then
-      --make money
-    -- end
+      -- make money
+    end
   end
 
 end
@@ -293,7 +296,7 @@ function PlayStageState:find_nearest_unit(category, tower)
 end
 
 function PlayStageState:find_target_and_add_laser(tower)
-  if tower.damage > 0 then
+  if tower.damage > 0 or tower.special.slow then
     tower.target = self:find_nearest_unit("monster", tower)
   elseif tower.special.buff then
     tower.target = self:find_nearest_unit("tower", tower)
@@ -306,7 +309,7 @@ function PlayStageState:find_target_and_add_laser(tower)
     local color = PALETTE_DB.red
     if tower.special then
       if tower.special.slow then
-        color = PALETTE_DB.blue
+        color = PALETTE_DB.purple
       elseif tower.special.buff then
         color = PALETTE_DB.green
         tower.target.damage_buffs = tower.target.damage_buffs + 1
@@ -407,8 +410,7 @@ end
 function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    -- local speed = monster.speed * dt
-    local speed = 0 * dt
+    local speed = monster.speed * dt
     local x_dir = -7.5 * monster.direction
     local y_dir = 15
     local direction = Vec(x_dir, y_dir):normalized()
@@ -434,6 +436,7 @@ function PlayStageState:manage_tower_attack()
       local distance = self:distance_to_unit(tower, tower.target)
 
       if distance > tower.range then
+        tower.target.speed = tower.target.base_speed
         self.lasers:remove(tower)
         self:find_target_and_add_laser(tower)
       else
