@@ -84,6 +84,7 @@ function PlayStageState:_load_units()
   self.waiting_time = 0
   self.dmg_buff = 0
   self.selected_tower = 'archer1'
+  self.cursor.selected_tower_appearance = self.selected_tower
 end
 
 function PlayStageState:add_ui_select_sprites()
@@ -212,9 +213,6 @@ function PlayStageState:tower_do_action(tower)
   local special = tower.special
   if not special then
     local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff
-    print("buffs:", tower.damage_buffs)
-    print("damage:", damage)
-    print()
 
     self:take_damage(target, damage)
   -- else
@@ -243,6 +241,7 @@ function PlayStageState:on_mousepressed(_, _, button)
           if category == "tower" then
             self.selected_tower = appearance
             self.ui_select.selected_box = self.ui_select.boxes[i]
+            self.cursor.selected_tower_appearance = self.selected_tower
           elseif category == "upgrade" then
             self:upgrade_unit(appearance)
           end

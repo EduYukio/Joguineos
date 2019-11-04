@@ -7,6 +7,7 @@ local CELL_SIZE = 36
 function Cursor:_init(battlefield)
   self.position = Vec()
   self.battlefield = battlefield
+  self.selected_tower_appearance = nil
 end
 
 function Cursor:get_position()
@@ -28,6 +29,13 @@ function Cursor:draw()
   g.setColor(1, 1, 1, color)
   g.setLineWidth(2)
   g.rectangle('line', -CELL_SIZE / 2, -CELL_SIZE / 2, CELL_SIZE, CELL_SIZE)
+
+  if self.selected_tower_appearance then
+    g.setColor(1, 1, 1, 0.5)
+    local tower = require('database.units.' .. self.selected_tower_appearance)
+    g.circle("line", 0, 0, tower.range)
+  end
+
   g.pop()
 end
 
