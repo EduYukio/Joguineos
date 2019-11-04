@@ -13,6 +13,7 @@ return {
     aoe = 3,
   },
   range = {
+    none = 0,
     one = 32*1,
     low = 32*2,
     medium = 32*5,
@@ -29,9 +30,9 @@ return {
     high = 50,
   },
   hp = {
-    low = 2,
-    medium = 5,
-    high = 10,
+    low = 10,
+    medium = 25,
+    high = 50,
   },
   castle_hp = {
     normal = 5,
