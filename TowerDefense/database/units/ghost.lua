@@ -6,7 +6,7 @@ return {
   appearance = 'ghost',
   range = p.range.medium,
   damage = p.damage.none,
-  target = p.target.single,
+  target_policy = p.target_policy.single,
   special = {
     slow = p.slow_factor.high,
   },

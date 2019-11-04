@@ -9,7 +9,7 @@ return {
     high = 10/60,
     very_high = 15/60,
   },
-  target = {
+  target_policy = {
     none = 0,
     single = 1,
     multiple = 3,

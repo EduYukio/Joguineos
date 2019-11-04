@@ -6,7 +6,7 @@ return {
   appearance = 'archer2',
   range = p.range.high,
   damage = p.damage.medium,
-  target = p.target.single,
+  target_policy = p.target_policy.single,
 	category = "tower",
 }
 

@@ -6,7 +6,7 @@ return {
   appearance = 'cthullu',
   range = p.range.medium,
   damage = p.damage.none,
-  target = p.target.multiple,
+  target_policy = p.target_policy.multiple,
   special = {
     slow = p.slow_factor.medium,
   },

@@ -14,6 +14,7 @@ function Unit:_init(specname)
   self.base_speed = spec.speed
   self.speed = spec.speed
   self.special = spec.special
+  self.target_policy = spec.target_policy
 end
 
 function Unit:get_name()

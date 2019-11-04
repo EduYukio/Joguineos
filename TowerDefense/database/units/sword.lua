@@ -6,7 +6,7 @@ return {
   appearance = 'sword',
   range = p.range.one,
   damage = p.damage.none,
-  target = p.target.single,
+  target_policy = p.target_policy.single,
   special = {
     buff = p.buff_factor,
   },
