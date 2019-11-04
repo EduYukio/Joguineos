@@ -10,7 +10,7 @@ return {
   target = {
     none = 0,
     single = 1,
-    aoe = 3,
+    multiple = 3,
   },
   range = {
     none = 0,
@@ -38,7 +38,7 @@ return {
     normal = 5,
     upgraded = 10,
   },
-  dmg_buff_factor = 1.25,
+  buff_factor = 0.25,
   gold_to_produce = 1,
   blink_distance = 32*3,
   blink_delay = 1.5,

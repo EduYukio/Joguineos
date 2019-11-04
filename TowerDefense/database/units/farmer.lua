@@ -8,7 +8,7 @@ return {
   damage = p.damage.none,
   target = p.target.none,
   special = {
-    p.gold_to_produce,
+    farm = p.gold_to_produce,
   },
   category = "tower"
 }
