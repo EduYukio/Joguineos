@@ -10,6 +10,7 @@ function Unit:_init(specname)
   self.category = spec.category
   self.range = spec.range
   self.damage = spec.damage
+  self.damage_buffs = 0
   self.speed = spec.speed
   self.special = spec.special
 end

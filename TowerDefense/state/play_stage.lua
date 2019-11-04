@@ -1,4 +1,6 @@
 
+local PALETTE_DB = require 'database.palette'
+
 local Wave = require 'model.wave'
 local Unit = require 'model.unit'
 local Vec = require 'common.vec'
@@ -80,6 +82,7 @@ function PlayStageState:_load_units()
   self.towers = {}
 
   self.waiting_time = 0
+  self.dmg_buff = 0
   self.selected_tower = 'archer1'
 end
 
@@ -204,6 +207,26 @@ function PlayStageState:take_damage(who, damage)
   end
 end
 
+function PlayStageState:tower_do_action(tower)
+  local target = tower.target
+  local special = tower.special
+  if not special then
+    local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff
+    print("buffs:", tower.damage_buffs)
+    print("damage:", damage)
+    print()
+
+    self:take_damage(target, damage)
+  -- else
+    -- if special.slow then
+      --dá slow nos bixo
+    -- elseif special.farm then
+      --make money
+    -- end
+  end
+
+end
+
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
     local mouse_pos = Vec(love.mouse.getPosition())
@@ -230,47 +253,79 @@ function PlayStageState:on_mousepressed(_, _, button)
   end
 end
 
-function PlayStageState:distance_to_monster(tower, monster)
-  if not tower or not monster then return nil end
-  local monster_sprite = self.atlas:get(monster)
+function PlayStageState:distance_to_unit(tower, unit)
+  if not tower or not unit then return nil end
+  local unit_sprite = self.atlas:get(unit)
   local tower_sprite = self.atlas:get(tower)
 
-  return (tower_sprite.position - monster_sprite.position):length()
+  return (tower_sprite.position - unit_sprite.position):length()
 end
 
-function PlayStageState:find_nearest_monster(tower, monsters)
+function PlayStageState:find_nearest_unit(category, tower)
   local min_distance = math.huge
-  local nearest_monster = nil
+  local nearest_unit = nil
 
-  for monster in pairs(monsters) do
-    local distance = self:distance_to_monster(tower, monster)
-    if distance < min_distance then
+  local unit_array
+  if category == "monster" then
+    unit_array = self.monsters
+  elseif category == "tower" then
+    unit_array = self.towers
+  end
+
+  for unit in pairs(unit_array) do
+    local distance = self:distance_to_unit(tower, unit)
+    if distance < min_distance and not unit.special then
       min_distance = distance
-      nearest_monster = monster
+      nearest_unit = unit
     end
   end
 
   if min_distance < tower.range then
-    return nearest_monster
+    return nearest_unit
   else
     return nil
   end
 end
 
 function PlayStageState:find_target_and_add_laser(tower)
-  tower.target = self:find_nearest_monster(tower, self.monsters)
+  if tower.damage > 0 then
+    tower.target = self:find_nearest_unit("monster", tower)
+  elseif tower.special.buff then
+    tower.target = self:find_nearest_unit("tower", tower)
+  end
+
   if tower.target then
     local tower_position = self.atlas:get(tower).position
-    local monster_position = self.atlas:get(tower.target).position
-    self.lasers:add(tower, tower_position, monster_position)
+    local target_position = self.atlas:get(tower.target).position
+
+    local color = PALETTE_DB.red
+    if tower.special then
+      if tower.special.slow then
+        color = PALETTE_DB.blue
+      elseif tower.special.buff then
+        color = PALETTE_DB.green
+        tower.target.damage_buffs = tower.target.damage_buffs + 1
+        self.dmg_buff = tower.special.buff
+      end
+    end
+    self.lasers:add(tower, tower_position, target_position, color)
   end
 end
 
-function PlayStageState:check_if_monster_died(monster, tower)
-  if self.monsters[monster] == nil then
-    self.lasers:remove(tower)
-    tower.target = nil
+function PlayStageState:check_if_target_died(tower)
+  local target = tower.target
+  if target.category == "monster" then
+    if self.monsters[target] ~= nil then
+      return
+    end
+  elseif target.category == "tower" then
+    if self.towers[target] ~= nil then
+      return
+    end
   end
+
+  self.lasers:remove(tower)
+  tower.target = nil
 end
 
 function PlayStageState:spawn_monsters(dt)
@@ -347,7 +402,8 @@ end
 function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    local speed = monster.speed * dt
+    -- local speed = monster.speed * dt
+    local speed = 0 * dt
     local x_dir = -7.5 * monster.direction
     local y_dir = 15
     local direction = Vec(x_dir, y_dir):normalized()
@@ -366,17 +422,17 @@ end
 function PlayStageState:manage_tower_attack()
   for tower in pairs(self.towers) do
     if tower.target then
-      self:check_if_monster_died(tower.target, tower)
+      self:check_if_target_died(tower)
     end
 
     if tower.target then
-      local distance = self:distance_to_monster(tower, tower.target)
+      local distance = self:distance_to_unit(tower, tower.target)
 
       if distance > tower.range then
         self.lasers:remove(tower)
         self:find_target_and_add_laser(tower)
       else
-        self:take_damage(tower.target, tower.damage)
+        self:tower_do_action(tower)
       end
     else
       self:find_target_and_add_laser(tower)

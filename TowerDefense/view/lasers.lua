@@ -1,6 +1,5 @@
 
 local Lasers = require 'common.class' ()
-local PALETTE_DB = require 'database.palette'
 
 function Lasers:_init()
   self.list = {}
@@ -10,10 +9,11 @@ function Lasers:get_position()
   return self.position:get()
 end
 
-function Lasers:add(unit, tower_position, monster_position)
+function Lasers:add(unit, tower_position, target_position, color)
   self.list[unit] = {
     tower_position = tower_position,
-    monster_position = monster_position
+    target_position = target_position,
+    color = color,
   }
 end
 
@@ -25,11 +25,11 @@ function Lasers:draw()
   local g = love.graphics
   g.push()
 
-  g.setColor(PALETTE_DB.red)
 
   for _, laser in pairs(self.list) do
     local x1, y1 = laser.tower_position:get()
-    local x2, y2 = laser.monster_position:get()
+    local x2, y2 = laser.target_position:get()
+    g.setColor(laser.color)
     g.line(x1,y1, x2,y2)
   end
 
