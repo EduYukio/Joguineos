@@ -4,6 +4,7 @@ local Unit = require 'common.class' ()
 function Unit:_init(specname)
   local spec = require('database.units.' .. specname)
   self.spec = spec
+  self.name = spec.name
   self.max_hp = spec.max_hp
   self.hp = spec.max_hp
   self.category = spec.category
