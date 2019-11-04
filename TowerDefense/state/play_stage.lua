@@ -233,10 +233,11 @@ function PlayStageState:spawn_monsters(dt)
     local pos = self.battlefield:tile_to_screen(x, y)
 
     local monster = nil
-    for name, quantity in pairs(self.wave.wave_info) do
+    for i, name in ipairs(self.wave.order) do
+      local quantity = self.wave.quantity[i]
       if quantity > 0 then
         monster = self:_create_unit_at(name, pos)
-        self.wave.wave_info[name] = self.wave.wave_info[name] - 1
+        self.wave.quantity[i] = self.wave.quantity[i] - 1
         break
       end
     end

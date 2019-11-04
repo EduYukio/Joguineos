@@ -84,7 +84,7 @@ return {
       color = 'red'
     },
     blinker = {
-      frame = { 22, 6 },
+      frame = { 25, 3 },
       color = 'red'
     },
     summoner = {

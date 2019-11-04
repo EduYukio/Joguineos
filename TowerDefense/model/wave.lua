@@ -2,7 +2,8 @@
 local Wave = require 'common.class' ()
 
 function Wave:_init(wave_info)
-  self.wave_info = wave_info
+  self.order = wave_info.order
+  self.quantity = wave_info.quantity
   self.default_delay = 3
   self.delay = self.default_delay
   self.left = nil
