@@ -346,7 +346,7 @@ end
 function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
     local sprite_instance = self.atlas:get(monster)
-    local speed = 60 * dt
+    local speed = monster.speed * dt
     local x_dir = -7.5 * monster.direction
     local y_dir = 15
     local direction = Vec(x_dir, y_dir):normalized()
