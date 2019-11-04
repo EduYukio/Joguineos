@@ -11,6 +11,7 @@ local Lasers = require 'view.lasers'
 local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
 local UI_Select = require 'view.ui_select'
+local MonsterRoutes = require 'view.monster_routes'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -44,6 +45,7 @@ function PlayStageState:leave()
   self:view('fg'):remove('atlas')
   self:view('fg'):remove('lasers')
   self:view('bg'):remove('cursor')
+  self:view('bg'):remove('monster_routes')
   self:view('hud'):remove('lifebars')
   self:view('hud'):remove('stats')
   self:view('hud'):remove('ui_select')
@@ -57,6 +59,7 @@ function PlayStageState:_load_view()
   self.lasers = Lasers()
   self.lifebars = Lifebars()
   self.messages = Messages()
+  self.monster_routes = MonsterRoutes()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 32, top))
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
@@ -65,6 +68,7 @@ function PlayStageState:_load_view()
   self:view('fg'):add('atlas', self.atlas)
   self:view('fg'):add('lasers', self.lasers)
   self:view('bg'):add('cursor', self.cursor)
+  self:view('bg'):add('monster_routes', self.monster_routes)
   self:view('hud'):add('lifebars', self.lifebars)
   self:view('hud'):add('stats', self.stats)
   self:view('hud'):add('ui_select', self.ui_select)
