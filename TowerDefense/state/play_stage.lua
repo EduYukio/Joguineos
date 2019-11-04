@@ -177,7 +177,9 @@ function PlayStageState:_create_unit_at(specname, pos)
     return false
   end
 
-  self.lifebars:add(unit, pos)
+  if unit.category ~= "tower" then
+    self.lifebars:add(unit, pos)
+  end
   self.atlas:add(unit, pos, unit:get_appearance())
 
   return unit
