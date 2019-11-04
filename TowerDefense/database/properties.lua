@@ -1,3 +1,5 @@
+local square = 32
+local diagonal_offset = 14
 
 return {
   damage = {
@@ -13,11 +15,11 @@ return {
     multiple = 3,
   },
   range = {
-    none = 0,
-    one = 32*1,
-    low = 32*2,
-    medium = 32*5,
-    high = 32*10,
+    none   = 0,
+    one    = 0.1 + square + diagonal_offset,
+    low    = 0.1 + square*2,
+    medium = 0.1 + square*4,
+    high   = 0.1 + square*8,
   },
   slow_factor = {
     medium = 1.5,
