@@ -3,7 +3,10 @@ local Wave = require 'common.class' ()
 
 function Wave:_init(wave_info)
   self.order = wave_info.order
-  self.quantity = wave_info.quantity
+  self.quantity = {}
+  for i, v in ipairs(wave_info.quantity) do
+    self.quantity[i] = v
+  end
   self.default_delay = 3
   self.delay = self.default_delay
   self.left = nil
