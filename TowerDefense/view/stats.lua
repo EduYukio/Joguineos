@@ -14,7 +14,7 @@ function Stats:draw()
   g.setFont(self.font)
   g.setColor(PALETTE_DB.white)
   g.translate(self.position:get())
-  g.print(("Gold %d"):format(1000))
+  g.print(("Gold: %d"):format(1000))
   g.translate(0, self.font:getHeight())
   g.pop()
 end

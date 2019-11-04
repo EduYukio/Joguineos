@@ -8,6 +8,7 @@ local BattleField = require 'view.battlefield'
 local Lasers = require 'view.lasers'
 local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
+local UI_Towers = require 'view.ui_towers'
 local Stats = require 'view.stats'
 local State = require 'state'
 
@@ -27,6 +28,7 @@ function PlayStageState:_init(stack)
   self.lasers = nil
   self.lifebars = nil
   self.messages = nil
+  self.ui_towers = nil
 end
 
 function PlayStageState:enter(params)
@@ -39,10 +41,11 @@ function PlayStageState:leave()
   self:view('bg'):remove('battlefield')
   self:view('fg'):remove('atlas')
   self:view('fg'):remove('lasers')
-  self:view('fg'):remove('lifebars')
   self:view('fg'):remove('messages')
   self:view('bg'):remove('cursor')
+  self:view('hud'):remove('lifebars')
   self:view('hud'):remove('stats')
+  self:view('hud'):remove('ui_towers')
 end
 
 function PlayStageState:_load_view()
@@ -53,13 +56,16 @@ function PlayStageState:_load_view()
   self.lifebars = Lifebars()
   self.messages = Messages()
   local _, right, top, _ = self.battlefield.bounds:get()
-  self.stats = Stats(Vec(right + 16, top))
+  self.stats = Stats(Vec(right + 32, top))
+  self.ui_towers = UI_Towers(Vec(right + 32, top + 57))
+  self:refresh_ui_towers_sprites()
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
   self:view('fg'):add('lasers', self.lasers)
-  self:view('fg'):add('lifebars', self.lifebars)
   self:view('fg'):add('messages', self.messages)
   self:view('bg'):add('cursor', self.cursor)
+  self:view('hud'):add('lifebars', self.lifebars)
+  self:view('hud'):add('ui_towers', self.ui_towers)
   self:view('hud'):add('stats', self.stats)
 end
 
@@ -73,6 +79,12 @@ function PlayStageState:_load_units()
   self.waiting_time = 0
   self.monsters = {}
   self.towers = {}
+end
+
+function PlayStageState:refresh_ui_towers_sprites()
+  for _,v in pairs(self.ui_towers.sprites) do
+    self.atlas:add(v.name, v.pos, v.appearance)
+  end
 end
 
 function PlayStageState:check_if_can_create_unit(unit, pos)
