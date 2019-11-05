@@ -19,7 +19,7 @@ return {
     one    = 0.1 + square + diagonal_offset,
     low    = 0.1 + square*2,
     medium = 0.1 + square*4,
-    high   = 0.1 + square*8,
+    high   = 0.1 + square*10,
   },
   slow_factor = {
     medium = 1.5,
@@ -40,8 +40,11 @@ return {
     normal = 5,
     upgraded = 10,
   },
+  farm = {
+    gold_to_produce = 5,
+    gold_making_delay = 3,
+  },
   buff_factor = 0.25,
-  gold_to_produce = 1,
   blink_distance = 32*3,
   blink_delay = 1.5,
   summon_delay = 3.5,

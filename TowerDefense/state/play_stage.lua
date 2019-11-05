@@ -32,6 +32,8 @@ function PlayStageState:_init(stack)
   self.lifebars = nil
   self.messages = nil
   self.ui_select = nil
+
+  self.gold = 100
 end
 
 function PlayStageState:enter(params)
@@ -62,8 +64,11 @@ function PlayStageState:_load_view()
   self.monster_routes = MonsterRoutes()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 32, top))
+  self.stats.gold = self.gold
+
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
   self:add_ui_select_sprites()
+
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
   self:view('fg'):add('lasers', self.lasers)
@@ -141,6 +146,11 @@ function PlayStageState:upgrade_selected_tower(appearance)
   end
 end
 
+function PlayStageState:add_gold(value)
+  self.gold = self.gold + value
+  self.stats.gold = self.gold
+end
+
 function PlayStageState:check_if_can_create_unit(unit, pos)
   if unit.category == "tower" then
     local castle_sprite = self.atlas:get(self.castle)
@@ -182,7 +192,10 @@ function PlayStageState:_create_unit_at(specname, pos)
   else
     self.towers[unit] = true
 
-    if unit.target_policy == 1 then
+    if unit.target_policy == 0 then
+      unit.target_array = {}
+      unit.gold_timer = 0
+    elseif unit.target_policy == 1 then
       unit.target_array = {false}
     elseif unit.target_policy == 3 then
       unit.target_array = {false, false, false}
@@ -238,16 +251,11 @@ function PlayStageState:tower_do_action(tower, target)
 
     self:take_damage(target, damage)
   else
-    if special.slow then
-      local speed_after_slow = target.base_speed/special.slow
-      if target.speed > speed_after_slow then
-        target.speed = speed_after_slow
-      end
-    -- elseif special.farm then
-      -- make money
+    local speed_after_slow = target.base_speed/special.slow
+    if target.speed > speed_after_slow then
+      target.speed = speed_after_slow
     end
   end
-
 end
 
 function PlayStageState:on_mousepressed(_, _, button)
@@ -435,21 +443,30 @@ function PlayStageState:position_monsters(dt)
   end
 end
 
-function PlayStageState:manage_tower_action()
+function PlayStageState:manage_tower_action(dt)
   for tower in pairs(self.towers) do
-    for i, target in ipairs(tower.target_array) do
-      if target then
-        local distance = self:distance_to_unit(tower, target)
+    if next(tower.target_array) == nil then
+      --farmer
+      tower.gold_timer = tower.gold_timer + dt
+      if tower.gold_timer > tower.special.gold_making_delay then
+        self:add_gold(tower.special.gold_to_produce)
+        tower.gold_timer = 0
+      end
+    else
+      for i, target in ipairs(tower.target_array) do
+        if target then
+          local distance = self:distance_to_unit(tower, target)
 
-        if distance > tower.range then
-          target.speed = target.base_speed
-          self.lasers:remove(tower, i)
-          self:find_target_and_add_laser(tower, i)
+          if distance > tower.range then
+            target.speed = target.base_speed
+            self.lasers:remove(tower, i)
+            self:find_target_and_add_laser(tower, i)
+          else
+            self:tower_do_action(tower, target)
+          end
         else
-          self:tower_do_action(tower, target)
+          self:find_target_and_add_laser(tower, i)
         end
-      else
-        self:find_target_and_add_laser(tower, i)
       end
     end
   end
@@ -468,7 +485,7 @@ function PlayStageState:update(dt)
     end
   else
     self:spawn_monsters(dt)
-    self:manage_tower_action()
+    self:manage_tower_action(dt)
     self:position_monsters(dt)
   end
 end

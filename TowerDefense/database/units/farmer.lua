@@ -8,7 +8,8 @@ return {
   damage = p.damage.none,
   target_policy = p.target_policy.none,
   special = {
-    farm = p.gold_to_produce,
+    gold_to_produce = p.farm.gold_to_produce,
+    gold_making_delay = p.farm.gold_making_delay,
   },
   category = "tower"
 }
