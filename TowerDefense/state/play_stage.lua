@@ -125,13 +125,18 @@ function PlayStageState:upgrade_unit(appearance)
 end
 
 function PlayStageState:upgrade_towers(tower_name, appearance)
+  local position_array = {}
   for tower in pairs(self.towers) do
     if tower.name == tower_name then
       local pos = self.atlas:get(tower).position
+      table.insert(position_array, pos)
       self:remove_unit(tower)
-      local new_tower = self:_create_unit_at(appearance, pos)
-      self.towers[new_tower] = true
     end
+  end
+
+  for _, pos in ipairs(position_array) do
+    local new_tower = self:_create_unit_at(appearance, pos)
+    self.towers[new_tower] = true
   end
 end
 
