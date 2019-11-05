@@ -9,16 +9,22 @@ function Lasers:get_position()
   return self.position:get()
 end
 
-function Lasers:add(unit, tower_position, target_position, color)
-  self.list[unit] = {
+function Lasers:add(tower, index, tower_position, target_position, color)
+  local laser = {
     tower_position = tower_position,
     target_position = target_position,
     color = color,
   }
+
+  if not self.list[tower] then
+    self.list[tower] = {false, false, false}
+  end
+
+  self.list[tower][index] = laser
 end
 
-function Lasers:remove(unit)
-  self.list[unit] = nil
+function Lasers:remove(tower, index)
+  self.list[tower][index] = nil
 end
 
 function Lasers:draw()
@@ -26,11 +32,15 @@ function Lasers:draw()
   g.push()
 
 
-  for _, laser in pairs(self.list) do
-    local x1, y1 = laser.tower_position:get()
-    local x2, y2 = laser.target_position:get()
-    g.setColor(laser.color)
-    g.line(x1,y1, x2,y2)
+  for _, tower in pairs(self.list) do
+    for _, laser in pairs(tower) do
+      if laser then
+        local x1, y1 = laser.tower_position:get()
+        local x2, y2 = laser.target_position:get()
+        g.setColor(laser.color)
+        g.line(x1,y1, x2,y2)
+      end
+    end
   end
 
   g.pop()

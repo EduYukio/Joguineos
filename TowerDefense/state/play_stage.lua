@@ -179,6 +179,14 @@ function PlayStageState:_create_unit_at(specname, pos)
 
   if unit.category ~= "tower" then
     self.lifebars:add(unit, pos)
+  else
+    self.towers[unit] = true
+
+    if unit.target_policy == 1 then
+      unit.target_array = {false}
+    elseif unit.target_policy == 3 then
+      unit.target_array = {false, false, false}
+    end
   end
   self.atlas:add(unit, pos, unit:get_appearance())
 
@@ -187,9 +195,18 @@ end
 
 function PlayStageState:remove_unit(unit)
   if unit.category == "monster" then
+    for tower in pairs(self.towers) do
+      for i, target in ipairs(tower.target_array) do
+        if unit == target then
+          self.lasers:remove(tower, i)
+          tower.target_array[i] = false
+          break
+        end
+      end
+    end
     self.monsters[unit] = nil
   elseif unit.category == "tower" then
-    self.lasers:remove(unit)
+    self.lasers:remove(unit, 1)
     self.towers[unit] = nil
   elseif unit.category == "castle" then
     self.castle = nil
@@ -214,8 +231,7 @@ function PlayStageState:take_damage(who, damage)
   end
 end
 
-function PlayStageState:tower_do_action(tower)
-  local target = tower.target
+function PlayStageState:tower_do_action(tower, target)
   local special = tower.special
   if not special then
     local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff
@@ -225,7 +241,7 @@ function PlayStageState:tower_do_action(tower)
     if special.slow then
       local speed_after_slow = target.base_speed/special.slow
       if target.speed > speed_after_slow then
-        tower.target.speed = speed_after_slow
+        target.speed = speed_after_slow
       end
     -- elseif special.farm then
       -- make money
@@ -238,10 +254,7 @@ function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 then
     local mouse_pos = Vec(love.mouse.getPosition())
     if self.battlefield.bounds:is_inside(mouse_pos) then
-      local tower = self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
-      if tower then
-        self.towers[tower] = true
-      end
+      self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
     else
       for i,v in ipairs(self.ui_select.boxes) do
         if v:is_inside(mouse_pos) then
@@ -262,10 +275,10 @@ function PlayStageState:on_mousepressed(_, _, button)
 end
 
 function PlayStageState:distance_to_unit(tower, unit)
-  if not tower or not unit then return nil end
   local unit_sprite = self.atlas:get(unit)
   local tower_sprite = self.atlas:get(tower)
 
+  if not tower_sprite or not unit_sprite then return math.huge end
   return (tower_sprite.position - unit_sprite.position):length()
 end
 
@@ -281,8 +294,18 @@ function PlayStageState:find_nearest_unit(category, tower)
   end
 
   for unit in pairs(unit_array) do
+    local already_targeted = false
+    if tower.target_policy == 3 then
+      for _, target in ipairs(tower.target_array) do
+        if unit == target then
+          already_targeted = true
+          break
+        end
+      end
+    end
+
     local distance = self:distance_to_unit(tower, unit)
-    if distance < min_distance and not unit.special then
+    if distance < min_distance and not unit.special and not already_targeted then
       min_distance = distance
       nearest_unit = unit
     end
@@ -291,20 +314,21 @@ function PlayStageState:find_nearest_unit(category, tower)
   if min_distance < tower.range then
     return nearest_unit
   else
-    return nil
+    return false
   end
 end
 
-function PlayStageState:find_target_and_add_laser(tower)
+function PlayStageState:find_target_and_add_laser(tower, index)
   if tower.damage > 0 or tower.special.slow then
-    tower.target = self:find_nearest_unit("monster", tower)
+    tower.target_array[index] = self:find_nearest_unit("monster", tower)
   elseif tower.special.buff then
-    tower.target = self:find_nearest_unit("tower", tower)
+    tower.target_array[index] = self:find_nearest_unit("tower", tower)
   end
+  local target = tower.target_array[index]
 
-  if tower.target then
+  if target then
     local tower_position = self.atlas:get(tower).position
-    local target_position = self.atlas:get(tower.target).position
+    local target_position = self.atlas:get(target).position
 
     local color = PALETTE_DB.red
     if tower.special then
@@ -312,28 +336,12 @@ function PlayStageState:find_target_and_add_laser(tower)
         color = PALETTE_DB.purple
       elseif tower.special.buff then
         color = PALETTE_DB.green
-        tower.target.damage_buffs = tower.target.damage_buffs + 1
+        target.damage_buffs = target.damage_buffs + 1
         self.dmg_buff = tower.special.buff
       end
     end
-    self.lasers:add(tower, tower_position, target_position, color)
+    self.lasers:add(tower, index, tower_position, target_position, color)
   end
-end
-
-function PlayStageState:check_if_target_died(tower)
-  local target = tower.target
-  if target.category == "monster" then
-    if self.monsters[target] ~= nil then
-      return
-    end
-  elseif target.category == "tower" then
-    if self.towers[target] ~= nil then
-      return
-    end
-  end
-
-  self.lasers:remove(tower)
-  tower.target = nil
 end
 
 function PlayStageState:spawn_monsters(dt)
@@ -422,28 +430,27 @@ function PlayStageState:position_monsters(dt)
     if self:check_if_monster_hit_castle(monster) then
       self:take_damage(self.castle, 1)
       self:remove_unit(monster)
+      if self.game_over then return end
     end
   end
 end
 
-function PlayStageState:manage_tower_attack()
+function PlayStageState:manage_tower_action()
   for tower in pairs(self.towers) do
-    if tower.target then
-      self:check_if_target_died(tower)
-    end
+    for i, target in ipairs(tower.target_array) do
+      if target then
+        local distance = self:distance_to_unit(tower, target)
 
-    if tower.target then
-      local distance = self:distance_to_unit(tower, tower.target)
-
-      if distance > tower.range then
-        tower.target.speed = tower.target.base_speed
-        self.lasers:remove(tower)
-        self:find_target_and_add_laser(tower)
+        if distance > tower.range then
+          target.speed = target.base_speed
+          self.lasers:remove(tower, i)
+          self:find_target_and_add_laser(tower, i)
+        else
+          self:tower_do_action(tower, target)
+        end
       else
-        self:tower_do_action(tower)
+        self:find_target_and_add_laser(tower, i)
       end
-    else
-      self:find_target_and_add_laser(tower)
     end
   end
 end
@@ -461,8 +468,8 @@ function PlayStageState:update(dt)
     end
   else
     self:spawn_monsters(dt)
+    self:manage_tower_action()
     self:position_monsters(dt)
-    self:manage_tower_attack()
   end
 end
 
