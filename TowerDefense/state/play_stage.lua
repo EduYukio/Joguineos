@@ -149,6 +149,7 @@ end
 function PlayStageState:add_gold(value)
   self.gold = self.gold + value
   self.stats.gold = self.gold
+  --partículas
 end
 
 function PlayStageState:check_if_can_create_unit(unit, pos)
@@ -250,7 +251,7 @@ function PlayStageState:tower_do_action(tower, target)
     local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff
 
     self:take_damage(target, damage)
-  else
+  elseif special.slow then
     local speed_after_slow = target.base_speed/special.slow
     if target.speed > speed_after_slow then
       target.speed = speed_after_slow
@@ -293,6 +294,7 @@ end
 function PlayStageState:find_nearest_unit(category, tower)
   local min_distance = math.huge
   local nearest_unit = nil
+  local is_special_tower
 
   local unit_array
   if category == "monster" then
@@ -313,7 +315,14 @@ function PlayStageState:find_nearest_unit(category, tower)
     end
 
     local distance = self:distance_to_unit(tower, unit)
-    if distance < min_distance and not unit.special and not already_targeted then
+
+    if category == "tower" and unit.special then
+      is_special_tower = true
+    else
+      is_special_tower = false
+    end
+
+    if distance < min_distance and not is_special_tower and not already_targeted then
       min_distance = distance
       nearest_unit = unit
     end
@@ -445,7 +454,7 @@ end
 
 function PlayStageState:manage_tower_action(dt)
   for tower in pairs(self.towers) do
-    if next(tower.target_array) == nil then
+    if tower.target_policy == 0 then
       --farmer
       tower.gold_timer = tower.gold_timer + dt
       if tower.gold_timer > tower.special.gold_making_delay then

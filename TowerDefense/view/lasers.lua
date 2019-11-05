@@ -24,7 +24,9 @@ function Lasers:add(tower, index, tower_position, target_position, color)
 end
 
 function Lasers:remove(tower, index)
-  self.list[tower][index] = nil
+  if self.list[tower] then
+    self.list[tower][index] = nil
+  end
 end
 
 function Lasers:draw()
