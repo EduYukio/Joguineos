@@ -47,6 +47,9 @@ return {
   buff_factor = 0.25,
   blink_steps = 5,
   blink_delay = 1.5,
-  summon_delay = 3.5,
+  summon_delay = 2,
+  summons = {
+    "scorpion", "bee", "beetle", "spider"
+  }
 }
 

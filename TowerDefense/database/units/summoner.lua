@@ -7,6 +7,7 @@ return {
   speed = p.speed.low,
   special = {
     summon_delay = p.summon_delay,
+    summons = p.summons,
   },
   appearance = 'summoner',
 	category = "monster"

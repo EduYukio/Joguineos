@@ -88,7 +88,23 @@ return {
       color = 'red'
     },
     summoner = {
-      frame = { 24, 1 },
+      frame = { 27, 2 },
+      color = 'red'
+    },
+    scorpion = {
+      frame = { 24, 5 },
+      color = 'red'
+    },
+    bee = {
+      frame = { 26, 5 },
+      color = 'red'
+    },
+    beetle = {
+      frame = { 28, 5 },
+      color = 'red'
+    },
+    spider = {
+      frame = { 29, 5 },
       color = 'red'
     },
   }
