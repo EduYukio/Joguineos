@@ -189,6 +189,7 @@ end
 
 function PlayStageState:_create_unit_at(specname, pos)
   local unit = Unit(specname)
+  local spawn_position = pos
   if not self:check_if_can_create_unit(unit, pos) then
     return false
   end
@@ -196,7 +197,7 @@ function PlayStageState:_create_unit_at(specname, pos)
   if unit.category == "castle" then
     self.lifebars:add(unit, pos)
   elseif unit.category == "monster" then
-    self.lifebars:add(unit, pos)
+    self.monsters[unit] = true
 
     local special = unit.special
     if special then
@@ -207,8 +208,14 @@ function PlayStageState:_create_unit_at(specname, pos)
         unit.blink_distance = dist
       elseif special.summon_delay then
         unit.summon_timer = 0
+        unit.summons_array = {false, false, false, false}
+        unit.initial_position = pos
+      elseif special.spawn_position then
+        spawn_position = pos + special.spawn_position
       end
     end
+
+    self.lifebars:add(unit, spawn_position)
   elseif unit.category == "tower" then
     self.towers[unit] = true
 
@@ -222,7 +229,7 @@ function PlayStageState:_create_unit_at(specname, pos)
     end
   end
 
-  self.atlas:add(unit, pos, unit:get_appearance())
+  self.atlas:add(unit, spawn_position, unit:get_appearance())
 
   return unit
 end
@@ -237,6 +244,9 @@ function PlayStageState:remove_unit(unit)
           break
         end
       end
+    end
+    if unit.owner then
+      unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
   elseif unit.category == "tower" then
@@ -384,13 +394,39 @@ end
 function PlayStageState:blinker_action(monster, dt)
   monster.blink_timer = monster.blink_timer + dt
   if monster.blink_timer > monster.special.blink_delay then
+    monster.blink_timer = 0
+
     local sprite_instance = self.atlas:get(monster)
     local delta_s = monster.blink_distance
 
     sprite_instance.position:add(delta_s)
     self.lifebars:add_position(monster, delta_s)
+  end
+end
 
-    monster.blink_timer = 0
+function PlayStageState:summoner_action(monster, dt)
+  monster.summon_timer = monster.summon_timer + dt
+  if monster.summon_timer > monster.special.summon_delay then
+    monster.summon_timer = 0
+    local sprite_instance = self.atlas:get(monster)
+    local summons = monster.special.summons
+    for i = 1, 4 do
+      if not monster.summons_array[i] then
+        local pos = sprite_instance.position
+        local summoned_monster = self:_create_unit_at(summons[i], pos)
+        monster.summons_array[i] = summoned_monster
+
+        summoned_monster.owner = monster
+        summoned_monster.id = i
+
+        summoned_monster.direction = 0
+        if monster.initial_position.x < 300 then
+          summoned_monster.direction = -1
+        elseif monster.initial_position.x > 300 then
+          summoned_monster.direction = 1
+        end
+      end
+    end
   end
 end
 
@@ -459,7 +495,6 @@ function PlayStageState:spawn_monsters(dt)
       break
     else
       monster.direction = spawn_location
-      self.monsters[monster] = true
       pending = pending - 1
     end
   end
@@ -479,6 +514,10 @@ function PlayStageState:position_monsters(dt)
     else
       sprite_instance.position:add(delta_s)
       self.lifebars:add_position(monster, delta_s)
+    end
+
+    if monster.summon_timer then
+      self:summoner_action(monster, dt)
     end
 
     if self:check_if_monster_hit_castle(monster) then
