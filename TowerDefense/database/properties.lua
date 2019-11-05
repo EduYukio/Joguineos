@@ -45,7 +45,7 @@ return {
     gold_making_delay = 3,
   },
   buff_factor = 0.25,
-  blink_distance = 32*3,
+  blink_steps = 5,
   blink_delay = 1.5,
   summon_delay = 3.5,
 }

@@ -6,7 +6,7 @@ return {
   max_hp = p.hp.medium,
   speed = p.speed.none,
   special = {
-    blink_distance = p.blink_distance,
+    blink_steps = p.blink_steps,
     blink_delay = p.blink_delay,
   },
   appearance = 'blinker',

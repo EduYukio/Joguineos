@@ -188,9 +188,23 @@ function PlayStageState:_create_unit_at(specname, pos)
     return false
   end
 
-  if unit.category ~= "tower" then
+  if unit.category == "castle" then
     self.lifebars:add(unit, pos)
-  else
+  elseif unit.category == "monster" then
+    self.lifebars:add(unit, pos)
+
+    local special = unit.special
+    if special then
+      if special.blink_delay then
+        unit.blink_timer = 0
+        local steps = unit.special.blink_steps
+        local dist = (Vec(300, 524) - pos)/steps
+        unit.blink_distance = dist
+      elseif special.summon_delay then
+        unit.summon_timer = 0
+      end
+    end
+  elseif unit.category == "tower" then
     self.towers[unit] = true
 
     if unit.target_policy == 0 then
@@ -202,6 +216,7 @@ function PlayStageState:_create_unit_at(specname, pos)
       unit.target_array = {false, false, false}
     end
   end
+
   self.atlas:add(unit, pos, unit:get_appearance())
 
   return unit
@@ -361,6 +376,19 @@ function PlayStageState:find_target_and_add_laser(tower, index)
   end
 end
 
+function PlayStageState:blinker_action(monster, dt)
+  monster.blink_timer = monster.blink_timer + dt
+  if monster.blink_timer > monster.special.blink_delay then
+    local sprite_instance = self.atlas:get(monster)
+    local delta_s = monster.blink_distance
+
+    sprite_instance.position:add(delta_s)
+    self.lifebars:add_position(monster, delta_s)
+
+    monster.blink_timer = 0
+  end
+end
+
 function PlayStageState:spawn_monsters(dt)
   if self.must_spawn_new_wave then
     self.waiting_time = self.waiting_time + dt
@@ -441,8 +469,12 @@ function PlayStageState:position_monsters(dt)
     local direction = Vec(x_dir, y_dir):normalized()
     local delta_s = direction * speed
 
-    sprite_instance.position:add(delta_s)
-    self.lifebars:add_position(monster, delta_s)
+    if monster.blink_timer then
+      self:blinker_action(monster, dt)
+    else
+      sprite_instance.position:add(delta_s)
+      self.lifebars:add_position(monster, delta_s)
+    end
 
     if self:check_if_monster_hit_castle(monster) then
       self:take_damage(self.castle, 1)
