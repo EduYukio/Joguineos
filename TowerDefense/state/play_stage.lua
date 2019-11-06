@@ -273,7 +273,9 @@ function PlayStageState:remove_unit(unit)
     self.monsters[unit] = nil
     self:add_gold(unit.reward)
   elseif unit.category == "tower" then
-    self.lasers:remove(unit, 1)
+    for i, target in ipairs(unit.target_array) do
+      self.lasers:remove(unit, i)
+    end
     self.towers[unit] = nil
   elseif unit.category == "castle" then
     self.castle = nil
