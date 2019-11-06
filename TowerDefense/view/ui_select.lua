@@ -116,6 +116,7 @@ function UI_Select:_init(position)
   }
 
   self.selected_box = nil
+  self.hovered_box = nil
 end
 
 function UI_Select:draw()
@@ -137,10 +138,15 @@ function UI_Select:draw()
     local name = self.sprites[i].name
     local available = self.sprites[i].available
     if not available or self.gold < p.cost[name] then
-      g.setColor(0, 0, 0, 0.8)
+      g.setColor(0, 0, 0, 0.7)
       local x, y, w, h = box:get_rectangle()
       g.rectangle('fill', x+1, y+1, w-2,h-2)
     end
+  end
+
+  if self.hovered_box then
+    g.setColor(PALETTE_DB.light_gray)
+    g.rectangle('line', self.hovered_box:get_rectangle())
   end
 
   if self.selected_box then

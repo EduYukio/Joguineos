@@ -12,6 +12,7 @@ local Lasers = require 'view.lasers'
 local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
 local UI_Select = require 'view.ui_select'
+local UI_Info = require 'view.ui_info'
 local MonsterRoutes = require 'view.monster_routes'
 local Stats = require 'view.stats'
 local State = require 'state'
@@ -33,6 +34,7 @@ function PlayStageState:_init(stack)
   self.lifebars = nil
   self.messages = nil
   self.ui_select = nil
+  self.ui_info = nil
 end
 
 function PlayStageState:enter(params)
@@ -50,6 +52,7 @@ function PlayStageState:leave()
   self:view('hud'):remove('lifebars')
   self:view('hud'):remove('stats')
   self:view('hud'):remove('ui_select')
+  self:view('hud'):remove('ui_info')
   self:view('hud'):remove('messages')
 end
 
@@ -66,6 +69,7 @@ function PlayStageState:_load_view()
   self.gold = self.stage.initial_gold
   self.stats.gold = self.gold
 
+  self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
   self.ui_select.gold = self.gold
   self:add_ui_select_sprites()
@@ -85,6 +89,7 @@ function PlayStageState:_load_view()
   self:view('hud'):add('lifebars', self.lifebars)
   self:view('hud'):add('stats', self.stats)
   self:view('hud'):add('ui_select', self.ui_select)
+  self:view('hud'):add('ui_info', self.ui_info)
   self:view('hud'):add('messages', self.messages)
 end
 
@@ -256,7 +261,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
   return unit
 end
 
-function PlayStageState:remove_unit(unit)
+function PlayStageState:remove_unit(unit, hit_castle)
   if unit.category == "monster" then
     for tower in pairs(self.towers) do
       for i, target in ipairs(tower.target_array) do
@@ -626,6 +631,23 @@ function PlayStageState:manage_tower_action(dt)
   end
 end
 
+function PlayStageState:mouse_hovering_box()
+  local mouse_pos = Vec(love.mouse.getPosition())
+  self.ui_select.hovered_box = nil
+  self.ui_info.hovered_box = nil
+
+  for i, box in ipairs(self.ui_select.boxes) do
+    if box:is_inside(mouse_pos) then
+      self.ui_select.hovered_box = box
+      self.ui_info.hovered_box = box
+      self.ui_info.hovered_appearance = self.ui_select.sprites[i].appearance
+      self.ui_info.hovered_category = self.ui_select.sprites[i].category
+
+      return
+    end
+  end
+end
+
 function PlayStageState:update(dt)
   if self.game_over then
     self.waiting_time = self.waiting_time + dt
@@ -638,6 +660,7 @@ function PlayStageState:update(dt)
       return
     end
   else
+    self:mouse_hovering_box()
     self:spawn_monsters(dt)
     self:manage_tower_action(dt)
     self:position_monsters(dt)

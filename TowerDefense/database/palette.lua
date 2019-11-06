@@ -7,6 +7,7 @@ return {
   purple = { .55, 0, .55 },
   white = { .7, .7, .9 },
   gray = { .3, .3, .3 },
+  light_gray = { .6, .6, .6 },
   pure_white = { 1, 1, 1 },
 }
 

@@ -19,9 +19,12 @@ function Stats:draw()
   g.setColor(PALETTE_DB.white)
   g.translate(240, 4)
   g.print(("Wave: %d/%d"):format(self.current_wave, self.number_of_waves))
+
   love.graphics.origin()
 
-  g.translate(self.position:get())
+  local x,y = self.position:get()
+  x = x - 7
+  g.translate(x,y)
   g.print(("Gold: %d"):format(self.gold))
   g.translate(0, self.font:getHeight())
 
