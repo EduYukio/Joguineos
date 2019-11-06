@@ -290,7 +290,7 @@ function PlayStageState:tower_do_action(tower, target)
 end
 
 function PlayStageState:on_mousepressed(_, _, button)
-  if button == 1 then
+  if button == 1 and not self.game_over then
     local mouse_pos = Vec(love.mouse.getPosition())
     if self.battlefield.bounds:is_inside(mouse_pos) then
       self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
