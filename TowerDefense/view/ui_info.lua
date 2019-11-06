@@ -94,15 +94,15 @@ function UI_Info:_init(position)
   self.upgrade_infos = {
     archer2 = {
       name = "Archer_Upgrade",
-      description = "Increases archers damage",
+      description = "Turns all Archers into Marksmen, increasing their damage",
     },
     knight2 = {
       name = "Knight_Upgrade",
-      description = "Increases knights damage",
+      description = "Turns all Knights into Elite Knights, increasing their damage",
     },
     mage2 = {
       name = "Mage_Upgrade",
-      description = "Increases mages damage",
+      description = "Turns all Mages into Archmages, increasing their damage",
     },
     castle2 = {
       name = "Castle_Upgrade",
@@ -154,10 +154,11 @@ function UI_Info:draw()
     local line_gap = 25
     if self.hovered_category == "tower" then
       local info = self.tower_infos
-      g.printf("Damage:  " .. info[index].damage, 0, 0, wrap_limit)
-      g.printf("Range:   " .. info[index].range, 0, line_gap, wrap_limit)
-      g.printf("Targets: " .. info[index].targets, 0, line_gap*2, wrap_limit)
-      g.printf("Special: " .. info[index].special, 0, line_gap*3, wrap_limit)
+      g.print(info[index].name, 85,-5)
+      g.printf("Damage:  " .. info[index].damage, 0, line_gap, wrap_limit)
+      g.printf("Range:   " .. info[index].range, 0, line_gap*2, wrap_limit)
+      g.printf("Targets: " .. info[index].targets, 0, line_gap*3, wrap_limit)
+      g.printf("Special: " .. info[index].special, 0, line_gap*4, wrap_limit)
 
     elseif self.hovered_category == "upgrade" then
       local info = self.upgrade_infos
