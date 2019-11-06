@@ -6,7 +6,7 @@ return {
   appearance = 'knight2',
   cost = p.cost.Knight,
   range = p.range.low,
-  damage = p.damage.very_high,
+  damage = p.damage.high*1.5,
   target_policy = p.target_policy.single,
 	category = "tower"
 }

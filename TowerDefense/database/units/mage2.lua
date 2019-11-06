@@ -6,7 +6,7 @@ return {
   appearance = 'mage2',
   cost = p.cost.Mage,
   range = p.range.medium,
-  damage = p.damage.high,
+  damage = p.damage.medium*1.5,
   target_policy = p.target_policy.multiple,
 	category = "tower"
 }
