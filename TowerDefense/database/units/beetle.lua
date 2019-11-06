@@ -7,7 +7,7 @@ return {
   max_hp = p.hp.low,
   speed = p.speed.low,
   special = {
-    spawn_position = Vec(-18, 34),
+    spawn_position = Vec(-14, 30),
   },
   appearance = 'beetle',
   category = "monster"
