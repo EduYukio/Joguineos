@@ -3,11 +3,13 @@ local UI_Select = require 'common.class' ()
 local PALETTE_DB = require 'database.palette'
 local Vec = require 'common.vec'
 local Box = require 'common.box'
+local p = require 'database.properties'
 
 function UI_Select:_init(position)
   self.position = position
   self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
   self.font:setFilter('nearest', 'nearest')
+  self.gold = 0
 
   local x0 = 596
   local y0 = 171
@@ -17,46 +19,53 @@ function UI_Select:_init(position)
   local v_gap = sq*1.5
   self.sprites = {
     {
-      name = "UI_Archer",
+      name = "Archer",
       pos = Vec(x0, y0),
       appearance = "archer1",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Knight",
+      name = "Knight",
       pos = Vec(x0+h_gap, y0),
       appearance = "knight1",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Mage",
+      name = "Mage",
       pos = Vec(x0+h_gap*2, y0),
       appearance = "mage1",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Sword",
+      name = "Sword",
       pos = Vec(x0, y0+v_gap),
       appearance = "sword",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Cthullu",
+      name = "Cthullu",
       pos = Vec(x0+h_gap, y0+v_gap),
       appearance = "cthullu",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Ghost",
+      name = "Ghost",
       pos = Vec(x0+h_gap*2, y0+v_gap),
       appearance = "ghost",
       category = "tower",
+      available = true,
     },
     {
-      name = "UI_Farmer",
+      name = "Farmer",
       pos = Vec(x0+h_gap, y0+v_gap*2),
       appearance = "farmer",
       category = "tower",
+      available = true,
     },
 
 
@@ -65,24 +74,28 @@ function UI_Select:_init(position)
       pos = Vec(x0, y00),
       appearance = "archer2",
       category = "upgrade",
+      available = true,
     },
     {
       name = "Knight_Upgrade",
       pos = Vec(x0+h_gap, y00),
       appearance = "knight2",
       category = "upgrade",
+      available = true,
     },
     {
       name = "Mage_Upgrade",
       pos = Vec(x0+h_gap*2, y00),
       appearance = "mage2",
       category = "upgrade",
+      available = true,
     },
     {
       name = "Castle_Upgrade",
       pos = Vec(x0+h_gap, y00+v_gap),
       appearance = "castle2",
       category = "upgrade",
+      available = true,
     },
   }
   local halfsize = Vec(18,19)
@@ -102,7 +115,7 @@ function UI_Select:_init(position)
     Box.from_vec(Vec(x0+h_gap, y00+v_gap),  halfsize),
   }
 
-  self.selected_box = self.boxes[1]
+  self.selected_box = nil
 end
 
 function UI_Select:draw()
@@ -110,20 +123,30 @@ function UI_Select:draw()
   g.push()
   g.setFont(self.font)
   g.setColor(PALETTE_DB.white)
-  g.translate((self.position+Vec(8,0)):get())
+  g.translate((self.position+Vec(8, 0)):get())
   g.print("Towers:")
   love.graphics.origin()
-  g.translate((self.position+Vec(-4,220)):get())
+  g.translate((self.position+Vec(-4, 220)):get())
   g.print("Upgrades:")
   love.graphics.origin()
 
-  g.setColor(PALETTE_DB.gray)
-  for _, v in ipairs(self.boxes) do
-    g.rectangle('line', v:get_rectangle())
+  for i, box in ipairs(self.boxes) do
+    g.setColor(PALETTE_DB.gray)
+    g.rectangle('line', box:get_rectangle())
+
+    local name = self.sprites[i].name
+    local available = self.sprites[i].available
+    if not available or self.gold < p.cost[name] then
+      g.setColor(0, 0, 0, 0.8)
+      local x, y, w, h = box:get_rectangle()
+      g.rectangle('fill', x+1, y+1, w-2,h-2)
+    end
   end
 
-  g.setColor(PALETTE_DB.white)
-  g.rectangle('line', self.selected_box:get_rectangle())
+  if self.selected_box then
+    g.setColor(PALETTE_DB.pure_white)
+    g.rectangle('line', self.selected_box:get_rectangle())
+  end
 
   g.pop()
 end

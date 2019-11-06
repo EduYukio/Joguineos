@@ -8,6 +8,7 @@ function Unit:_init(specname)
   self.max_hp = spec.max_hp
   self.hp = spec.max_hp
   self.category = spec.category
+  self.cost = spec.cost
   self.range = spec.range
   self.damage = spec.damage
   self.damage_buffs = 0

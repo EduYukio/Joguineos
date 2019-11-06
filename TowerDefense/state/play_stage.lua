@@ -1,5 +1,6 @@
 
 local PALETTE_DB = require 'database.palette'
+local properties = require 'database.properties'
 
 local Wave = require 'model.wave'
 local Unit = require 'model.unit'
@@ -32,8 +33,6 @@ function PlayStageState:_init(stack)
   self.lifebars = nil
   self.messages = nil
   self.ui_select = nil
-
-  self.gold = 100
 end
 
 function PlayStageState:enter(params)
@@ -64,10 +63,13 @@ function PlayStageState:_load_view()
   self.monster_routes = MonsterRoutes()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 32, top))
+  self.gold = self.stage.initial_gold
   self.stats.gold = self.gold
 
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
+  self.ui_select.gold = self.gold
   self:add_ui_select_sprites()
+
 
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
@@ -92,7 +94,7 @@ function PlayStageState:_load_units()
 
   self.waiting_time = 0
   self.dmg_buff = 0
-  self.selected_tower = 'archer1'
+  self.selected_tower = nil
   self.cursor.selected_tower_appearance = self.selected_tower
 end
 
@@ -135,7 +137,7 @@ function PlayStageState:upgrade_towers(tower_name, appearance)
   end
 
   for _, pos in ipairs(position_array) do
-    local new_tower = self:_create_unit_at(appearance, pos)
+    local new_tower = self:_create_unit_at(appearance, pos, true)
     self.towers[new_tower] = true
   end
 end
@@ -154,11 +156,16 @@ end
 function PlayStageState:add_gold(value)
   self.gold = self.gold + value
   self.stats.gold = self.gold
+  self.ui_select.gold = self.gold
   --partículas
 end
 
 function PlayStageState:check_if_can_create_unit(unit, pos)
   if unit.category == "tower" then
+    if unit.cost > self.gold then
+      return false
+    end
+
     local castle_sprite = self.atlas:get(self.castle)
     if castle_sprite.position == pos then
       return false
@@ -187,10 +194,11 @@ function PlayStageState:check_if_monster_hit_castle(monster)
   return false
 end
 
-function PlayStageState:_create_unit_at(specname, pos)
+function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
   local unit = Unit(specname)
   local spawn_position = pos
   if not self:check_if_can_create_unit(unit, pos) then
+    --toca audio de failed tipo PÉÉ ou Ã-Ã
     return false
   end
 
@@ -207,7 +215,7 @@ function PlayStageState:_create_unit_at(specname, pos)
         local dist = (Vec(300, 524) - pos)/steps
         unit.blink_distance = dist
       elseif special.summon_delay then
-        unit.summon_timer = 0
+        unit.summon_timer = 0.8*special.summon_delay
         unit.summons_array = {false, false, false, false}
         unit.initial_position = pos
       elseif special.spawn_position then
@@ -226,6 +234,13 @@ function PlayStageState:_create_unit_at(specname, pos)
       unit.target_array = {false}
     elseif unit.target_policy == 3 then
       unit.target_array = {false, false, false}
+    end
+
+    if not is_upgrade then
+      self:add_gold(-unit.cost)
+      if self.gold < properties.cost[unit.name] then
+        self:select_tower(nil)
+      end
     end
   end
 
@@ -289,22 +304,36 @@ function PlayStageState:tower_do_action(tower, target)
   end
 end
 
+
+function PlayStageState:select_tower(appearance, index)
+  self.selected_tower = appearance
+  self.cursor.selected_tower_appearance = self.selected_tower
+  if index then
+    self.ui_select.selected_box = self.ui_select.boxes[index]
+  else
+    self.ui_select.selected_box = nil
+  end
+end
+
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 and not self.game_over then
     local mouse_pos = Vec(love.mouse.getPosition())
-    if self.battlefield.bounds:is_inside(mouse_pos) then
+    if self.battlefield.bounds:is_inside(mouse_pos) and self.selected_tower then
       self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
     else
-      for i,v in ipairs(self.ui_select.boxes) do
-        if v:is_inside(mouse_pos) then
-          local category = self.ui_select.sprites[i].category
-          local appearance = self.ui_select.sprites[i].appearance
-          if category == "tower" then
-            self.selected_tower = appearance
-            self.ui_select.selected_box = self.ui_select.boxes[i]
-            self.cursor.selected_tower_appearance = self.selected_tower
-          elseif category == "upgrade" then
-            self:upgrade_unit(appearance)
+      for i, box in ipairs(self.ui_select.boxes) do
+        if box:is_inside(mouse_pos) then
+          local spr = self.ui_select.sprites[i]
+          if self.gold < properties.cost[spr.name] then --luacheck: ignore
+            --toca audio de fail
+          else
+            if spr.category == "tower" then
+              self:select_tower(spr.appearance, i)
+            elseif spr.category == "upgrade" and spr.available then
+              self:upgrade_unit(spr.appearance)
+              self:add_gold(-properties.cost[spr.name])
+              spr.available = false
+            end
           end
           break
         end
@@ -405,11 +434,23 @@ function PlayStageState:blinker_action(monster, dt)
 end
 
 function PlayStageState:summoner_action(monster, dt)
-  monster.summon_timer = monster.summon_timer + dt
-  if monster.summon_timer > monster.special.summon_delay then
+  local summon_count = 0
+  for i = 1, 4 do
+    if monster.summons_array[i] then
+      summon_count = summon_count + 1
+    end
+  end
+
+  if summon_count < 4 then
+    monster.summon_timer = monster.summon_timer + dt
+  else
     monster.summon_timer = 0
+  end
+
+  if monster.summon_timer > monster.special.summon_delay then
     local sprite_instance = self.atlas:get(monster)
     local summons = monster.special.summons
+
     for i = 1, 4 do
       if not monster.summons_array[i] then
         local pos = sprite_instance.position

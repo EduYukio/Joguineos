@@ -1,6 +1,7 @@
 
 return {
   title = 'Slime Infestation',
+  initial_gold = 30,
   waves = {
     { order = {"slime"},
       quantity = {2},

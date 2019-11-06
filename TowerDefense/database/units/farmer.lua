@@ -4,6 +4,7 @@ local p = require 'database.properties'
 return {
   name = "Farmer",
   appearance = 'farmer',
+  cost = p.cost.Farmer,
   range = p.range.none,
   damage = p.damage.none,
   target_policy = p.target_policy.none,
