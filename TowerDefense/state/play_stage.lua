@@ -271,7 +271,10 @@ function PlayStageState:remove_unit(unit)
       unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
-    self:add_gold(unit.reward)
+
+    if not hit_castle then
+      self:add_gold(unit.reward)
+    end
   elseif unit.category == "tower" then
     for i, target in ipairs(unit.target_array) do
       self.lasers:remove(unit, i)
@@ -588,7 +591,7 @@ function PlayStageState:position_monsters(dt)
 
     if self:check_if_monster_hit_castle(monster) then
       self:take_damage(self.castle, 1)
-      self:remove_unit(monster)
+      self:remove_unit(monster, true)
       if self.game_over then return end
     end
   end
