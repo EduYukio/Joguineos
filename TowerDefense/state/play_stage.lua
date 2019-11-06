@@ -70,6 +70,12 @@ function PlayStageState:_load_view()
   self.ui_select.gold = self.gold
   self:add_ui_select_sprites()
 
+  local wave_count = 0
+  for i, _ in ipairs(self.stage.waves) do
+    wave_count = wave_count + 1
+  end
+  self.stats.number_of_waves = wave_count
+  self.stats.current_wave = 1
 
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('atlas', self.atlas)
@@ -540,6 +546,7 @@ function PlayStageState:spawn_monsters(dt)
       if next(self.monsters) == nil then
         self.current_wave = self.current_wave + 1
         self.wave_index = self.stage.waves[self.current_wave]
+        self.stats.current_wave = self.current_wave
 
         if self.wave_index then
           self.must_spawn_new_wave = true
