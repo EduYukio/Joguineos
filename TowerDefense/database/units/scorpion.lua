@@ -9,6 +9,7 @@ return {
   special = {
     spawn_position = Vec(-14, -19),
   },
+  reward = p.reward.scorpion,
   appearance = 'scorpion',
   category = "monster"
 }

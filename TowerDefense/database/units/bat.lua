@@ -6,6 +6,7 @@ return {
   appearance = 'bat',
   max_hp = p.hp.low,
   speed = p.speed.high,
+  reward = p.reward.bat,
   category = "monster"
 }
 

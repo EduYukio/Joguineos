@@ -93,6 +93,7 @@ function PlayStageState:_load_units()
   self.towers = {}
 
   self.waiting_time = 0
+  self.last_spawn_location = 1
   self.dmg_buff = 0
   self.selected_tower = nil
   self.cursor.selected_tower_appearance = self.selected_tower
@@ -264,6 +265,7 @@ function PlayStageState:remove_unit(unit)
       unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
+    self:add_gold(unit.reward)
   elseif unit.category == "tower" then
     self.lasers:remove(unit, 1)
     self.towers[unit] = nil
@@ -475,10 +477,14 @@ function PlayStageState:spawn_monsters(dt)
   if self.must_spawn_new_wave then
     self.waiting_time = self.waiting_time + dt
     if self.waiting_time < 1 then
-      self.messages:write("Next wave in 3...", Vec(190, 150))
+      self.messages:write("Next wave in 5...", Vec(190, 150))
     elseif self.waiting_time < 2 then
-      self.messages:write("Next wave in 2...", Vec(190, 150))
+      self.messages:write("Next wave in 4...", Vec(190, 150))
     elseif self.waiting_time < 3 then
+      self.messages:write("Next wave in 3...", Vec(190, 150))
+    elseif self.waiting_time < 4 then
+      self.messages:write("Next wave in 2...", Vec(190, 150))
+    elseif self.waiting_time < 5 then
       self.messages:write("Next wave in 1...", Vec(190, 150))
     else
       self.must_spawn_new_wave = false
@@ -506,6 +512,11 @@ function PlayStageState:spawn_monsters(dt)
 
   while pending > 0 do
     local spawn_location = math.random(-1, 1)
+    while spawn_location == self.last_spawn_location do
+      spawn_location = math.random(-1, 1)
+    end
+    self.last_spawn_location = spawn_location
+
     local x, y = 7 * spawn_location, -7
     local pos = self.battlefield:tile_to_screen(x, y)
 
@@ -515,7 +526,12 @@ function PlayStageState:spawn_monsters(dt)
       if quantity > 0 then
         monster = self:_create_unit_at(name, pos)
         self.wave.quantity[i] = self.wave.quantity[i] - 1
+        self.wave.delay = self.wave.cooldown[i]
         break
+      else
+        if self.wave.delay < 2 then
+          self.wave.delay = self.wave.default_delay
+        end
       end
     end
 

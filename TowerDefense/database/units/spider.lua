@@ -9,6 +9,7 @@ return {
   special = {
     spawn_position = Vec(14, 30),
   },
+  reward = p.reward.spider,
   appearance = 'spider',
   category = "monster"
 }
