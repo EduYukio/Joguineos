@@ -74,9 +74,7 @@ function PlayStageState:_load_view()
   self.ui_select.gold = self.gold
   self:add_ui_sprites()
 
-  local wave_count = #self.stage.waves
-
-  self.stats.number_of_waves = wave_count
+  self.stats.number_of_waves = #self.stage.waves
   self.stats.current_wave = 1
 
   self:view('bg'):add('battlefield', self.battlefield)
