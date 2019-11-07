@@ -43,12 +43,6 @@ return {
       cooldown = {2, 3,  1,  5, .4, 1, 2},
     },
 
-
-    --ATÉ AQUI TA BALANCEADO ATÉ
-    --IDEIA: ESCALAR CUSTO DAS TORRES COM A QUANTIDADE
-    --PQ 10 NO COMEÇO É MTO PRA COMPRAR ARCHER
-    --MAS NO LATE VC FICA COM 1K...
-    --ENTAO DEIXAR A TORRE CUSTANDO TIPO 500 BALANCEIA AS COISAS
     --Summoner Intro
     { order = {"summoner", "slime", "blinker", "golem", "bat", "summoner"},
       quantity = {1,  5, 2, 2, 20, 3},

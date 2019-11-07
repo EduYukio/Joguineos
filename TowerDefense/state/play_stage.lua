@@ -74,10 +74,8 @@ function PlayStageState:_load_view()
   self.ui_select.gold = self.gold
   self:add_ui_sprites()
 
-  local wave_count = 0
-  for i, _ in ipairs(self.stage.waves) do
-    wave_count = wave_count + 1
-  end
+  local wave_count = #self.stage.waves
+
   self.stats.number_of_waves = wave_count
   self.stats.current_wave = 1
 
@@ -173,7 +171,6 @@ function PlayStageState:add_gold(value)
   self.gold = self.gold + value
   self.stats.gold = self.gold
   self.ui_select.gold = self.gold
-  --partículas
 end
 
 function PlayStageState:check_if_can_create_unit(unit, pos)
@@ -254,9 +251,9 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
 
     if not is_upgrade then
       self:add_gold(-unit.cost)
-      if self.gold < properties.cost[unit.name] then
-        self:select_tower(nil)
-      end
+      -- if self.gold < properties.cost[unit.name] then
+      --   self:select_tower(nil)
+      -- end
     end
   end
 
@@ -285,7 +282,7 @@ function PlayStageState:remove_unit(unit, hit_castle)
       self:add_gold(unit.reward)
     end
   elseif unit.category == "tower" then
-    for i, target in ipairs(unit.target_array) do
+    for i, _ in ipairs(unit.target_array) do
       self.lasers:remove(unit, i)
     end
     self.towers[unit] = nil
@@ -346,20 +343,17 @@ function PlayStageState:on_mousepressed(_, _, button)
       for i, box in ipairs(self.ui_select.boxes) do
         if box:is_inside(mouse_pos) then
           local spr = self.ui_select.sprites[i]
-          if self.gold < properties.cost[spr.name] then --luacheck: ignore
-            --toca audio de fail
-          else
-            if spr.category == "tower" then
-              self:select_tower(spr.appearance, i)
-            elseif spr.category == "upgrade" and spr.available then
-              self:upgrade_unit(spr.appearance)
-              self:add_gold(-properties.cost[spr.name])
-              spr.available = false
-            end
+          if spr.category == "tower" then
+            self:select_tower(spr.appearance, i)
+          elseif spr.category == "upgrade" and spr.available and self.gold > properties.cost[spr.name] then
+            self:upgrade_unit(spr.appearance)
+            self:add_gold(-properties.cost[spr.name])
+            spr.available = false
           end
-          break
+          return
         end
       end
+      self:select_tower(nil)
     end
   end
 end
@@ -614,6 +608,7 @@ function PlayStageState:manage_tower_action(dt)
       if tower.gold_timer > tower.special.gold_making_delay then
         self:add_gold(tower.special.gold_to_produce)
         tower.gold_timer = 0
+        --partículas
       end
     else
       for i, target in ipairs(tower.target_array) do

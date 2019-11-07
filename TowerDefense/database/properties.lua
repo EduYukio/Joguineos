@@ -4,8 +4,8 @@ local diagonal_offset = 14
 return {
   damage = {
     none = 0,
-    low = 1.5/60,
-    medium = 3/60,
+    low = 2/60,
+    medium = 4/60,
     high = 7/60,
   },
   hp = {
@@ -29,7 +29,7 @@ return {
     one    = 0.1 + square + diagonal_offset,
     low    = 0.1 + square*2,
     medium = 0.1 + square*4,
-    high   = 0.1 + square*10,
+    high   = 0.1 + square*7,
   },
   slow_factor = {
     medium = 1.5,
@@ -37,11 +37,11 @@ return {
   },
   castle_hp = {
     normal = 7,
-    upgraded = 15,
+    upgraded = 10,
   },
   farm = {
     gold_to_produce = 3,
-    gold_making_delay = 4,
+    gold_making_delay = 5,
   },
   cost = {
     Archer  = 10,
@@ -59,17 +59,17 @@ return {
   reward = {
     slime    = 3,
     bat      = 3,
-    golem    = 10,
-    blinker  = 15,
-    summoner = 15,
-    bee      = 3,
-    beetle   = 3,
-    scorpion = 3,
-    spider   = 3,
+    golem    = 6,
+    blinker  = 8,
+    summoner = 8,
+    bee      = 0,
+    beetle   = 0,
+    scorpion = 0,
+    spider   = 0,
   },
   buff_factor = 0.25,
   blink_steps = 5,
-  blink_delay = 1.5,
+  blink_delay = 3.5,
   summon_delay = 3,
   summons = {
     "scorpion", "bee", "beetle", "spider"
