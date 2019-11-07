@@ -1,6 +1,6 @@
-
 local PALETTE_DB = require 'database.palette'
 local properties = require 'database.properties'
+local sounds = require 'database.sounds'
 
 local Wave = require 'model.wave'
 local Unit = require 'model.unit'
@@ -199,6 +199,7 @@ function PlayStageState:check_if_monster_hit_castle(monster)
 
   local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
   if monster_position == castle_sprite.position then
+    sounds.castle_take_hit:play()
     return true
   end
 
@@ -209,7 +210,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
   local unit = Unit(specname)
   local spawn_position = pos
   if not self:check_if_can_create_unit(unit, pos) then
-    --toca audio de failed tipo PÉÉ ou Ã-Ã
+    sounds.fail:play()
     return false
   end
 
@@ -249,9 +250,6 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
 
     if not is_upgrade then
       self:add_gold(-unit.cost)
-      -- if self.gold < properties.cost[unit.name] then
-      --   self:select_tower(nil)
-      -- end
     end
   end
 
@@ -271,10 +269,12 @@ function PlayStageState:remove_unit(unit, hit_castle)
         end
       end
     end
+
     if unit.owner then
       unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
+    sounds.monster_dying:play()
 
     if not hit_castle then
       self:add_gold(unit.reward)
@@ -343,10 +343,16 @@ function PlayStageState:on_mousepressed(_, _, button)
           local spr = self.ui_select.sprites[i]
           if spr.category == "tower" then
             self:select_tower(spr.appearance, i)
-          elseif spr.category == "upgrade" and spr.available and self.gold > properties.cost[spr.name] then
-            self:upgrade_unit(spr.appearance)
-            self:add_gold(-properties.cost[spr.name])
-            spr.available = false
+            sounds.select_menu:play()
+          elseif spr.category == "upgrade" then
+            if spr.available and self.gold > properties.cost[spr.name] then
+              self:upgrade_unit(spr.appearance)
+              self:add_gold(-properties.cost[spr.name])
+              spr.available = false
+              sounds.buy_upgrade:play()
+            else
+              sounds.fail:play()
+            end
           end
           return
         end
@@ -606,6 +612,7 @@ function PlayStageState:manage_tower_action(dt)
       if tower.gold_timer > tower.special.gold_making_delay then
         self:add_gold(tower.special.gold_to_produce)
         tower.gold_timer = 0
+        sounds.generate_gold:play()
         --partículas
       end
     else
