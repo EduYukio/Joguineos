@@ -646,7 +646,6 @@ function PlayStageState:mouse_hovering_box()
       self.ui_info.hovered_box = box
       self.ui_info.hovered_appearance = self.ui_select.sprites[i].appearance
       self.ui_info.hovered_category = self.ui_select.sprites[i].category
-
       return
     end
   end

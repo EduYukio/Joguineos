@@ -22,6 +22,10 @@ return {
       frame = { 6, 19 },
       color = 'white'
     },
+    coin = {
+      frame = { 22, 4 },
+      color = 'yellow'
+    },
     --
     -- DMG Towers
     --

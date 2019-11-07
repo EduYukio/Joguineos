@@ -7,16 +7,19 @@ local p = require 'database.properties'
 
 function UI_Select:_init(position)
   self.position = position
-  self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
-  self.font:setFilter('nearest', 'nearest')
+  self.title_font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
+  self.coin_font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 24)
+
+  self.title_font:setFilter('nearest', 'nearest')
+  self.coin_font:setFilter('nearest', 'nearest')
   self.gold = 0
 
   local x0 = 596
-  local y0 = 171
-  local y00 = 394
+  local y0 = 151
+  local y00 = 430
   local sq = 32
   local h_gap = sq*1.5
-  local v_gap = sq*1.5
+  local v_gap = sq*2.5
   self.sprites = {
     {
       name = "Archer",
@@ -122,22 +125,28 @@ end
 function UI_Select:draw()
   local g = love.graphics
   g.push()
-  g.setFont(self.font)
+  g.setFont(self.title_font)
   g.setColor(PALETTE_DB.white)
-  g.translate((self.position+Vec(8, 0)):get())
+  g.translate((self.position+Vec(8, -10)):get())
   g.print("Towers:")
   love.graphics.origin()
-  g.translate((self.position+Vec(-4, 220)):get())
+  g.translate((self.position+Vec(-4, 265)):get())
   g.print("Upgrades:")
   love.graphics.origin()
 
   for i, box in ipairs(self.boxes) do
-    g.setColor(PALETTE_DB.gray)
-    g.rectangle('line', box:get_rectangle())
-
     local name = self.sprites[i].name
     local available = self.sprites[i].available
-    if not available or self.gold < p.cost[name] then
+    local cost = p.cost[name]
+    local cost_x, cost_y = self.sprites[i].pos:get()
+    g.setColor(PALETTE_DB.yellow)
+    g.setFont(self.coin_font)
+    g.printf(tostring(cost), cost_x-15, cost_y+20, 32, "center")
+
+    g.setColor(PALETTE_DB.gray)
+    g.setFont(self.title_font)
+    g.rectangle('line', box:get_rectangle())
+    if not available or self.gold < cost then
       g.setColor(0, 0, 0, 0.7)
       local x, y, w, h = box:get_rectangle()
       g.rectangle('fill', x+1, y+1, w-2,h-2)

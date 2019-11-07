@@ -25,7 +25,7 @@ function Stats:draw()
   local x,y = self.position:get()
   x = x - 7
   g.translate(x,y)
-  g.print(("Gold: %d"):format(self.gold))
+  g.printf("Gold: " .. tostring(self.gold), -15, 0, 160, "center")
   g.translate(0, self.font:getHeight())
 
   g.pop()
