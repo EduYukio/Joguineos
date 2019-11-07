@@ -7,18 +7,15 @@ function UI_Info:_init(position)
   self.position = position
   self.title_font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
   self.text_font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 24)
+  self.small_text_font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 20)
   self.title_font:setFilter('nearest', 'nearest')
   self.text_font:setFilter('nearest', 'nearest')
+  self.small_text_font:setFilter('nearest', 'nearest')
   self.gold = 0
   self.hovered_box = nil
   self.hovered_appearance = nil
 
-  -- local sq = 32
-  -- local x0 = 680
-  -- local y0 = 171
-  -- local h_gap = sq*1.5
-  -- local v_gap = sq*1.5
-  self.tower_infos = {
+  self.towers_info = {
     archer1 = {
       name = "Archer",
       damage = "Low",
@@ -76,7 +73,7 @@ function UI_Info:_init(position)
       special = "None",
     },
     knight2 = {
-      name = "Lord Knight",
+      name = "Elite Knight",
       damage = "Very High",
       range = "Low",
       targets = "1",
@@ -91,7 +88,7 @@ function UI_Info:_init(position)
     },
   }
 
-  self.upgrade_infos = {
+  self.upgrades_info = {
     archer2 = {
       name = "Archer_Upgrade",
       description = "Turns all Archers into Marksmen, increasing their damage",
@@ -110,21 +107,49 @@ function UI_Info:_init(position)
     },
   }
 
-  self.monster_infos = {
+  local x0 = 775
+  local y0 = 345
+  local sq = 32
+  local h_gap = 115  + sq*1.5
+  local v_gap = 25 + sq*1.5
+
+  self.monsters_info = {
     slime = {
       name = "Slime",
+      hp = "Low",
+      speed = "Medium",
+      pos = Vec(x0, y0),
+      appearance = "slime",
     },
     bat = {
       name = "Bat",
+      hp = "Low",
+      speed = "Fast",
+      pos = Vec(x0 + h_gap, y0),
+      appearance = "bat",
     },
     golem = {
       name = "Golem",
+      hp = "Medium",
+      speed = "Low",
+      pos = Vec(x0+h_gap/2, y0 + v_gap),
+      appearance = "golem",
     },
     blinker = {
       name = "Blinker",
+      hp = "High",
+      speed = "None",
+      special = "    Teleports\n(can't be slowed)",
+      pos = Vec(x0 + h_gap, y0 + v_gap*2),
+      appearance = "blinker",
     },
     summoner = {
       name = "Summoner",
+      hp = "High",
+      speed = "Low",
+      special = "     Summons\n   4 weaklings",
+      pos = Vec(x0, y0 + v_gap*2),
+      appearance = "summoner",
     },
   }
 end
@@ -138,52 +163,58 @@ function UI_Info:draw()
 
   g.setColor(PALETTE_DB.white)
 
-  g.translate((self.position+Vec(-18, -12)):get())
+  g.translate((self.position+Vec(20, -12)):get())
+  g.setFont(self.title_font)
   g.print("Information:")
   g.setColor(PALETTE_DB.pure_white)
-  g.rectangle('line', -40,45, 260, 180)
+  g.rectangle('line', -73, 45, 312, 180)
+  g.translate(-60, 55)
 
   if self.hovered_box then
     g.setColor(PALETTE_DB.white)
 
-    g.translate(-30, 55)
-
     g.setFont(self.text_font)
     local index = self.hovered_appearance
-    local wrap_limit = 240
+    local wrap_limit = 292
     local line_gap = 25
     if self.hovered_category == "tower" then
-      local info = self.tower_infos
-      g.print(info[index].name, 85,-5)
+      local info = self.towers_info
+      g.printf(info[index].name, 0,-5, wrap_limit, "center")
       g.printf("Damage:  " .. info[index].damage, 0, line_gap, wrap_limit)
       g.printf("Range:   " .. info[index].range, 0, line_gap*2, wrap_limit)
       g.printf("Targets: " .. info[index].targets, 0, line_gap*3, wrap_limit)
       g.printf("Special: " .. info[index].special, 0, line_gap*4, wrap_limit)
 
     elseif self.hovered_category == "upgrade" then
-      local info = self.upgrade_infos
+      local info = self.upgrades_info
       g.printf(info[index].description, 0, 0, wrap_limit)
     end
-    g.setFont(self.title_font)
   end
   love.graphics.origin()
-  g.translate((self.position+Vec(-4, 220)):get())
+  g.translate((self.position+Vec(46, 220)):get())
   g.setColor(PALETTE_DB.white)
+  g.setFont(self.title_font)
   g.print("Monsters:")
   love.graphics.origin()
+  local line_gap = 20
+  g.setFont(self.small_text_font)
+  for _, monster in pairs(self.monsters_info) do
+    g.setColor(PALETTE_DB.pure_white)
+    local x, y = monster.pos:get()
+    if monster.special then
+      g.rectangle('line', x-22, y-28, 150, 95)
+      g.setColor(PALETTE_DB.white)
+      g.print(monster.special, x-15, y+line_gap*1)
+    else
+      g.rectangle('line', x-22, y-28, 150, 60)
+    end
 
-  -- for i, box in ipairs(self.boxes) do
-  --   g.setColor(PALETTE_DB.gray)
-  --   g.rectangle('line', box:get_rectangle())
-
-  --   local name = self.sprites[i].name
-  --   local available = self.sprites[i].available
-  --   if not available or self.gold < p.cost[name] then
-  --     g.setColor(0, 0, 0, 0.8)
-  --     local x, y, w, h = box:get_rectangle()
-  --     g.rectangle('fill', x+1, y+1, w-2,h-2)
-  --   end
-  -- end
+    x = x+27
+    y = y-20
+    g.setColor(PALETTE_DB.white)
+    g.print("HP:  " .. monster.hp, x, y)
+    g.print("SPD: " .. monster.speed, x, y+line_gap)
+  end
 
   g.pop()
 end

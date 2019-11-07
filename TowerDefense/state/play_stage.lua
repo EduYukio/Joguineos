@@ -72,7 +72,7 @@ function PlayStageState:_load_view()
   self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
   self.ui_select.gold = self.gold
-  self:add_ui_select_sprites()
+  self:add_ui_sprites()
 
   local wave_count = 0
   for i, _ in ipairs(self.stage.waves) do
@@ -110,8 +110,12 @@ function PlayStageState:_load_units()
   self.cursor.selected_tower_appearance = self.selected_tower
 end
 
-function PlayStageState:add_ui_select_sprites()
-  for _,v in pairs(self.ui_select.sprites) do
+function PlayStageState:add_ui_sprites()
+  for _, v in pairs(self.ui_select.sprites) do
+    self.atlas:add(v.name, v.pos, v.appearance)
+  end
+
+  for _, v in pairs(self.ui_info.monsters_info) do
     self.atlas:add(v.name, v.pos, v.appearance)
   end
 end
@@ -134,7 +138,7 @@ function PlayStageState:upgrade_unit(appearance)
     self:upgrade_towers("Mage", appearance)
   end
 
-  self:add_ui_select_sprites()
+  self:add_ui_sprites()
   self:upgrade_selected_tower(appearance)
 end
 
