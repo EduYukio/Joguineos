@@ -516,7 +516,7 @@ function PlayStageState:spawn_monsters(dt)
   elseif self.player_won then
     self.waiting_time = self.waiting_time + dt
     if self.waiting_time < 4 then
-      self.messages:write("You Win!", Vec(250, 150))
+      self.messages:write("You Win!", Vec(250, 560))
     else
       self.player_won = false
       self.waiting_time = 0
@@ -656,7 +656,7 @@ function PlayStageState:update(dt)
   if self.game_over then
     self.waiting_time = self.waiting_time + dt
     if self.waiting_time < 3 then
-      self.messages:write("Game Over :(", Vec(230, 150))
+      self.messages:write("Game Over :(", Vec(230, 560))
     else
       self.game_over = false
       self.waiting_time = 0
