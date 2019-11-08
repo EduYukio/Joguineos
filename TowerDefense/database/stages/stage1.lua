@@ -1,7 +1,7 @@
 
 return {
-  title = 'Slime Infestation',
-  initial_gold = 30,
+  title = 'Campaign',
+  initial_gold = 3000,
   waves = {
     --Slime Intro
     { order = {"slime"},
