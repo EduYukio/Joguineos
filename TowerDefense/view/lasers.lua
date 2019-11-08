@@ -40,7 +40,7 @@ function Lasers:draw()
         local x1, y1 = laser.tower_position:get()
         local x2, y2 = laser.target_position:get()
         g.setColor(laser.color)
-        g.setLineWidth(1)
+        g.setLineWidth(1.5)
         g.line(x1,y1, x2,y2)
         g.setLineWidth(2)
       end
