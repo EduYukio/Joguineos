@@ -13,6 +13,7 @@ local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
 local UI_Select = require 'view.ui_select'
 local UI_Info = require 'view.ui_info'
+local PSystems = require 'view.p_systems'
 local MonsterRoutes = require 'view.monster_routes'
 local Stats = require 'view.stats'
 local State = require 'state'
@@ -35,6 +36,7 @@ function PlayStageState:_init(stack)
   self.messages = nil
   self.ui_select = nil
   self.ui_info = nil
+  self.p_systems = nil
 end
 
 function PlayStageState:enter(params)
@@ -45,8 +47,9 @@ end
 
 function PlayStageState:leave()
   self:view('bg'):remove('battlefield')
-  self:view('fg'):remove('atlas')
   self:view('fg'):remove('lasers')
+  self:view('fg'):remove('atlas')
+  self:view('fg'):remove('p_systems')
   self:view('bg'):remove('cursor')
   self:view('bg'):remove('monster_routes')
   self:view('hud'):remove('lifebars')
@@ -77,9 +80,12 @@ function PlayStageState:_load_view()
   self.stats.number_of_waves = #self.stage.waves
   self.stats.current_wave = 1
 
+  self.p_systems = PSystems()
+
   self:view('bg'):add('battlefield', self.battlefield)
-  self:view('fg'):add('atlas', self.atlas)
   self:view('fg'):add('lasers', self.lasers)
+  self:view('fg'):add('atlas', self.atlas)
+  self:view('fg'):add('p_systems', self.p_systems)
   self:view('bg'):add('cursor', self.cursor)
   self:view('bg'):add('monster_routes', self.monster_routes)
   self:view('hud'):add('lifebars', self.lifebars)
@@ -120,6 +126,7 @@ function PlayStageState:upgrade_unit(appearance)
   if appearance == "castle2" then
     self:remove_unit(self.castle)
     self.castle = self:_create_unit_at('castle2', self.castle_pos)
+    self.castle.p_system:emit(20)
     return
   end
 
@@ -151,6 +158,7 @@ function PlayStageState:upgrade_towers(tower_name, appearance)
   for _, pos in ipairs(position_array) do
     local new_tower = self:_create_unit_at(appearance, pos, true)
     self.towers[new_tower] = true
+    new_tower.p_system:emit(20)
   end
 end
 
@@ -216,6 +224,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
 
   if unit.category == "castle" then
     self.lifebars:add(unit, pos)
+    unit.p_system = self.p_systems:add(unit, pos, "white")
   elseif unit.category == "monster" then
     self.monsters[unit] = true
 
@@ -243,10 +252,13 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
       unit.target_array = {}
       unit.gold_timer = 0
       unit.sfx = sounds.generate_gold:clone()
+      unit.p_system = self.p_systems:add(unit, pos, "yellow")
     elseif unit.target_policy == 1 then
       unit.target_array = {false}
+      unit.p_system = self.p_systems:add(unit, pos, "blue")
     elseif unit.target_policy == 3 then
       unit.target_array = {false, false, false}
+      unit.p_system = self.p_systems:add(unit, pos, "blue")
     end
 
     if not is_upgrade then
@@ -285,6 +297,7 @@ function PlayStageState:remove_unit(unit, hit_castle)
     for i, _ in ipairs(unit.target_array) do
       self.lasers:remove(unit, i)
     end
+    self.p_systems:remove(unit)
     self.towers[unit] = nil
   elseif unit.category == "castle" then
     self.castle = nil
@@ -428,7 +441,7 @@ function PlayStageState:find_target_and_add_laser(tower, index)
     local tower_position = self.atlas:get(tower).position
     local target_position = self.atlas:get(target).position
 
-    local color = PALETTE_DB.red
+    local color = PALETTE_DB.dark_red
     if tower.special then
       if tower.special.slow then
         color = PALETTE_DB.purple
@@ -615,7 +628,7 @@ function PlayStageState:manage_tower_action(dt)
         self:add_gold(tower.special.gold_to_produce)
         tower.gold_timer = 0
         tower.sfx:play()
-        --partículas
+        tower.p_system:emit(20)
       end
     else
       for i, target in ipairs(tower.target_array) do
@@ -665,6 +678,7 @@ function PlayStageState:update(dt)
       return
     end
   else
+    self.p_systems:update(dt)
     self:mouse_hovering_box()
     self:spawn_monsters(dt)
     self:manage_tower_action(dt)
