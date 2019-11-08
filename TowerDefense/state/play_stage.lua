@@ -242,6 +242,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
     if unit.target_policy == 0 then
       unit.target_array = {}
       unit.gold_timer = 0
+      unit.sfx = sounds.generate_gold:clone()
     elseif unit.target_policy == 1 then
       unit.target_array = {false}
     elseif unit.target_policy == 3 then
@@ -249,6 +250,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
     end
 
     if not is_upgrade then
+      sounds.select_menu:play()
       self:add_gold(-unit.cost)
     end
   end
@@ -612,7 +614,7 @@ function PlayStageState:manage_tower_action(dt)
       if tower.gold_timer > tower.special.gold_making_delay then
         self:add_gold(tower.special.gold_to_produce)
         tower.gold_timer = 0
-        sounds.generate_gold:play()
+        tower.sfx:play()
         --partículas
       end
     else
