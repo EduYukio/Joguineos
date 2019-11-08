@@ -1,10 +1,13 @@
 local PALETTE_DB = require 'database.palette'
 local properties = require 'database.properties'
 local sounds = require 'database.sounds'
+local Vec = require 'common.vec'
+
+local Upgrade = require 'handlers.upgrade'
 
 local Wave = require 'model.wave'
 local Unit = require 'model.unit'
-local Vec = require 'common.vec'
+
 local Cursor = require 'view.cursor'
 local SpriteAtlas = require 'view.sprite_atlas'
 local BattleField = require 'view.battlefield'
@@ -16,6 +19,7 @@ local UI_Info = require 'view.ui_info'
 local PSystems = require 'view.p_systems'
 local MonsterRoutes = require 'view.monster_routes'
 local Stats = require 'view.stats'
+
 local State = require 'state'
 
 local PlayStageState = require 'common.class' (State)
@@ -43,6 +47,7 @@ function PlayStageState:enter(params)
   self.stage = params.stage
   self:_load_view()
   self:_load_units()
+  self:_load_handlers()
 end
 
 function PlayStageState:leave()
@@ -112,6 +117,10 @@ function PlayStageState:_load_units()
   self.cursor.selected_tower_appearance = self.selected_tower
 end
 
+function PlayStageState:_load_handlers()
+  self.upgrade = Upgrade(self)
+end
+
 function PlayStageState:add_ui_sprites()
   for _, v in pairs(self.ui_select.sprites) do
     self.atlas:add(v.name, v.pos, v.appearance)
@@ -122,56 +131,7 @@ function PlayStageState:add_ui_sprites()
   end
 end
 
-function PlayStageState:upgrade_unit(appearance)
-  if appearance == "castle2" then
-    self:remove_unit(self.castle)
-    self.castle = self:_create_unit_at('castle2', self.castle_pos)
-    self.castle.p_system:emit(20)
-    return
-  end
 
-  if appearance == "archer2" then
-    self.ui_select.sprites[1].appearance = appearance
-    self:upgrade_towers("Archer", appearance)
-  elseif appearance == "knight2" then
-    self.ui_select.sprites[2].appearance = appearance
-    self:upgrade_towers("Knight", appearance)
-  elseif appearance == "mage2" then
-    self.ui_select.sprites[3].appearance = appearance
-    self:upgrade_towers("Mage", appearance)
-  end
-
-  self:add_ui_sprites()
-  self:upgrade_selected_tower(appearance)
-end
-
-function PlayStageState:upgrade_towers(tower_name, appearance)
-  local position_array = {}
-  for tower in pairs(self.towers) do
-    if tower.name == tower_name then
-      local pos = self.atlas:get(tower).position
-      table.insert(position_array, pos)
-      self:remove_unit(tower)
-    end
-  end
-
-  for _, pos in ipairs(position_array) do
-    local new_tower = self:_create_unit_at(appearance, pos, true)
-    self.towers[new_tower] = true
-    new_tower.p_system:emit(20)
-  end
-end
-
-function PlayStageState:upgrade_selected_tower(appearance)
-  local curr = self.selected_tower
-  if appearance == "archer2" and curr == "archer1" then
-    self.selected_tower = "archer2"
-  elseif appearance == "knight2" and curr == "knight1" then
-    self.selected_tower = "knight2"
-  elseif appearance == "mage2" and curr == "mage1" then
-    self.selected_tower = "mage2"
-  end
-end
 
 function PlayStageState:add_gold(value)
   self.gold = self.gold + value
@@ -361,7 +321,7 @@ function PlayStageState:on_mousepressed(_, _, button)
             sounds.select_menu:play()
           elseif spr.category == "upgrade" then
             if spr.available and self.gold > properties.cost[spr.name] then
-              self:upgrade_unit(spr.appearance)
+              self.upgrade:units(spr.appearance)
               self:add_gold(-properties.cost[spr.name])
               spr.available = false
               sounds.buy_upgrade:play()
