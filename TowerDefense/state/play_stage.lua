@@ -4,6 +4,7 @@ local SOUNDS = require 'database.sounds'
 local Vec = require 'common.vec'
 
 local Upgrade = require 'handlers.upgrade'
+local MonsterBehaviour = require 'handlers.monster_behaviour'
 
 local Wave = require 'model.wave'
 local Unit = require 'model.unit'
@@ -119,6 +120,7 @@ end
 
 function PlayStageState:_load_handlers()
   self.upgrade = Upgrade(self)
+  self.monster_behaviour = MonsterBehaviour(self)
 end
 
 function PlayStageState:add_ui_sprites()
@@ -130,8 +132,6 @@ function PlayStageState:add_ui_sprites()
     self.atlas:add(v.name, v.pos, v.appearance)
   end
 end
-
-
 
 function PlayStageState:add_gold(value)
   self.gold = self.gold + value
@@ -415,56 +415,7 @@ function PlayStageState:find_target_and_add_laser(tower, index)
   end
 end
 
-function PlayStageState:blinker_action(monster, dt)
-  monster.blink_timer = monster.blink_timer + dt
-  if monster.blink_timer > monster.special.blink_delay then
-    monster.blink_timer = 0
 
-    local sprite_instance = self.atlas:get(monster)
-    local delta_s = monster.blink_distance
-
-    sprite_instance.position:add(delta_s)
-    self.lifebars:add_position(monster, delta_s)
-  end
-end
-
-function PlayStageState:summoner_action(monster, dt)
-  local summon_count = 0
-  for i = 1, 4 do
-    if monster.summons_array[i] then
-      summon_count = summon_count + 1
-    end
-  end
-
-  if summon_count < 4 then
-    monster.summon_timer = monster.summon_timer + dt
-  else
-    monster.summon_timer = 0
-  end
-
-  if monster.summon_timer > monster.special.summon_delay then
-    local sprite_instance = self.atlas:get(monster)
-    local summons = monster.special.summons
-
-    for i = 1, 4 do
-      if not monster.summons_array[i] then
-        local pos = sprite_instance.position
-        local summoned_monster = self:_create_unit_at(summons[i], pos)
-        monster.summons_array[i] = summoned_monster
-
-        summoned_monster.owner = monster
-        summoned_monster.id = i
-
-        summoned_monster.direction = 0
-        if monster.initial_position.x < 300 then
-          summoned_monster.direction = -1
-        elseif monster.initial_position.x > 300 then
-          summoned_monster.direction = 1
-        end
-      end
-    end
-  end
-end
 
 function PlayStageState:spawn_monsters(dt)
   if self.must_spawn_new_wave then
@@ -553,22 +504,14 @@ end
 
 function PlayStageState:position_monsters(dt)
   for monster in pairs(self.monsters) do
-    local sprite_instance = self.atlas:get(monster)
-    local speed = monster.speed * dt
-    local x_dir = -7.5 * monster.direction
-    local y_dir = 15
-    local direction = Vec(x_dir, y_dir):normalized()
-    local delta_s = direction * speed
-
     if monster.blink_timer then
-      self:blinker_action(monster, dt)
+      self.monster_behaviour:blinker(monster, dt)
     else
-      sprite_instance.position:add(delta_s)
-      self.lifebars:add_position(monster, delta_s)
+      self.monster_behaviour:walk(monster, dt)
     end
 
     if monster.summon_timer then
-      self:summoner_action(monster, dt)
+      self.monster_behaviour:summoner(monster, dt)
     end
 
     if self:check_if_monster_hit_castle(monster) then
