@@ -25,7 +25,9 @@ end
 
 function Lasers:remove(tower, index)
   if self.list[tower] then
-    self.list[tower][index] = nil
+    if self.list[tower][index] then
+      self.list[tower][index] = nil
+    end
   end
 end
 
