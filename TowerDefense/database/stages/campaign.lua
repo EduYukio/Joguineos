@@ -3,6 +3,12 @@ return {
   title = 'Campaign',
   initial_gold = 3000,
   waves = {
+    { order = {"blinker", "summoner"},
+      quantity = {1, 1},
+      cooldown = {2, 2},
+    },
+
+
     --Slime Intro
     { order = {"slime"},
       quantity = {10},
