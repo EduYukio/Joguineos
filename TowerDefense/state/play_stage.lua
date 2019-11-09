@@ -1,6 +1,6 @@
 local PALETTE_DB = require 'database.palette'
 local properties = require 'database.properties'
-local sounds = require 'database.sounds'
+local SOUNDS = require 'database.sounds'
 local Vec = require 'common.vec'
 
 local Upgrade = require 'handlers.upgrade'
@@ -167,7 +167,7 @@ function PlayStageState:check_if_monster_hit_castle(monster)
 
   local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
   if monster_position == castle_sprite.position then
-    sounds.castle_take_hit:play()
+    SOUNDS.castle_take_hit:play()
     return true
   end
 
@@ -178,7 +178,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
   local unit = Unit(specname)
   local spawn_position = pos
   if not self:check_if_can_create_unit(unit, pos) then
-    sounds.fail:play()
+    SOUNDS.fail:play()
     return false
   end
 
@@ -211,7 +211,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
     if unit.target_policy == 0 then
       unit.target_array = {}
       unit.gold_timer = 0
-      unit.sfx = sounds.generate_gold:clone()
+      unit.sfx = SOUNDS.generate_gold:clone()
       unit.p_system = self.p_systems:add(unit, pos, "yellow")
     elseif unit.target_policy == 1 then
       unit.target_array = {false}
@@ -222,7 +222,7 @@ function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
     end
 
     if not is_upgrade then
-      sounds.select_menu:play()
+      SOUNDS.select_menu:play()
       self:add_gold(-unit.cost)
     end
   end
@@ -248,7 +248,7 @@ function PlayStageState:remove_unit(unit, hit_castle)
       unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
-    sounds.monster_dying:play()
+    SOUNDS.monster_dying:play()
 
     if not hit_castle then
       self:add_gold(unit.reward)
@@ -318,15 +318,15 @@ function PlayStageState:on_mousepressed(_, _, button)
           local spr = self.ui_select.sprites[i]
           if spr.category == "tower" then
             self:select_tower(spr.appearance, i)
-            sounds.select_menu:play()
+            SOUNDS.select_menu:play()
           elseif spr.category == "upgrade" then
             if spr.available and self.gold > properties.cost[spr.name] then
               self.upgrade:units(spr.appearance)
               self:add_gold(-properties.cost[spr.name])
               spr.available = false
-              sounds.buy_upgrade:play()
+              SOUNDS.buy_upgrade:play()
             else
-              sounds.fail:play()
+              SOUNDS.fail:play()
             end
           end
           return
