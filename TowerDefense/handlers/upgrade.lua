@@ -1,7 +1,11 @@
+
+local Existence = require 'handlers.existence'
+
 local Upgrade = require 'common.class' ()
 
 function Upgrade:_init(stage)
   self.stage = stage
+  self.existence = Existence(stage)
 end
 
 function Upgrade:units(appearance)
@@ -26,8 +30,8 @@ function Upgrade:units(appearance)
 end
 
 function Upgrade:upgrade_castle(castle)
-  self.stage:remove_unit(castle)
-  self.stage.castle = self.stage:_create_unit_at('castle2', self.stage.castle_pos)
+  self.existence:remove_unit(castle)
+  self.stage.castle = self.existence:create_unit('castle2', self.stage.castle_pos)
   castle.p_system:emit(20)
 end
 
@@ -37,12 +41,12 @@ function Upgrade:upgrade_towers(tower_name, appearance)
     if tower.name == tower_name then
       local pos = self.stage.atlas:get(tower).position
       table.insert(position_array, pos)
-      self.stage:remove_unit(tower)
+      self.existence:remove_unit(tower)
     end
   end
 
   for _, pos in ipairs(position_array) do
-    local new_tower = self.stage:_create_unit_at(appearance, pos, true)
+    local new_tower = self.existence:create_unit(appearance, pos, true)
     self.stage.towers[new_tower] = true
     new_tower.p_system:emit(20)
   end

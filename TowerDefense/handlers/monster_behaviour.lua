@@ -1,8 +1,11 @@
 local Vec = require 'common.vec'
+local Existence = require 'handlers.existence'
+
 local MonsterBehaviour = require 'common.class' ()
 
 function MonsterBehaviour:_init(stage)
   self.stage = stage
+  self.existence = Existence(stage)
 end
 
 function MonsterBehaviour:blinker(monster, dt)
@@ -39,7 +42,7 @@ function MonsterBehaviour:summoner(monster, dt)
     for i = 1, 4 do
       if not monster.summons_array[i] then
         local pos = sprite_instance.position
-        local summoned_monster = self.stage:_create_unit_at(summons[i], pos)
+        local summoned_monster = self.existence:create_unit(summons[i], pos)
         monster.summons_array[i] = summoned_monster
 
         summoned_monster.owner = monster

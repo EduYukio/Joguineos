@@ -5,9 +5,9 @@ local Vec = require 'common.vec'
 
 local Upgrade = require 'handlers.upgrade'
 local MonsterBehaviour = require 'handlers.monster_behaviour'
+local Existence = require 'handlers.existence'
 
 local Wave = require 'model.wave'
-local Unit = require 'model.unit'
 
 local Cursor = require 'view.cursor'
 local SpriteAtlas = require 'view.sprite_atlas'
@@ -46,9 +46,9 @@ end
 
 function PlayStageState:enter(params)
   self.stage = params.stage
+  self:_load_handlers()
   self:_load_view()
   self:_load_units()
-  self:_load_handlers()
 end
 
 function PlayStageState:leave()
@@ -104,7 +104,7 @@ end
 function PlayStageState:_load_units()
   self.units = {}
   self.castle_pos = self.battlefield:tile_to_screen(0, 7)
-  self.castle = self:_create_unit_at('castle', self.castle_pos)
+  self.castle = self.existence:create_unit('castle', self.castle_pos)
   self.current_wave = 1
   self.wave = Wave(self.stage.waves[self.current_wave])
   self.wave:start()
@@ -121,7 +121,17 @@ end
 function PlayStageState:_load_handlers()
   self.upgrade = Upgrade(self)
   self.monster_behaviour = MonsterBehaviour(self)
+  self.existence = Existence(self)
 end
+
+
+
+
+
+
+
+
+
 
 function PlayStageState:add_ui_sprites()
   for _, v in pairs(self.ui_select.sprites) do
@@ -139,27 +149,7 @@ function PlayStageState:add_gold(value)
   self.ui_select.gold = self.gold
 end
 
-function PlayStageState:check_if_can_create_unit(unit, pos)
-  if unit.category == "tower" then
-    if unit.cost > self.gold then
-      return false
-    end
 
-    local castle_sprite = self.atlas:get(self.castle)
-    if castle_sprite.position == pos then
-      return false
-    end
-
-    for tower in pairs(self.towers) do
-      local tower_sprite = self.atlas:get(tower)
-      if tower_sprite.position == pos then
-        return false
-      end
-    end
-  end
-
-  return true
-end
 
 function PlayStageState:check_if_monster_hit_castle(monster)
   local monster_sprite = self.atlas:get(monster)
@@ -174,98 +164,7 @@ function PlayStageState:check_if_monster_hit_castle(monster)
   return false
 end
 
-function PlayStageState:_create_unit_at(specname, pos, is_upgrade)
-  local unit = Unit(specname)
-  local spawn_position = pos
-  if not self:check_if_can_create_unit(unit, pos) then
-    SOUNDS.fail:play()
-    return false
-  end
 
-  if unit.category == "castle" then
-    self.lifebars:add(unit, pos)
-    unit.p_system = self.p_systems:add(unit, pos, "white")
-  elseif unit.category == "monster" then
-    self.monsters[unit] = true
-
-    local special = unit.special
-    if special then
-      if special.blink_delay then
-        unit.blink_timer = 0
-        local steps = unit.special.blink_steps
-        local dist = (Vec(300, 524) - pos)/steps
-        unit.blink_distance = dist
-      elseif special.summon_delay then
-        unit.summon_timer = 0.8*special.summon_delay
-        unit.summons_array = {false, false, false, false}
-        unit.initial_position = pos
-      elseif special.spawn_position then
-        spawn_position = pos + special.spawn_position
-      end
-    end
-
-    self.lifebars:add(unit, spawn_position)
-  elseif unit.category == "tower" then
-    self.towers[unit] = true
-
-    if unit.target_policy == 0 then
-      unit.target_array = {}
-      unit.gold_timer = 0
-      unit.sfx = SOUNDS.generate_gold:clone()
-      unit.p_system = self.p_systems:add(unit, pos, "yellow")
-    elseif unit.target_policy == 1 then
-      unit.target_array = {false}
-      unit.p_system = self.p_systems:add(unit, pos, "blue")
-    elseif unit.target_policy == 3 then
-      unit.target_array = {false, false, false}
-      unit.p_system = self.p_systems:add(unit, pos, "blue")
-    end
-
-    if not is_upgrade then
-      SOUNDS.select_menu:play()
-      self:add_gold(-unit.cost)
-    end
-  end
-
-  self.atlas:add(unit, spawn_position, unit:get_appearance())
-
-  return unit
-end
-
-function PlayStageState:remove_unit(unit, hit_castle)
-  if unit.category == "monster" then
-    for tower in pairs(self.towers) do
-      for i, target in ipairs(tower.target_array) do
-        if unit == target then
-          self.lasers:remove(tower, i)
-          tower.target_array[i] = false
-          break
-        end
-      end
-    end
-
-    if unit.owner then
-      unit.owner.summons_array[unit.id] = false
-    end
-    self.monsters[unit] = nil
-    SOUNDS.monster_dying:play()
-
-    if not hit_castle then
-      self:add_gold(unit.reward)
-    end
-  elseif unit.category == "tower" then
-    for i, _ in ipairs(unit.target_array) do
-      self.lasers:remove(unit, i)
-    end
-    self.p_systems:remove(unit)
-    self.towers[unit] = nil
-  elseif unit.category == "castle" then
-    self.castle = nil
-  end
-
-  self.lifebars:remove(unit)
-  self.atlas:remove(unit)
-end
 
 function PlayStageState:take_damage(who, damage)
   local unit = who
@@ -278,7 +177,7 @@ function PlayStageState:take_damage(who, damage)
     if unit.category == "castle" then
       self.game_over = true
     end
-    self:remove_unit(unit)
+    self.existence:remove_unit(unit)
   end
 end
 
@@ -311,7 +210,7 @@ function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 and not self.game_over then
     local mouse_pos = Vec(love.mouse.getPosition())
     if self.battlefield.bounds:is_inside(mouse_pos) and self.selected_tower then
-      self:_create_unit_at(self.selected_tower, Vec(self.cursor:get_position()))
+      self.existence:create_unit(self.selected_tower, Vec(self.cursor:get_position()))
     else
       for i, box in ipairs(self.ui_select.boxes) do
         if box:is_inside(mouse_pos) then
@@ -415,8 +314,6 @@ function PlayStageState:find_target_and_add_laser(tower, index)
   end
 end
 
-
-
 function PlayStageState:spawn_monsters(dt)
   if self.must_spawn_new_wave then
     self.waiting_time = self.waiting_time + dt
@@ -468,7 +365,7 @@ function PlayStageState:spawn_monsters(dt)
     for i, name in ipairs(self.wave.order) do
       local quantity = self.wave.quantity[i]
       if quantity > 0 then
-        monster = self:_create_unit_at(name, pos)
+        monster = self.existence:create_unit(name, pos)
         self.wave.quantity[i] = self.wave.quantity[i] - 1
         self.wave.delay = self.wave.cooldown[i]
         break
@@ -502,7 +399,7 @@ function PlayStageState:spawn_monsters(dt)
   end
 end
 
-function PlayStageState:position_monsters(dt)
+function PlayStageState:manage_monsters(dt)
   for monster in pairs(self.monsters) do
     if monster.blink_timer then
       self.monster_behaviour:blinker(monster, dt)
@@ -516,13 +413,13 @@ function PlayStageState:position_monsters(dt)
 
     if self:check_if_monster_hit_castle(monster) then
       self:take_damage(self.castle, 1)
-      self:remove_unit(monster, true)
+      self.existence:remove_unit(monster, true)
       if self.game_over then return end
     end
   end
 end
 
-function PlayStageState:manage_tower_action(dt)
+function PlayStageState:manage_towers(dt)
   for tower in pairs(self.towers) do
     if tower.target_policy == 0 then
       --farmer
@@ -584,8 +481,8 @@ function PlayStageState:update(dt)
     self.p_systems:update(dt)
     self:mouse_hovering_box()
     self:spawn_monsters(dt)
-    self:manage_tower_action(dt)
-    self:position_monsters(dt)
+    self:manage_towers(dt)
+    self:manage_monsters(dt)
   end
 end
 
