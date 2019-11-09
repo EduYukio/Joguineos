@@ -1,5 +1,6 @@
 local Vec = require 'common.vec'
 local Existence = require 'handlers.existence'
+local SOUNDS = require 'database.sounds'
 
 local MonsterBehaviour = require 'common.class' ()
 
@@ -8,7 +9,7 @@ function MonsterBehaviour:_init(stage)
   self.existence = Existence(stage)
 end
 
-function MonsterBehaviour:blinker(monster, dt)
+function MonsterBehaviour:blinker_action(monster, dt)
   monster.blink_timer = monster.blink_timer + dt
   if monster.blink_timer > monster.special.blink_delay then
     monster.blink_timer = 0
@@ -21,7 +22,7 @@ function MonsterBehaviour:blinker(monster, dt)
   end
 end
 
-function MonsterBehaviour:summoner(monster, dt)
+function MonsterBehaviour:summoner_action(monster, dt)
   local summon_count = 0
   for i = 1, 4 do
     if monster.summons_array[i] then
@@ -71,8 +72,17 @@ function MonsterBehaviour:walk(monster, dt)
   self.stage.lifebars:add_position(monster, delta_s)
 end
 
+function MonsterBehaviour:hit_castle(monster)
+  local monster_sprite = self.stage.atlas:get(monster)
+  local castle_sprite = self.stage.atlas:get(self.stage.castle)
+
+  local monster_position = self.stage.battlefield:round_to_tile(monster_sprite.position)
+  if monster_position == castle_sprite.position then
+    SOUNDS.castle_take_hit:play()
+    return true
+  end
+
+  return false
+end
+
 return MonsterBehaviour
-
-
-
-
