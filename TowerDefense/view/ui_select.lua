@@ -3,7 +3,7 @@ local UI_Select = require 'common.class' ()
 local PALETTE_DB = require 'database.palette'
 local Vec = require 'common.vec'
 local Box = require 'common.box'
-local p = require 'database.properties'
+local PROPERTIES = require 'database.properties'
 
 function UI_Select:_init(position)
   self.position = position
@@ -137,7 +137,7 @@ function UI_Select:draw()
   for i, box in ipairs(self.boxes) do
     local name = self.sprites[i].name
     local available = self.sprites[i].available
-    local cost = p.cost[name]
+    local cost = PROPERTIES.cost[name]
     local cost_x, cost_y = self.sprites[i].pos:get()
     g.setColor(PALETTE_DB.yellow)
     g.setFont(self.coin_font)

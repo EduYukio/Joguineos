@@ -1,5 +1,5 @@
 local PALETTE_DB = require 'database.palette'
-local properties = require 'database.properties'
+local PROPERTIES = require 'database.properties'
 local SOUNDS = require 'database.sounds'
 local Vec = require 'common.vec'
 
@@ -16,7 +16,7 @@ local Lifebars = require 'view.lifebars'
 local Messages = require 'view.messages'
 local UI_Select = require 'view.ui_select'
 local UI_Info = require 'view.ui_info'
-local PSystems = require 'view.p_systems'
+local P_Systems = require 'view.p_systems'
 local MonsterRoutes = require 'view.monster_routes'
 local Stats = require 'view.stats'
 
@@ -85,7 +85,7 @@ function PlayStageState:_load_view()
   self.stats.number_of_waves = #self.stage.waves
   self.stats.current_wave = 1
 
-  self.p_systems = PSystems()
+  self.p_systems = P_Systems()
 
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('lasers', self.lasers)
@@ -320,9 +320,9 @@ function PlayStageState:on_mousepressed(_, _, button)
             self:select_tower(spr.appearance, i)
             SOUNDS.select_menu:play()
           elseif spr.category == "upgrade" then
-            if spr.available and self.gold > properties.cost[spr.name] then
+            if spr.available and self.gold > PROPERTIES.cost[spr.name] then
               self.upgrade:units(spr.appearance)
-              self:add_gold(-properties.cost[spr.name])
+              self:add_gold(-PROPERTIES.cost[spr.name])
               spr.available = false
               SOUNDS.buy_upgrade:play()
             else
