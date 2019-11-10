@@ -95,7 +95,7 @@ function Spawn:manage_waves(dt)
       end
       break
     else
-      new_monster.direction = x_dir
+      new_monster.x_dir = x_dir
       pending = pending - 1
     end
   end

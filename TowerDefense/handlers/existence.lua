@@ -92,7 +92,6 @@ function Existence:create_tower(unit, pos, is_upgrading)
   self.atlas:add(unit, pos, unit:get_appearance())
 end
 
-
 function Existence:create_unit(specname, pos, is_upgrading)
   local unit = Unit(specname)
   if not self:can_create_unit(unit, pos) then

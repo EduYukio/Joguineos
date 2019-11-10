@@ -16,52 +16,61 @@ function MonsterBehaviour:_init(stage)
   self.util = self.stage.util
 end
 
-function MonsterBehaviour:blinker_action(monster, dt)
-  monster.blink_timer = monster.blink_timer + dt
-  if monster.blink_timer > monster.special.blink_delay then
-    monster.blink_timer = 0
+function MonsterBehaviour:blinker_action(blinker, dt)
+  blinker.blink_timer = blinker.blink_timer + dt
+  if blinker.blink_timer > blinker.special.blink_delay then
+    blinker.blink_timer = 0
 
-    local sprite_instance = self.atlas:get(monster)
-    local delta_s = monster.blink_distance
+    local sprite_instance = self.atlas:get(blinker)
+    local delta_s = blinker.blink_distance
 
     sprite_instance.position:add(delta_s)
-    self.lifebars:add_position(monster, delta_s)
+    self.lifebars:add_position(blinker, delta_s)
   end
 end
 
-function MonsterBehaviour:summoner_action(monster, dt)
+function MonsterBehaviour:count_live_summons(summoner) --luacheck: no self
   local summon_count = 0
   for i = 1, 4 do
-    if monster.summons_array[i] then
+    if summoner.summons_array[i] then
       summon_count = summon_count + 1
     end
   end
+  return summon_count
+end
+
+function MonsterBehaviour:summon_monster(summoner, sprite_instance, summons, index)
+  local pos = sprite_instance.position
+  local summoned_monster = self.existence:create_unit(summons[index], pos)
+  summoner.summons_array[index] = summoned_monster
+
+  summoned_monster.owner = summoner
+  summoned_monster.id = index
+
+  summoned_monster.x_dir = 0
+  if summoner.initial_position.x < 300 then
+    summoned_monster.x_dir = -1
+  elseif summoner.initial_position.x > 300 then
+    summoned_monster.x_dir = 1
+  end
+end
+
+function MonsterBehaviour:summoner_action(summoner, dt)
+  local summon_count = self:count_live_summons(summoner)
 
   if summon_count < 4 then
-    monster.summon_timer = monster.summon_timer + dt
+    summoner.summon_timer = summoner.summon_timer + dt
   else
-    monster.summon_timer = 0
+    summoner.summon_timer = 0
   end
 
-  if monster.summon_timer > monster.special.summon_delay then
-    local sprite_instance = self.atlas:get(monster)
-    local summons = monster.special.summons
+  if summoner.summon_timer > summoner.special.summon_delay then
+    local sprite_instance = self.atlas:get(summoner)
+    local summons = summoner.special.summons
 
     for i = 1, 4 do
-      if not monster.summons_array[i] then
-        local pos = sprite_instance.position
-        local summoned_monster = self.existence:create_unit(summons[i], pos)
-        monster.summons_array[i] = summoned_monster
-
-        summoned_monster.owner = monster
-        summoned_monster.id = i
-
-        summoned_monster.direction = 0
-        if monster.initial_position.x < 300 then
-          summoned_monster.direction = -1
-        elseif monster.initial_position.x > 300 then
-          summoned_monster.direction = 1
-        end
+      if not summoner.summons_array[i] then
+        self:summon_monster(summoner, sprite_instance, summons, i)
       end
     end
   end
@@ -70,7 +79,7 @@ end
 function MonsterBehaviour:walk(monster, dt)
   local sprite_instance = self.atlas:get(monster)
   local speed = monster.speed * dt
-  local x_dir = -7.5 * monster.direction
+  local x_dir = -7.5 * monster.x_dir
   local y_dir = 15
   local direction = Vec(x_dir, y_dir):normalized()
   local delta_s = direction * speed
