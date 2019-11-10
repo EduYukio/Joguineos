@@ -39,7 +39,7 @@ end
 
 function UI_Related:select_tower(appearance, index)
   self.stage.selected_tower = appearance
-  self.cursor.selected_tower_appearance = self.selected_tower
+  self.cursor.selected_tower_appearance = self.stage.selected_tower
   if index then
     self.ui_select.selected_box = self.ui_select.boxes[index]
   else

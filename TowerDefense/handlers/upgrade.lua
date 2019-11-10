@@ -14,7 +14,6 @@ function Upgrade:_init(stage)
   self.castle_pos = self.stage.castle_pos
   self.towers = self.stage.towers
   self.atlas = self.stage.atlas
-  self.selected_tower = self.stage.selected_tower
 end
 
 function Upgrade:units(appearance)
@@ -34,8 +33,8 @@ function Upgrade:units(appearance)
     self:upgrade_towers("Mage", appearance)
   end
 
-  self.ui_related:add_ui_sprites()
   self:upgrade_selected_tower(appearance)
+  self.ui_related:add_ui_sprites()
 end
 
 function Upgrade:upgrade_castle(castle)
@@ -62,15 +61,14 @@ function Upgrade:upgrade_towers(tower_name, appearance)
 end
 
 function Upgrade:upgrade_selected_tower(appearance)
-  local curr = self.selected_tower
+  local curr = self.stage.selected_tower
   if appearance == "archer2" and curr == "archer1" then
-    self.selected_tower = "archer2"
+    self.stage.selected_tower = "archer2"
   elseif appearance == "knight2" and curr == "knight1" then
-    self.selected_tower = "knight2"
+    self.stage.selected_tower = "knight2"
   elseif appearance == "mage2" and curr == "mage1" then
-    self.selected_tower = "mage2"
+    self.stage.selected_tower = "mage2"
   end
 end
-
 
 return Upgrade
