@@ -12,6 +12,8 @@ function MonsterBehaviour:_init(stage)
   self.lifebars = self.stage.lifebars
   self.castle = self.stage.castle
   self.castle_pos = self.stage.castle_pos
+  self.monsters = self.stage.monsters
+  self.util = self.stage.util
 end
 
 function MonsterBehaviour:blinker_action(monster, dt)
@@ -87,6 +89,26 @@ function MonsterBehaviour:hit_castle(monster)
   end
 
   return false
+end
+
+function MonsterBehaviour:manage_monsters_actions(dt)
+  for monster in pairs(self.monsters) do
+    if monster.blink_timer then
+      self:blinker_action(monster, dt)
+    else
+      self:walk(monster, dt)
+    end
+
+    if monster.summon_timer then
+      self:summoner_action(monster, dt)
+    end
+
+    if self:hit_castle(monster) then
+      self.util:apply_damage(self.castle, 1)
+      self.existence:remove_unit(monster, true)
+      if self.stage.game_over then return end
+    end
+  end
 end
 
 return MonsterBehaviour

@@ -8,6 +8,7 @@ function TowerBehaviour:_init(stage)
   self.stage = stage
   self.util = self.stage.util
   self.dmg_buff_factor = PROPERTIES.buff_factor
+  self.towers = self.stage.towers
 end
 
 function TowerBehaviour:farmer_action(tower, dt)
@@ -143,6 +144,25 @@ function TowerBehaviour:reset_status(tower, target, index)
   end
 end
 
+function TowerBehaviour:manage_towers_actions(dt)
+  for tower in pairs(self.towers) do
+    if tower.name == "Farmer" then
+      self:farmer_action(tower, dt)
+    end
 
+    for i, target in ipairs(tower.target_array) do
+      if self:target_is_in_range(tower, target) then
+        if tower.damage > 0 then
+          self:damage_action(tower, target)
+        elseif tower.special.slow then
+          self:slow_action(tower, target)
+        end
+      else
+        self:reset_status(tower, target, i)
+        self:find_target(tower, i)
+      end
+    end
+  end
+end
 
 return TowerBehaviour

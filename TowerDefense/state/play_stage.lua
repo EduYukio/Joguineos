@@ -66,7 +66,7 @@ function PlayStageState:leave()
   self:view('hud'):remove('messages')
 end
 
-function PlayStageState:_load_view()
+function PlayStageState:_create_view_objects()
   self.battlefield = BattleField()
   self.atlas = SpriteAtlas()
   self.cursor = Cursor(self.battlefield)
@@ -79,6 +79,10 @@ function PlayStageState:_load_view()
   self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
   self.p_systems = P_Systems()
+end
+
+function PlayStageState:_load_view()
+  self:_create_view_objects()
 
   self:view('bg'):add('battlefield', self.battlefield)
   self:view('fg'):add('lasers', self.lasers)
@@ -162,51 +166,10 @@ function PlayStageState:on_mousepressed(_, _, button)
   end
 end
 
-function PlayStageState:manage_monsters_actions(dt)
-  for monster in pairs(self.monsters) do
-    if monster.blink_timer then
-      self.monster_behaviour:blinker_action(monster, dt)
-    else
-      self.monster_behaviour:walk(monster, dt)
-    end
-
-    if monster.summon_timer then
-      self.monster_behaviour:summoner_action(monster, dt)
-    end
-
-    if self.monster_behaviour:hit_castle(monster) then
-      self.util:apply_damage(self.castle, 1)
-      self.existence:remove_unit(monster, true)
-      if self.game_over then return end
-    end
-  end
-end
-
-function PlayStageState:manage_towers_actions(dt)
-  for tower in pairs(self.towers) do
-    if tower.name == "Farmer" then
-      self.tower_behaviour:farmer_action(tower, dt)
-    end
-
-    for i, target in ipairs(tower.target_array) do
-      if self.tower_behaviour:target_is_in_range(tower, target) then
-        if tower.damage > 0 then
-          self.tower_behaviour:damage_action(tower, target)
-        elseif tower.special.slow then
-          self.tower_behaviour:slow_action(tower, target)
-        end
-      else
-        self.tower_behaviour:reset_status(tower, target, i)
-        self.tower_behaviour:find_target(tower, i)
-      end
-    end
-  end
-end
-
 function PlayStageState:update(dt)
   self.ui_related:highlight_hovered_box()
   self.p_systems:update(dt)
-  self:manage_towers_actions(dt)
+  self.tower_behaviour:manage_towers_actions(dt)
 
   if self.game_over then
     self.show_message:game_over(dt)
@@ -216,9 +179,8 @@ function PlayStageState:update(dt)
     self.show_message:you_win(dt)
   else
     self.spawn:manage_waves(dt)
-    self:manage_monsters_actions(dt)
+    self.monster_behaviour:manage_monsters_actions(dt)
   end
 end
 
 return PlayStageState
-
