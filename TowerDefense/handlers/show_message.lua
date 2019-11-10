@@ -16,7 +16,7 @@ function ShowMessage:next_wave(dt)
     self.messages:write("Next wave in " .. seconds .. "...")
   else
     self.waiting_time = 0
-    self.stage:spawn_new_wave()
+    self.stage.spawn:new_wave()
   end
 end
 
