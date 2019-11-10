@@ -70,7 +70,7 @@ return {
     spider   = 0,
   },
   upgrade_dmg = 2/60,
-  buff_factor = 5,
+  buff_factor = 4,
   blink_steps = 5,
   blink_delay = 3.5,
   summon_delay = 7,

@@ -35,7 +35,7 @@ return {
       damage = "None",
       range = "1 square",
       targets = "1",
-      special = "Increases the damage of a tower",
+      special = "Increases the damage of a nearby tower by 400%",
     },
     cthullu = {
       name = "Cthullu",
