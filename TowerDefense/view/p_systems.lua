@@ -1,4 +1,5 @@
 
+local g = love.graphics
 local PSystems = require 'common.class' ()
 local Vec = require 'common.vec'
 local PALETTE_DB = require 'database.palette'
@@ -8,11 +9,11 @@ function PSystems:_init()
 end
 
 function PSystems:add(tower, position, color)
-  local img = love.graphics.newImage("assets/textures/" .. color .. "_particle.png")
+  local img = g.newImage("assets/textures/" .. color .. "_particle.png")
 
   local p_system = {
-    sys = love.graphics.newParticleSystem(img, 32),
-    position = position+Vec(0,7),
+    sys = g.newParticleSystem(img, 32),
+    position = position + Vec(0, 7),
   }
 
   p_system.sys:setParticleLifetime(0.5, 1.5)
@@ -38,13 +39,13 @@ function PSystems:update(dt)
 end
 
 function PSystems:draw()
-  local g = love.graphics
   g.push()
 
   g.setColor(PALETTE_DB.pure_white)
   for _, p_system in pairs(self.list) do
     g.draw(p_system.sys, p_system.position:get())
   end
+
   g.pop()
 end
 

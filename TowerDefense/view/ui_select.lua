@@ -1,7 +1,7 @@
 
 local PALETTE_DB = require 'database.palette'
 local PROPERTIES_DB = require 'database.properties'
-local UI_SELECT_DB = require 'database.ui_select'
+local UI_SELECT_DB = require 'database.ui_select_db'
 local Vec = require 'common.vec'
 local g = love.graphics
 
