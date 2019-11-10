@@ -11,8 +11,8 @@ function ShowMessage:next_wave(dt)
   self.waiting_time = self.waiting_time + dt
   local time_to_wait = 5
 
-  if self.waiting_time < time_to_wait then
-    local seconds = tostring(time_to_wait - math.floor(self.waiting_time))
+  if self.waiting_time < self.time_to_wait then
+    local seconds = tostring(self.time_to_wait - math.floor(self.waiting_time))
     self.messages:write("Next wave in " .. seconds .. "...")
   else
     self.waiting_time = 0

@@ -13,14 +13,13 @@ function Existence:_init(stage)
   self.p_systems = self.stage.p_systems
   self.atlas = self.stage.atlas
   self.lasers = self.stage.lasers
-  self.gold = self.stage.gold
   self.util = self.stage.util
   self.castle_pos = Vec(300, 524)
 end
 
 function Existence:can_create_unit(unit, pos)
   if unit.category == "tower" then
-    if unit.cost > self.gold then
+    if unit.cost > self.stage.gold then
       return false
     end
 

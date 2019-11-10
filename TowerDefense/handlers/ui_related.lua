@@ -11,7 +11,6 @@ function UI_Related:_init(stage)
   self.ui_info = self.stage.ui_info
   self.atlas = self.stage.atlas
   self.cursor = self.stage.cursor
-  self.gold = self.stage.gold
   self.util = self.stage.util
 end
 
@@ -57,7 +56,7 @@ function UI_Related:click_on_tower_box(spr, index)
 end
 
 function UI_Related:click_on_upgrade_box(spr)
-  if spr.available and self.gold > PROPERTIES_DB.cost[spr.name] then
+  if spr.available and self.stage.gold >= PROPERTIES_DB.cost[spr.name] then
     self.stage.upgrade:units(spr.appearance)
     self.util:add_gold(-PROPERTIES_DB.cost[spr.name])
 

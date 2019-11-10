@@ -10,6 +10,7 @@ function Spawn:_init(stage)
   self.monsters = self.stage.monsters
   self.stats = self.stage.stats
   self.messages = self.stage.messages
+  self.show_message = self.stage.show_message
   self.level = self.stage.stage
   self.battlefield = self.stage.battlefield
 
@@ -61,9 +62,12 @@ function Spawn:select_next_wave()
   self.wave_index = self.level.waves[self.current_wave]
   if self.wave_index then
     self.stats.current_wave = self.current_wave
-    self.stage.must_spawn_new_wave = true
     self.wave = Wave(self.wave_index)
     self.wave.delay = 0
+    self.stage.must_spawn_new_wave = true
+    if self.current_wave > 1 then
+      self.show_message.time_to_wait = 3
+    end
 
     return true
   end
