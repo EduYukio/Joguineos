@@ -6,6 +6,7 @@ local Upgrade = require 'handlers.upgrade'
 local MonsterBehaviour = require 'handlers.monster_behaviour'
 local TowerBehaviour = require 'handlers.tower_behaviour'
 local Existence = require 'handlers.existence'
+local UI_Related = require 'handlers.ui_related'
 
 local Wave = require 'model.wave'
 
@@ -46,9 +47,10 @@ end
 
 function PlayStageState:enter(params)
   self.stage = params.stage
-  self:_load_handlers()
   self:_load_view()
   self:_load_units()
+  self:_load_initial_values()
+  self:_load_handlers()
 end
 
 function PlayStageState:leave()
@@ -75,17 +77,8 @@ function PlayStageState:_load_view()
   self.monster_routes = MonsterRoutes()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.stats = Stats(Vec(right + 32, top))
-  self.gold = self.stage.initial_gold
-  self.stats.gold = self.gold
-
   self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self.ui_select = UI_Select(Vec(right + 32, top + 57))
-  self.ui_select.gold = self.gold
-  self:add_ui_sprites()
-
-  self.stats.number_of_waves = #self.stage.waves
-  self.stats.current_wave = 1
-
   self.p_systems = P_Systems()
 
   self:view('bg'):add('battlefield', self.battlefield)
@@ -103,26 +96,40 @@ end
 
 function PlayStageState:_load_units()
   self.units = {}
-  self.castle_pos = self.battlefield:tile_to_screen(0, 7)
-  self.castle = self.existence:create_unit('castle', self.castle_pos)
   self.current_wave = 1
   self.wave = Wave(self.stage.waves[self.current_wave])
   self.wave:start()
   self.monsters = {}
   self.towers = {}
+end
 
+function PlayStageState:_load_handlers()
+  self.ui_related = UI_Related(self)
+  self.ui_related:add_ui_sprites()
+
+  self.existence = Existence(self)
+  self.castle_pos = self.battlefield:tile_to_screen(0, 7)
+  self.castle = self.existence:create_unit('castle', self.castle_pos)
+
+  self.upgrade = Upgrade(self)
+  self.monster_behaviour = MonsterBehaviour(self)
+  self.tower_behaviour = TowerBehaviour(self)
+end
+
+function PlayStageState:_load_initial_values()
   self.waiting_time = 0
   self.last_spawn_location = 1
   self.selected_tower = nil
   self.cursor.selected_tower_appearance = self.selected_tower
+
+  self.stats.number_of_waves = #self.stage.waves
+  self.stats.current_wave = 1
+
+  self.gold = self.stage.initial_gold
+  self.stats.gold = self.gold
+  self.ui_select.gold = self.gold
 end
 
-function PlayStageState:_load_handlers()
-  self.upgrade = Upgrade(self)
-  self.monster_behaviour = MonsterBehaviour(self)
-  self.tower_behaviour = TowerBehaviour(self)
-  self.existence = Existence(self)
-end
 
 
 
@@ -132,16 +139,6 @@ end
 
 
 
-
-function PlayStageState:add_ui_sprites()
-  for _, v in pairs(self.ui_select.sprites) do
-    self.atlas:add(v.name, v.pos, v.appearance)
-  end
-
-  for _, v in pairs(self.ui_info.monsters_info) do
-    self.atlas:add(v.name, v.pos, v.appearance)
-  end
-end
 
 function PlayStageState:add_gold(value)
   self.gold = self.gold + value
@@ -164,15 +161,7 @@ function PlayStageState:take_damage(who, damage)
   end
 end
 
-function PlayStageState:select_tower(appearance, index)
-  self.selected_tower = appearance
-  self.cursor.selected_tower_appearance = self.selected_tower
-  if index then
-    self.ui_select.selected_box = self.ui_select.boxes[index]
-  else
-    self.ui_select.selected_box = nil
-  end
-end
+
 
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 and not self.game_over then
@@ -184,14 +173,14 @@ function PlayStageState:on_mousepressed(_, _, button)
         if box:is_inside(mouse_pos) then
           local spr = self.ui_select.sprites[i]
           if spr.category == "tower" then
-            self:select_tower(spr.appearance, i)
+            self.ui_related:select_tower(spr.appearance, i)
             SOUNDS.select_menu:play()
           elseif spr.category == "upgrade" then
             if spr.available and self.gold > PROPERTIES.cost[spr.name] then
               self.upgrade:units(spr.appearance)
               self:add_gold(-PROPERTIES.cost[spr.name])
               spr.available = false
-              SOUNDS.buy_upgrade:play()
+              SOUNDS.buy_upgrade:clone():play()
             else
               SOUNDS.fail:play()
             end
@@ -199,7 +188,7 @@ function PlayStageState:on_mousepressed(_, _, button)
           return
         end
       end
-      self:select_tower(nil)
+      self.ui_related:select_tower(nil)
     end
   end
 end
@@ -330,21 +319,7 @@ function PlayStageState:manage_towers(dt)
   end
 end
 
-function PlayStageState:mouse_hovering_box()
-  local mouse_pos = Vec(love.mouse.getPosition())
-  self.ui_select.hovered_box = nil
-  self.ui_info.hovered_box = nil
 
-  for i, box in ipairs(self.ui_select.boxes) do
-    if box:is_inside(mouse_pos) then
-      self.ui_select.hovered_box = box
-      self.ui_info.hovered_box = box
-      self.ui_info.hovered_appearance = self.ui_select.sprites[i].appearance
-      self.ui_info.hovered_category = self.ui_select.sprites[i].category
-      return
-    end
-  end
-end
 
 function PlayStageState:update(dt)
   if self.game_over then
@@ -359,7 +334,7 @@ function PlayStageState:update(dt)
     end
   else
     self.p_systems:update(dt)
-    self:mouse_hovering_box()
+    self.ui_related:highlight_hovered_box()
     self:spawn_monsters(dt)
     self:manage_towers(dt)
     self:manage_monsters(dt)
