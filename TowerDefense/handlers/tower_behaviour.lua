@@ -23,7 +23,6 @@ end
 
 function TowerBehaviour:damage_action(tower, target)
   local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff_factor
-
   self.util:apply_damage(target, damage)
 end
 

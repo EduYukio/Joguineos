@@ -9,15 +9,13 @@ function Upgrade:_init(stage)
   self.ui_related = UI_Related(stage)
 
   self.ui_select = self.stage.ui_select
-  self.castle = self.stage.castle
-  self.castle_pos = self.stage.castle_pos
   self.towers = self.stage.towers
   self.atlas = self.stage.atlas
 end
 
 function Upgrade:units(appearance)
   if appearance == "castle2" then
-    self:upgrade_castle(self.castle)
+    self:upgrade_castle(self.stage.castle)
     return
   end
 
@@ -38,7 +36,7 @@ end
 
 function Upgrade:upgrade_castle(castle)
   self.existence:remove_unit(castle)
-  self.stage.castle = self.existence:create_unit('castle2', self.castle_pos)
+  self.stage.castle = self.existence:create_unit('castle2', self.stage.castle_pos)
   castle.p_system:emit(20)
 end
 

@@ -45,10 +45,11 @@ end
 
 function PlayStageState:enter(params)
   self.stage = params.stage
-  self:_load_view()
   self:_load_units()
+  self:_load_view()
   self:_load_initial_values()
   self:_load_handlers()
+  self:_create_castle()
 end
 
 function PlayStageState:leave()
@@ -108,9 +109,6 @@ function PlayStageState:_load_handlers()
   self.ui_related:add_ui_sprites()
 
   self.existence = Existence(self)
-  self.castle_pos = self.battlefield:tile_to_screen(0, 7)
-  self.castle = self.existence:create_unit('castle', self.castle_pos)
-
   self.upgrade = Upgrade(self)
   self.monster_behaviour = MonsterBehaviour(self)
   self.tower_behaviour = TowerBehaviour(self)
@@ -134,8 +132,13 @@ function PlayStageState:_load_initial_values()
   self.ui_select.gold = self.gold
 end
 
+function PlayStageState:_create_castle()
+  self.castle_pos = self.battlefield:tile_to_screen(0, 7)
+  self.castle = self.existence:create_unit('castle', self.castle_pos)
+end
+
 function PlayStageState:on_mousepressed(_, _, button)
-  if button == 1 and not self.game_over then
+  if button == 1 and not self.game_over and not self.you_win then
     local mouse_pos = Vec(love.mouse.getPosition())
     if self.battlefield.bounds:is_inside(mouse_pos) and self.selected_tower then
       self.existence:create_unit(self.selected_tower, Vec(self.cursor:get_position()))

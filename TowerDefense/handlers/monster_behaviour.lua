@@ -10,8 +10,6 @@ function MonsterBehaviour:_init(stage)
   self.battlefield = self.stage.battlefield
   self.atlas = self.stage.atlas
   self.lifebars = self.stage.lifebars
-  self.castle = self.stage.castle
-  self.castle_pos = self.stage.castle_pos
   self.monsters = self.stage.monsters
   self.util = self.stage.util
 end
@@ -92,7 +90,7 @@ function MonsterBehaviour:hit_castle(monster)
   local monster_sprite = self.atlas:get(monster)
 
   local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
-  if monster_position == self.castle_pos then
+  if monster_position == self.stage.castle_pos then
     SOUNDS_DB.castle_take_hit:play()
     return true
   end
@@ -113,7 +111,7 @@ function MonsterBehaviour:manage_monsters_actions(dt)
     end
 
     if self:hit_castle(monster) then
-      self.util:apply_damage(self.castle, 1)
+      self.util:apply_damage(self.stage.castle, 1)
       self.existence:remove_unit(monster, true)
       if self.stage.game_over then return end
     end
