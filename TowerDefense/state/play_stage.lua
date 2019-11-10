@@ -1,5 +1,4 @@
-local PROPERTIES = require 'database.properties'
-local SOUNDS = require 'database.sounds'
+
 local Vec = require 'common.vec'
 
 local Upgrade = require 'handlers.upgrade'
@@ -141,42 +140,27 @@ function PlayStageState:on_mousepressed(_, _, button)
     if self.battlefield.bounds:is_inside(mouse_pos) and self.selected_tower then
       self.existence:create_unit(self.selected_tower, Vec(self.cursor:get_position()))
     else
-      for i, box in ipairs(self.ui_select.boxes) do
-        if box:is_inside(mouse_pos) then
-          local spr = self.ui_select.sprites[i]
-          if spr.category == "tower" then
-            self.ui_related:select_tower(spr.appearance, i)
-            SOUNDS.select_menu:play()
-          elseif spr.category == "upgrade" then
-            if spr.available and self.gold > PROPERTIES.cost[spr.name] then
-              self.upgrade:units(spr.appearance)
-              self.util:add_gold(-PROPERTIES.cost[spr.name])
-
-              spr.available = false
-              SOUNDS.buy_upgrade:clone():play()
-            else
-              SOUNDS.fail:play()
-            end
-          end
-          return
-        end
-      end
-      self.ui_related:select_tower(nil)
+      self.ui_related:click_outside_battlefield(mouse_pos)
     end
   end
 end
 
 function PlayStageState:update(dt)
-  self.ui_related:highlight_hovered_box()
-  self.p_systems:update(dt)
-  self.tower_behaviour:manage_towers_actions(dt)
-
   if self.game_over then
     self.show_message:game_over(dt)
-  elseif self.must_spawn_new_wave then
-    self.show_message:next_wave(dt)
-  elseif self.player_won then
+    return
+  end
+
+  if self.player_won then
     self.show_message:you_win(dt)
+    return
+  end
+
+  self.tower_behaviour:manage_towers_actions(dt)
+  self.ui_related:highlight_hovered_box()
+  self.p_systems:update(dt)
+  if self.must_spawn_new_wave then
+    self.show_message:next_wave(dt)
   else
     self.spawn:manage_waves(dt)
     self.monster_behaviour:manage_monsters_actions(dt)

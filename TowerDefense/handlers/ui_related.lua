@@ -1,4 +1,6 @@
 
+local PROPERTIES = require 'database.properties'
+local SOUNDS = require 'database.sounds'
 local Vec = require 'common.vec'
 
 local UI_Related = require 'common.class' ()
@@ -9,6 +11,8 @@ function UI_Related:_init(stage)
   self.ui_info = self.stage.ui_info
   self.atlas = self.stage.atlas
   self.cursor = self.stage.cursor
+  self.gold = self.stage.gold
+  self.util = self.stage.util
 end
 
 function UI_Related:add_ui_sprites()
@@ -45,6 +49,38 @@ function UI_Related:select_tower(appearance, index)
   else
     self.ui_select.selected_box = nil
   end
+end
+
+function UI_Related:click_on_tower_box(spr, index)
+  self:select_tower(spr.appearance, index)
+  SOUNDS.select_menu:play()
+end
+
+function UI_Related:click_on_upgrade_box(spr)
+  if spr.available and self.gold > PROPERTIES.cost[spr.name] then
+    self.stage.upgrade:units(spr.appearance)
+    self.util:add_gold(-PROPERTIES.cost[spr.name])
+
+    spr.available = false
+    SOUNDS.buy_upgrade:clone():play()
+  else
+    SOUNDS.fail:play()
+  end
+end
+
+function UI_Related:click_outside_battlefield(mouse_pos)
+  for i, box in ipairs(self.ui_select.boxes) do
+    if box:is_inside(mouse_pos) then
+      local spr = self.ui_select.sprites[i]
+      if spr.category == "tower" then
+        self:click_on_tower_box(spr, i)
+      elseif spr.category == "upgrade" then
+        self:click_on_upgrade_box(spr)
+      end
+      return
+    end
+  end
+  self:select_tower(nil)
 end
 
 return UI_Related
