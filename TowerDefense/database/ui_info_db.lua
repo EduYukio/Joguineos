@@ -56,7 +56,7 @@ return {
       damage = "None",
       range = "None",
       targets = "None",
-      special = "Produces 3 gold each 5 seconds",
+      special = "Produces 1 gold each 7 seconds",
     },
     archer2 = {
       name = "Marksman",
@@ -67,7 +67,7 @@ return {
     },
     knight2 = {
       name = "Elite Knight",
-      damage = "Very High",
+      damage = "Huge",
       range = "Low",
       targets = "1",
       special = "None",
@@ -95,7 +95,7 @@ return {
     },
     castle2 = {
       name = "Castle_Upgrade",
-      description = "Increases the castle health",
+      description = "Replenish castle's health and increases it",
     },
   },
   monsters_info = {
@@ -125,15 +125,15 @@ return {
       hp = "High",
       speed = "None",
       special = "    Teleports\n(can't be slowed)",
-      pos = Vec(x0 + h_gap, y0 + v_gap*2),
+      pos = Vec(x0, y0 + v_gap*2),
       appearance = "blinker",
     },
     summoner = {
       name = "Summoner",
-      hp = "High",
+      hp = "Huge",
       speed = "Low",
       special = "     Summons\n   4 weaklings",
-      pos = Vec(x0, y0 + v_gap*2),
+      pos = Vec(x0 + h_gap, y0 + v_gap*2),
       appearance = "summoner",
     },
   },

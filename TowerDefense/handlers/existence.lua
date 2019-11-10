@@ -57,7 +57,7 @@ function Existence:create_monster(unit, pos)
       local dist = (self.castle_pos - pos)/steps
       unit.blink_distance = dist
     elseif special.summon_delay then
-      unit.summon_timer = special.summon_delay
+      unit.summon_timer = 0.7*special.summon_delay
       unit.summons_array = {false, false, false, false}
       unit.initial_position = pos
     elseif special.spawn_position then
