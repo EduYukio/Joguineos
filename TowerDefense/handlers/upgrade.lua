@@ -1,12 +1,11 @@
 
-local Existence = require 'handlers.existence'
 local UI_Related = require 'handlers.ui_related'
 
 local Upgrade = require 'common.class' ()
 
 function Upgrade:_init(stage)
   self.stage = stage
-  self.existence = Existence(stage)
+  self.existence = self.stage.existence
   self.ui_related = UI_Related(stage)
 
   self.ui_select = self.stage.ui_select

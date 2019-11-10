@@ -1,12 +1,11 @@
 
 local Wave = require 'model.wave'
-local Existence = require 'handlers.existence'
 
 local Spawn = require 'common.class' ()
 
 function Spawn:_init(stage)
   self.stage = stage
-  self.existence = Existence(stage)
+  self.existence = self.stage.existence
 
   self.monsters = self.stage.monsters
   self.stats = self.stage.stats

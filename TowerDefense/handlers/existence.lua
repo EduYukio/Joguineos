@@ -14,6 +14,7 @@ function Existence:_init(stage)
   self.lasers = self.stage.lasers
   self.gold = self.stage.gold
   self.castle = self.stage.castle
+  self.util = self.stage.util
 end
 
 function Existence:create_unit(specname, pos, is_upgrade)
@@ -65,7 +66,7 @@ function Existence:create_unit(specname, pos, is_upgrade)
 
     if not is_upgrade then
       SOUNDS.select_menu:play()
-      self.stage:add_gold(-unit.cost)
+      self.util:add_gold(-unit.cost)
     end
   end
 
@@ -93,7 +94,7 @@ function Existence:remove_unit(unit, hit_castle)
     SOUNDS.monster_dying:play()
 
     if not hit_castle then
-      self.stage:add_gold(unit.reward)
+      self.util:add_gold(unit.reward)
     end
   elseif unit.category == "tower" then
     for i, _ in ipairs(unit.target_array) do

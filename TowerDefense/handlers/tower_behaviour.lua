@@ -6,13 +6,14 @@ local TowerBehaviour = require 'common.class' ()
 
 function TowerBehaviour:_init(stage)
   self.stage = stage
+  self.util = self.stage.util
   self.dmg_buff_factor = PROPERTIES.buff_factor
 end
 
 function TowerBehaviour:farmer_action(tower, dt)
   tower.gold_timer = tower.gold_timer + dt
   if tower.gold_timer > tower.special.gold_making_delay then
-    self.stage:add_gold(tower.special.gold_to_produce)
+    self.util:add_gold(tower.special.gold_to_produce)
     tower.gold_timer = 0
     tower.sfx:play()
     tower.p_system:emit(20)
@@ -22,7 +23,7 @@ end
 function TowerBehaviour:damage_action(tower, target)
   local damage = tower.damage + tower.damage*tower.damage_buffs*self.dmg_buff_factor
 
-  self.stage:take_damage(target, damage)
+  self.util:apply_damage(target, damage)
 end
 
 function TowerBehaviour:slow_action(tower, target) --luacheck: no self
@@ -141,5 +142,7 @@ function TowerBehaviour:reset_status(tower, target, index)
     end
   end
 end
+
+
 
 return TowerBehaviour

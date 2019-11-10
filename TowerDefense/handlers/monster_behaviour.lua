@@ -1,13 +1,12 @@
 
 local Vec = require 'common.vec'
-local Existence = require 'handlers.existence'
 local SOUNDS = require 'database.sounds'
 
 local MonsterBehaviour = require 'common.class' ()
 
 function MonsterBehaviour:_init(stage)
   self.stage = stage
-  self.existence = Existence(stage)
+  self.existence = self.stage.existence
   self.battlefield = self.stage.battlefield
   self.atlas = self.stage.atlas
   self.lifebars = self.stage.lifebars

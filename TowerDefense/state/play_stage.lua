@@ -9,7 +9,7 @@ local Existence = require 'handlers.existence'
 local UI_Related = require 'handlers.ui_related'
 local ShowMessage = require 'handlers.show_message'
 local Spawn = require 'handlers.spawn'
-
+local Util = require 'handlers.util'
 
 local Cursor = require 'view.cursor'
 local SpriteAtlas = require 'view.sprite_atlas'
@@ -99,6 +99,8 @@ function PlayStageState:_load_units()
 end
 
 function PlayStageState:_load_handlers()
+  self.util = Util(self)
+
   self.ui_related = UI_Related(self)
   self.ui_related:add_ui_sprites()
 
@@ -129,38 +131,6 @@ function PlayStageState:_load_initial_values()
   self.ui_select.gold = self.gold
 end
 
-
-
-
-
-
-
-
-
-
-
-function PlayStageState:add_gold(value)
-  self.gold = self.gold + value
-  self.stats.gold = self.gold
-  self.ui_select.gold = self.gold
-end
-
-function PlayStageState:take_damage(who, damage)
-  local unit = who
-  unit.hp = unit.hp - damage
-
-  local hp_percentage = unit.hp / unit.max_hp
-  self.lifebars:x_scale(unit, hp_percentage)
-
-  if unit.hp <= 0 then
-    if unit.category == "castle" then
-      self.game_over = true
-    end
-    self.existence:remove_unit(unit)
-  end
-end
-
-
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 and not self.game_over then
     local mouse_pos = Vec(love.mouse.getPosition())
@@ -176,7 +146,7 @@ function PlayStageState:on_mousepressed(_, _, button)
           elseif spr.category == "upgrade" then
             if spr.available and self.gold > PROPERTIES.cost[spr.name] then
               self.upgrade:units(spr.appearance)
-              self:add_gold(-PROPERTIES.cost[spr.name])
+              self.util:add_gold(-PROPERTIES.cost[spr.name])
 
               spr.available = false
               SOUNDS.buy_upgrade:clone():play()
@@ -192,8 +162,6 @@ function PlayStageState:on_mousepressed(_, _, button)
   end
 end
 
-
-
 function PlayStageState:manage_monsters_actions(dt)
   for monster in pairs(self.monsters) do
     if monster.blink_timer then
@@ -207,7 +175,7 @@ function PlayStageState:manage_monsters_actions(dt)
     end
 
     if self.monster_behaviour:hit_castle(monster) then
-      self:take_damage(self.castle, 1)
+      self.util:apply_damage(self.castle, 1)
       self.existence:remove_unit(monster, true)
       if self.game_over then return end
     end
@@ -235,10 +203,11 @@ function PlayStageState:manage_towers_actions(dt)
   end
 end
 
-
-
-
 function PlayStageState:update(dt)
+  self.ui_related:highlight_hovered_box()
+  self.p_systems:update(dt)
+  self:manage_towers_actions(dt)
+
   if self.game_over then
     self.show_message:game_over(dt)
   elseif self.must_spawn_new_wave then
@@ -246,10 +215,7 @@ function PlayStageState:update(dt)
   elseif self.player_won then
     self.show_message:you_win(dt)
   else
-    self.ui_related:highlight_hovered_box()
-    self.p_systems:update(dt)
     self.spawn:manage_waves(dt)
-    self:manage_towers_actions(dt)
     self:manage_monsters_actions(dt)
   end
 end
