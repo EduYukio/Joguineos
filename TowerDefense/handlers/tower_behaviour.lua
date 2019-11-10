@@ -1,13 +1,13 @@
 
 local PALETTE_DB = require 'database.palette'
-local PROPERTIES = require 'database.properties'
+local PROPERTIES_DB = require 'database.properties'
 
 local TowerBehaviour = require 'common.class' ()
 
 function TowerBehaviour:_init(stage)
   self.stage = stage
   self.util = self.stage.util
-  self.dmg_buff_factor = PROPERTIES.buff_factor
+  self.dmg_buff_factor = PROPERTIES_DB.buff_factor
   self.towers = self.stage.towers
 end
 

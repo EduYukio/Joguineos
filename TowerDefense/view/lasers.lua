@@ -35,7 +35,6 @@ function Lasers:draw()
   local g = love.graphics
   g.push()
 
-
   for _, tower in pairs(self.list) do
     for _, laser in pairs(tower) do
       if laser then

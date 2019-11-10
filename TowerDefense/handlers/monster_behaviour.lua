@@ -1,6 +1,6 @@
 
 local Vec = require 'common.vec'
-local SOUNDS = require 'database.sounds'
+local SOUNDS_DB = require 'database.sounds'
 
 local MonsterBehaviour = require 'common.class' ()
 
@@ -84,7 +84,7 @@ function MonsterBehaviour:hit_castle(monster)
 
   local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
   if monster_position == self.castle_pos then
-    SOUNDS.castle_take_hit:play()
+    SOUNDS_DB.castle_take_hit:play()
     return true
   end
 

@@ -1,6 +1,6 @@
 
-local PROPERTIES = require 'database.properties'
-local SOUNDS = require 'database.sounds'
+local PROPERTIES_DB = require 'database.properties'
+local SOUNDS_DB = require 'database.sounds'
 local Vec = require 'common.vec'
 
 local UI_Related = require 'common.class' ()
@@ -53,18 +53,18 @@ end
 
 function UI_Related:click_on_tower_box(spr, index)
   self:select_tower(spr.appearance, index)
-  SOUNDS.select_menu:play()
+  SOUNDS_DB.select_menu:play()
 end
 
 function UI_Related:click_on_upgrade_box(spr)
-  if spr.available and self.gold > PROPERTIES.cost[spr.name] then
+  if spr.available and self.gold > PROPERTIES_DB.cost[spr.name] then
     self.stage.upgrade:units(spr.appearance)
-    self.util:add_gold(-PROPERTIES.cost[spr.name])
+    self.util:add_gold(-PROPERTIES_DB.cost[spr.name])
 
     spr.available = false
-    SOUNDS.buy_upgrade:clone():play()
+    SOUNDS_DB.buy_upgrade:clone():play()
   else
-    SOUNDS.fail:play()
+    SOUNDS_DB.fail:play()
   end
 end
 

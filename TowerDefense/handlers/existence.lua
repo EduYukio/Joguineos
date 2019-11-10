@@ -1,6 +1,6 @@
 local Vec = require 'common.vec'
 local Unit = require 'model.unit'
-local SOUNDS = require 'database.sounds'
+local SOUNDS_DB = require 'database.sounds'
 
 local Existence = require 'common.class' ()
 
@@ -21,7 +21,7 @@ function Existence:create_unit(specname, pos, is_upgrade)
   local unit = Unit(specname)
   local spawn_position = pos
   if not self:can_create_unit(unit, pos) then
-    SOUNDS.fail:play()
+    SOUNDS_DB.fail:play()
     return false
   end
 
@@ -54,7 +54,7 @@ function Existence:create_unit(specname, pos, is_upgrade)
     if unit.target_policy == 0 then
       unit.target_array = {}
       unit.gold_timer = 0
-      unit.sfx = SOUNDS.generate_gold:clone()
+      unit.sfx = SOUNDS_DB.generate_gold:clone()
       unit.p_system = self.p_systems:add(unit, pos, "yellow")
     elseif unit.target_policy == 1 then
       unit.target_array = {false}
@@ -65,7 +65,7 @@ function Existence:create_unit(specname, pos, is_upgrade)
     end
 
     if not is_upgrade then
-      SOUNDS.select_menu:play()
+      SOUNDS_DB.select_menu:play()
       self.util:add_gold(-unit.cost)
     end
   end
@@ -91,7 +91,7 @@ function Existence:remove_unit(unit, hit_castle)
       unit.owner.summons_array[unit.id] = false
     end
     self.monsters[unit] = nil
-    SOUNDS.monster_dying:play()
+    SOUNDS_DB.monster_dying:play()
 
     if not hit_castle then
       self.util:add_gold(unit.reward)

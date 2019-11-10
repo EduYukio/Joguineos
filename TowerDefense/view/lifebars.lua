@@ -36,7 +36,6 @@ function Lifebars:draw()
   g.setColor(0, 1, 0)
 
   for _, lifebar in pairs(self.list) do
-
     local x1, y1 = lifebar.position:get()
     local x_scale = lifebar.x_scale
 
@@ -47,7 +46,7 @@ function Lifebars:draw()
 
     local bar_width = 24*x_scale
     local bar_height = 5
-    love.graphics.rectangle("fill", x1, y1, bar_width, bar_height)
+    g.rectangle("fill", x1, y1, bar_width, bar_height)
   end
 
   g.pop()
