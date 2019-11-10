@@ -118,7 +118,9 @@ end
 
 function PlayStageState:_load_initial_values()
   self.waiting_time = 0
-  self.last_spawn_location = 1
+  self.game_over = false
+  self.player_won = false
+
   self.selected_tower = nil
   self.cursor.selected_tower_appearance = self.selected_tower
 
@@ -128,6 +130,10 @@ function PlayStageState:_load_initial_values()
   self.gold = self.stage.initial_gold
   self.stats.gold = self.gold
   self.ui_select.gold = self.gold
+
+  self.last_spawn_direction = 1
+  self.x_spawn_tiles = 7
+  self.y_spawn_tiles = -7
 end
 
 
@@ -178,6 +184,7 @@ function PlayStageState:on_mousepressed(_, _, button)
             if spr.available and self.gold > PROPERTIES.cost[spr.name] then
               self.upgrade:units(spr.appearance)
               self:add_gold(-PROPERTIES.cost[spr.name])
+
               spr.available = false
               SOUNDS.buy_upgrade:clone():play()
             else
@@ -190,6 +197,61 @@ function PlayStageState:on_mousepressed(_, _, button)
       self.ui_related:select_tower(nil)
     end
   end
+end
+
+
+
+
+
+
+
+function PlayStageState:next_monster_from_wave(pos)
+  local monster
+
+  for i, name in ipairs(self.wave.order) do
+    local remaining = self.wave.quantity[i]
+
+    if remaining > 0 then
+      monster = self.existence:create_unit(name, pos)
+      self.wave.quantity[i] = self.wave.quantity[i] - 1
+      self.wave.delay = self.wave.cooldown[i]
+      break
+    elseif self.wave.delay < self.wave.default_delay then
+      --To avoid spawning a different monster immediately after a spawn burst
+      self.wave.delay = self.wave.default_delay
+    end
+  end
+
+  return monster
+end
+
+function PlayStageState:generate_valid_x_dir()
+  local direction = math.random(-1, 1)
+  while direction == self.last_spawn_direction do
+    direction = math.random(-1, 1)
+  end
+
+  self.last_spawn_direction = direction
+  return direction
+end
+
+function PlayStageState:no_monsters_on_the_field()
+  return next(self.monsters) == nil
+end
+
+function PlayStageState:select_next_wave()
+  self.current_wave = self.current_wave + 1
+  self.wave_index = self.stage.waves[self.current_wave]
+  if self.wave_index then
+    self.stats.current_wave = self.current_wave
+    self.must_spawn_new_wave = true
+    self.wave = Wave(self.wave_index)
+    self.wave.delay = 0
+
+    return true
+  end
+
+  return false
 end
 
 function PlayStageState:spawn_new_wave()
@@ -213,69 +275,33 @@ function PlayStageState:show_next_wave_message(dt)
   end
 end
 
-function PlayStageState:spawn_monsters(dt)
-  if self.must_spawn_new_wave then
-    self:show_next_wave_message(dt)
-  elseif self.player_won then
-    self.waiting_time = self.waiting_time + dt
-    if self.waiting_time < 4 then
-      self.messages:write("You Win!", Vec(250, 560))
-    else
-      self.player_won = false
-      self.waiting_time = 0
-      self:pop()
-      return
-    end
+function PlayStageState:show_you_win_message(dt)
+  self.waiting_time = self.waiting_time + dt
+  if self.waiting_time < 4 then
+    self.messages:write("You Win!", Vec(250, 560))
+  else
+    self:pop()
   end
+end
 
-  if self.waiting_time ~= 0 then return end
-
+function PlayStageState:spawn_monsters(dt)
   self.wave:update(dt)
   local pending = self.wave:poll()
-
   while pending > 0 do
-    local spawn_location = math.random(-1, 1)
-    while spawn_location == self.last_spawn_location do
-      spawn_location = math.random(-1, 1)
-    end
-    self.last_spawn_location = spawn_location
+    local x_dir = self:generate_valid_x_dir()
+    local x_tiles = self.x_spawn_tiles * x_dir
+    local pos = self.battlefield:tile_to_screen(x_tiles, self.y_spawn_tiles)
 
-    local x, y = 7 * spawn_location, -7
-    local pos = self.battlefield:tile_to_screen(x, y)
-
-    local monster = nil
-    for i, name in ipairs(self.wave.order) do
-      local quantity = self.wave.quantity[i]
-      if quantity > 0 then
-        monster = self.existence:create_unit(name, pos)
-        self.wave.quantity[i] = self.wave.quantity[i] - 1
-        self.wave.delay = self.wave.cooldown[i]
-        break
-      else
-        if self.wave.delay < 2 then
-          self.wave.delay = self.wave.default_delay
-        end
-      end
-    end
-
-    if not monster then
-      -- check if there are monsters on the field
-      if next(self.monsters) == nil then
-        self.current_wave = self.current_wave + 1
-        self.wave_index = self.stage.waves[self.current_wave]
-        self.stats.current_wave = self.current_wave
-
-        if self.wave_index then
-          self.must_spawn_new_wave = true
-          self.wave = Wave(self.wave_index)
-          self.wave.delay = 0
-        else
+    local new_monster = self:next_monster_from_wave(pos)
+    if not new_monster then
+      if self:no_monsters_on_the_field() then
+        if not self:select_next_wave() then
           self.player_won = true
         end
       end
       break
     else
-      monster.direction = spawn_location
+      new_monster.direction = x_dir
       pending = pending - 1
     end
   end
@@ -327,10 +353,7 @@ function PlayStageState:show_game_over_message(dt)
   if self.waiting_time < 3 then
     self.messages:write("Game Over :(", Vec(230, 560))
   else
-    self.game_over = false
-    self.waiting_time = 0
     self:pop()
-    return
   end
 end
 
@@ -338,6 +361,10 @@ end
 function PlayStageState:update(dt)
   if self.game_over then
     self:show_game_over_message(dt)
+  elseif self.must_spawn_new_wave then
+    self:show_next_wave_message(dt)
+  elseif self.player_won then
+    self:show_you_win_message(dt)
   else
     self.ui_related:highlight_hovered_box()
     self.p_systems:update(dt)
