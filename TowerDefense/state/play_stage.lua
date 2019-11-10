@@ -7,6 +7,7 @@ local MonsterBehaviour = require 'handlers.monster_behaviour'
 local TowerBehaviour = require 'handlers.tower_behaviour'
 local Existence = require 'handlers.existence'
 local UI_Related = require 'handlers.ui_related'
+local ShowMessage = require 'handlers.show_message'
 
 local Wave = require 'model.wave'
 
@@ -114,12 +115,13 @@ function PlayStageState:_load_handlers()
   self.upgrade = Upgrade(self)
   self.monster_behaviour = MonsterBehaviour(self)
   self.tower_behaviour = TowerBehaviour(self)
+  self.show_message = ShowMessage(self)
 end
 
 function PlayStageState:_load_initial_values()
-  self.waiting_time = 0
   self.game_over = false
   self.player_won = false
+  self.must_spawn_new_wave = true
 
   self.selected_tower = nil
   self.cursor.selected_tower_appearance = self.selected_tower
@@ -256,33 +258,12 @@ end
 
 function PlayStageState:spawn_new_wave()
   self.must_spawn_new_wave = false
-  self.waiting_time = 0
   self.messages:clear()
   self.wave:start()
   self.wave.delay = self.wave.default_delay
 end
 
-function PlayStageState:show_next_wave_message(dt)
-  self.waiting_time = self.waiting_time + dt
-  local pos = Vec(190, 150)
-  local time_to_wait = 5
 
-  if self.waiting_time < time_to_wait then
-    local seconds = tostring(time_to_wait - math.floor(self.waiting_time))
-    self.messages:write("Next wave in " .. seconds .. "...", pos)
-  else
-    self:spawn_new_wave()
-  end
-end
-
-function PlayStageState:show_you_win_message(dt)
-  self.waiting_time = self.waiting_time + dt
-  if self.waiting_time < 4 then
-    self.messages:write("You Win!", Vec(250, 560))
-  else
-    self:pop()
-  end
-end
 
 function PlayStageState:spawn_monsters(dt)
   self.wave:update(dt)
@@ -348,23 +329,16 @@ function PlayStageState:manage_towers_actions(dt)
   end
 end
 
-function PlayStageState:show_game_over_message(dt)
-  self.waiting_time = self.waiting_time + dt
-  if self.waiting_time < 3 then
-    self.messages:write("Game Over :(", Vec(230, 560))
-  else
-    self:pop()
-  end
-end
+
 
 
 function PlayStageState:update(dt)
   if self.game_over then
-    self:show_game_over_message(dt)
+    self.show_message:game_over(dt)
   elseif self.must_spawn_new_wave then
-    self:show_next_wave_message(dt)
+    self.show_message:next_wave(dt)
   elseif self.player_won then
-    self:show_you_win_message(dt)
+    self.show_message:you_win(dt)
   else
     self.ui_related:highlight_hovered_box()
     self.p_systems:update(dt)
