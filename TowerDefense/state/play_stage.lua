@@ -162,7 +162,6 @@ function PlayStageState:take_damage(who, damage)
 end
 
 
-
 function PlayStageState:on_mousepressed(_, _, button)
   if button == 1 and not self.game_over then
     local mouse_pos = Vec(love.mouse.getPosition())
@@ -193,26 +192,30 @@ function PlayStageState:on_mousepressed(_, _, button)
   end
 end
 
+function PlayStageState:spawn_new_wave()
+  self.must_spawn_new_wave = false
+  self.waiting_time = 0
+  self.messages:clear()
+  self.wave:start()
+  self.wave.delay = self.wave.default_delay
+end
+
+function PlayStageState:show_next_wave_message(dt)
+  self.waiting_time = self.waiting_time + dt
+  local pos = Vec(190, 150)
+  local time_to_wait = 5
+
+  if self.waiting_time < time_to_wait then
+    local seconds = tostring(time_to_wait - math.floor(self.waiting_time))
+    self.messages:write("Next wave in " .. seconds .. "...", pos)
+  else
+    self:spawn_new_wave()
+  end
+end
+
 function PlayStageState:spawn_monsters(dt)
   if self.must_spawn_new_wave then
-    self.waiting_time = self.waiting_time + dt
-    if self.waiting_time < 1 then
-      self.messages:write("Next wave in 5...", Vec(190, 150))
-    elseif self.waiting_time < 2 then
-      self.messages:write("Next wave in 4...", Vec(190, 150))
-    elseif self.waiting_time < 3 then
-      self.messages:write("Next wave in 3...", Vec(190, 150))
-    elseif self.waiting_time < 4 then
-      self.messages:write("Next wave in 2...", Vec(190, 150))
-    elseif self.waiting_time < 5 then
-      self.messages:write("Next wave in 1...", Vec(190, 150))
-    else
-      self.must_spawn_new_wave = false
-      self.waiting_time = 0
-      self.messages:clear()
-      self.wave:start()
-      self.wave.delay = self.wave.default_delay
-    end
+    self:show_next_wave_message(dt)
   elseif self.player_won then
     self.waiting_time = self.waiting_time + dt
     if self.waiting_time < 4 then
@@ -278,7 +281,7 @@ function PlayStageState:spawn_monsters(dt)
   end
 end
 
-function PlayStageState:manage_monsters(dt)
+function PlayStageState:manage_monsters_actions(dt)
   for monster in pairs(self.monsters) do
     if monster.blink_timer then
       self.monster_behaviour:blinker_action(monster, dt)
@@ -298,7 +301,7 @@ function PlayStageState:manage_monsters(dt)
   end
 end
 
-function PlayStageState:manage_towers(dt)
+function PlayStageState:manage_towers_actions(dt)
   for tower in pairs(self.towers) do
     if tower.name == "Farmer" then
       self.tower_behaviour:farmer_action(tower, dt)
@@ -319,25 +322,28 @@ function PlayStageState:manage_towers(dt)
   end
 end
 
+function PlayStageState:show_game_over_message(dt)
+  self.waiting_time = self.waiting_time + dt
+  if self.waiting_time < 3 then
+    self.messages:write("Game Over :(", Vec(230, 560))
+  else
+    self.game_over = false
+    self.waiting_time = 0
+    self:pop()
+    return
+  end
+end
 
 
 function PlayStageState:update(dt)
   if self.game_over then
-    self.waiting_time = self.waiting_time + dt
-    if self.waiting_time < 3 then
-      self.messages:write("Game Over :(", Vec(230, 560))
-    else
-      self.game_over = false
-      self.waiting_time = 0
-      self:pop()
-      return
-    end
+    self:show_game_over_message(dt)
   else
-    self.p_systems:update(dt)
     self.ui_related:highlight_hovered_box()
+    self.p_systems:update(dt)
     self:spawn_monsters(dt)
-    self:manage_towers(dt)
-    self:manage_monsters(dt)
+    self:manage_towers_actions(dt)
+    self:manage_monsters_actions(dt)
   end
 end
 
