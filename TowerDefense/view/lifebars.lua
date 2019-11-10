@@ -24,7 +24,9 @@ function Lifebars:add_position(unit, value)
 end
 
 function Lifebars:x_scale(unit, value)
-  self.list[unit].x_scale = value
+  if self.list[unit] then
+    self.list[unit].x_scale = value
+  end
 end
 
 function Lifebars:draw()

@@ -1,3 +1,4 @@
+
 local Vec = require 'common.vec'
 local Existence = require 'handlers.existence'
 local SOUNDS = require 'database.sounds'
@@ -7,6 +8,11 @@ local MonsterBehaviour = require 'common.class' ()
 function MonsterBehaviour:_init(stage)
   self.stage = stage
   self.existence = Existence(stage)
+  self.battlefield = self.stage.battlefield
+  self.atlas = self.stage.atlas
+  self.lifebars = self.stage.lifebars
+  self.castle = self.stage.castle
+  self.castle_pos = self.stage.castle_pos
 end
 
 function MonsterBehaviour:blinker_action(monster, dt)
@@ -14,11 +20,11 @@ function MonsterBehaviour:blinker_action(monster, dt)
   if monster.blink_timer > monster.special.blink_delay then
     monster.blink_timer = 0
 
-    local sprite_instance = self.stage.atlas:get(monster)
+    local sprite_instance = self.atlas:get(monster)
     local delta_s = monster.blink_distance
 
     sprite_instance.position:add(delta_s)
-    self.stage.lifebars:add_position(monster, delta_s)
+    self.lifebars:add_position(monster, delta_s)
   end
 end
 
@@ -37,7 +43,7 @@ function MonsterBehaviour:summoner_action(monster, dt)
   end
 
   if monster.summon_timer > monster.special.summon_delay then
-    local sprite_instance = self.stage.atlas:get(monster)
+    local sprite_instance = self.atlas:get(monster)
     local summons = monster.special.summons
 
     for i = 1, 4 do
@@ -61,7 +67,7 @@ function MonsterBehaviour:summoner_action(monster, dt)
 end
 
 function MonsterBehaviour:walk(monster, dt)
-  local sprite_instance = self.stage.atlas:get(monster)
+  local sprite_instance = self.atlas:get(monster)
   local speed = monster.speed * dt
   local x_dir = -7.5 * monster.direction
   local y_dir = 15
@@ -69,15 +75,14 @@ function MonsterBehaviour:walk(monster, dt)
   local delta_s = direction * speed
 
   sprite_instance.position:add(delta_s)
-  self.stage.lifebars:add_position(monster, delta_s)
+  self.lifebars:add_position(monster, delta_s)
 end
 
 function MonsterBehaviour:hit_castle(monster)
-  local monster_sprite = self.stage.atlas:get(monster)
-  local castle_sprite = self.stage.atlas:get(self.stage.castle)
+  local monster_sprite = self.atlas:get(monster)
 
-  local monster_position = self.stage.battlefield:round_to_tile(monster_sprite.position)
-  if monster_position == castle_sprite.position then
+  local monster_position = self.battlefield:round_to_tile(monster_sprite.position)
+  if monster_position == self.castle_pos then
     SOUNDS.castle_take_hit:play()
     return true
   end

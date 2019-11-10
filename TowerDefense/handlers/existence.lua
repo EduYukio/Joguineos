@@ -6,6 +6,14 @@ local Existence = require 'common.class' ()
 
 function Existence:_init(stage)
   self.stage = stage
+  self.lifebars = self.stage.lifebars
+  self.towers = self.stage.towers
+  self.monsters = self.stage.monsters
+  self.p_systems = self.stage.p_systems
+  self.atlas = self.stage.atlas
+  self.lasers = self.stage.lasers
+  self.gold = self.stage.gold
+  self.castle = self.stage.castle
 end
 
 function Existence:create_unit(specname, pos, is_upgrade)
@@ -17,10 +25,10 @@ function Existence:create_unit(specname, pos, is_upgrade)
   end
 
   if unit.category == "castle" then
-    self.stage.lifebars:add(unit, pos)
-    unit.p_system = self.stage.p_systems:add(unit, pos, "white")
+    self.lifebars:add(unit, pos)
+    unit.p_system = self.p_systems:add(unit, pos, "white")
   elseif unit.category == "monster" then
-    self.stage.monsters[unit] = true
+    self.monsters[unit] = true
 
     local special = unit.special
     if special then
@@ -38,21 +46,21 @@ function Existence:create_unit(specname, pos, is_upgrade)
       end
     end
 
-    self.stage.lifebars:add(unit, spawn_position)
+    self.lifebars:add(unit, spawn_position)
   elseif unit.category == "tower" then
-    self.stage.towers[unit] = true
+    self.towers[unit] = true
 
     if unit.target_policy == 0 then
       unit.target_array = {}
       unit.gold_timer = 0
       unit.sfx = SOUNDS.generate_gold:clone()
-      unit.p_system = self.stage.p_systems:add(unit, pos, "yellow")
+      unit.p_system = self.p_systems:add(unit, pos, "yellow")
     elseif unit.target_policy == 1 then
       unit.target_array = {false}
-      unit.p_system = self.stage.p_systems:add(unit, pos, "blue")
+      unit.p_system = self.p_systems:add(unit, pos, "blue")
     elseif unit.target_policy == 3 then
       unit.target_array = {false, false, false}
-      unit.p_system = self.stage.p_systems:add(unit, pos, "blue")
+      unit.p_system = self.p_systems:add(unit, pos, "blue")
     end
 
     if not is_upgrade then
@@ -61,17 +69,17 @@ function Existence:create_unit(specname, pos, is_upgrade)
     end
   end
 
-  self.stage.atlas:add(unit, spawn_position, unit:get_appearance())
+  self.atlas:add(unit, spawn_position, unit:get_appearance())
 
   return unit
 end
 
 function Existence:remove_unit(unit, hit_castle)
   if unit.category == "monster" then
-    for tower in pairs(self.stage.towers) do
+    for tower in pairs(self.towers) do
       for i, target in ipairs(tower.target_array) do
         if unit == target then
-          self.stage.lasers:remove(tower, i)
+          self.lasers:remove(tower, i)
           tower.target_array[i] = false
           break
         end
@@ -81,7 +89,7 @@ function Existence:remove_unit(unit, hit_castle)
     if unit.owner then
       unit.owner.summons_array[unit.id] = false
     end
-    self.stage.monsters[unit] = nil
+    self.monsters[unit] = nil
     SOUNDS.monster_dying:play()
 
     if not hit_castle then
@@ -89,31 +97,31 @@ function Existence:remove_unit(unit, hit_castle)
     end
   elseif unit.category == "tower" then
     for i, _ in ipairs(unit.target_array) do
-      self.stage.lasers:remove(unit, i)
+      self.lasers:remove(unit, i)
     end
-    self.stage.p_systems:remove(unit)
-    self.stage.towers[unit] = nil
+    self.p_systems:remove(unit)
+    self.towers[unit] = nil
   elseif unit.category == "castle" then
     self.stage.castle = nil
   end
 
-  self.stage.lifebars:remove(unit)
-  self.stage.atlas:remove(unit)
+  self.lifebars:remove(unit)
+  self.atlas:remove(unit)
 end
 
 function Existence:can_create_unit(unit, pos)
   if unit.category == "tower" then
-    if unit.cost > self.stage.gold then
+    if unit.cost > self.gold then
       return false
     end
 
-    local castle_sprite = self.stage.atlas:get(self.stage.castle)
-    if castle_sprite.position == pos then
+    local castle_sprite = self.atlas:get(self.stage.castle)
+    if castle_sprite and castle_sprite.position == pos then
       return false
     end
 
-    for tower in pairs(self.stage.towers) do
-      local tower_sprite = self.stage.atlas:get(tower)
+    for tower in pairs(self.towers) do
+      local tower_sprite = self.atlas:get(tower)
       if tower_sprite.position == pos then
         return false
       end
