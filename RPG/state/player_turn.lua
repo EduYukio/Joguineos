@@ -35,6 +35,7 @@ function PlayerTurnState:_show_menu()
 end
 
 function PlayerTurnState:_show_cursor()
+  self.atlas = self:view():get('atlas')
   local sprite_instance = self.atlas:get(self.character)
   self.cursor = TurnCursor(sprite_instance)
   self:view():add('turn_cursor', self.cursor)
@@ -92,10 +93,14 @@ function PlayerTurnState:on_keypressed(key)
       if monster.hp <= 0 then
         self.atlas:remove(monster)
         self:fill_the_hole(self.monsters, self.monster_index)
-        print(monster.name .. " morreu coitado")
       end
       self.ongoing_state = "choosing_option"
       self.monster_index = 0
+
+      if #self.monsters == 0 then
+        return self:pop({ action = "Victory" })
+      end
+
       return self:pop({ action = "Fight", character = self.character, monster = monster })
     end
   else

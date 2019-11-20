@@ -70,10 +70,10 @@ function EncounterState:resume(params)
   local message
   if params.action == 'Fight' then
     message = MESSAGES[params.action]:format(params.character.name, params.monster.name)
-  elseif params.action ~= 'Run' then
-    message = MESSAGES[params.action]:format(params.character.name)
-  else
+  elseif params.action == "Run" or params.action == "Victory" then
     return self:pop()
+  else
+    message = MESSAGES[params.action]:format(params.character.name)
   end
   self:view():get('message'):set(message)
 end
