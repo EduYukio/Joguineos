@@ -13,10 +13,15 @@ function PlayerTurnState:_init(stack)
   self:super(stack)
   self.character = nil
   self.menu = ListMenu(TURN_OPTIONS)
+  self.ongoing_state = nil
+  self.cursor = nil
+  self.atlas = nil
+  self.monster_index = 0
 end
 
 function PlayerTurnState:enter(params)
   self.character = params.current_character
+  self.monsters = params.monsters
   self:_show_menu()
   self:_show_cursor()
   self:_show_stats()
@@ -30,10 +35,10 @@ function PlayerTurnState:_show_menu()
 end
 
 function PlayerTurnState:_show_cursor()
-  local atlas = self:view():get('atlas')
-  local sprite_instance = atlas:get(self.character)
-  local cursor = TurnCursor(sprite_instance)
-  self:view():add('turn_cursor', cursor)
+  self.atlas = self:view():get('atlas')
+  local sprite_instance = self.atlas:get(self.character)
+  self.cursor = TurnCursor(sprite_instance)
+  self:view():add('turn_cursor', self.cursor)
 end
 
 function PlayerTurnState:_show_stats()
@@ -49,14 +54,48 @@ function PlayerTurnState:leave()
   self:view():remove('char_stats')
 end
 
+function PlayerTurnState:next_monster(_)
+  self.monster_index = self.monster_index + 1
+  if self.monster_index == #self.monsters + 1 then
+    self.monster_index = 1
+  end
+
+  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
+  self.cursor.selected_drawable = sprite_instance
+end
+
+function PlayerTurnState:prev_monster(_)
+  self.monster_index = self.monster_index - 1
+  if self.monster_index == 0 then
+    self.monster_index = #self.monsters
+  end
+
+  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
+  self.cursor.selected_drawable = sprite_instance
+end
+
 function PlayerTurnState:on_keypressed(key)
-  if key == 'down' then
-    self.menu:next()
-  elseif key == 'up' then
-    self.menu:previous()
-  elseif key == 'return' then
-    local option = TURN_OPTIONS[self.menu:current_option()]
-    return self:pop({ action = option, character = self.character })
+  if self.ongoing_state == "fighting" then
+    if key == 'down' then
+      self:next_monster()
+    elseif key == 'up' then
+      self:prev_monster()
+    end
+  else
+    if key == 'down' then
+      self.menu:next()
+    elseif key == 'up' then
+      self.menu:previous()
+    elseif key == 'return' or key == 'kpenter' then
+      local option = TURN_OPTIONS[self.menu:current_option()]
+      if option == "Fight" then
+        self.ongoing_state = "fighting"
+        self:next_monster()
+      else
+        -- go to the next character action
+        return self:pop({ action = option, character = self.character })
+      end
+    end
   end
 end
 

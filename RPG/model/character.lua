@@ -3,6 +3,7 @@ local Character = require 'common.class' ()
 
 function Character:_init(spec)
   self.spec = spec
+  self.name = spec.name
   self.hp = spec.max_hp
 end
 

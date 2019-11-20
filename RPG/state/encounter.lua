@@ -18,6 +18,7 @@ local MESSAGES = {
 function EncounterState:_init(stack)
   self:super(stack)
   self.turns = nil
+  self.monsters = nil
   self.next_turn = nil
 end
 
@@ -36,10 +37,13 @@ function EncounterState:enter(params)
     atlas:add(character, pos, character:get_appearance())
     n = n + 1
   end
+
+
   local encounter_origin = battlefield:west_team_origin()
+  self.monsters = {}
   for i, character in ipairs(params.encounter) do
     local pos = encounter_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
-    self.turns[n + i] = character
+    self.monsters[i] = character
     atlas:add(character, pos, character:get_appearance())
   end
   self:view():add('atlas', atlas)
@@ -58,7 +62,7 @@ end
 function EncounterState:update(_)
   local current_character = self.turns[self.next_turn]
   self.next_turn = self.next_turn % #self.turns + 1
-  local params = { current_character = current_character }
+  local params = { current_character = current_character, monsters = self.monsters }
   return self:push('player_turn', params)
 end
 
