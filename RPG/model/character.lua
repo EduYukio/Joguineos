@@ -5,6 +5,7 @@ function Character:_init(spec)
   self.spec = spec
   self.name = spec.name
   self.hp = spec.max_hp
+  self.damage = spec.damage
 end
 
 function Character:get_name()

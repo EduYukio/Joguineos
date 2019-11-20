@@ -80,6 +80,15 @@ function PlayerTurnState:on_keypressed(key)
       self:next_monster()
     elseif key == 'up' then
       self:prev_monster()
+    elseif key == 'return' or key == 'kpenter' then
+      local monster = self.monsters[self.monster_index]
+      monster.hp = monster.hp - self.character.damage
+      if monster.hp <= 0 then
+        print(monster.name .. " morreu coitado")
+      end
+      self.ongoing_state = "choosing_option"
+      self.monster_index = 0
+      return self:pop({ action = "Fight", character = self.character, monster = monster })
     end
   else
     if key == 'down' then
