@@ -51,7 +51,7 @@ function ChooseQuestState:on_keypressed(key)
     self.menu:next()
   elseif key == 'up' then
     self.menu:previous()
-  elseif key == 'return' then
+  elseif key == 'return' or key == 'kpenter' then
     local option = self.menu:current_option()
     local params = { quest = self.quests[option] }
     return self:push('follow_quest', params)
