@@ -6,6 +6,9 @@ local _game
 local _stack
 
 function love.load()
+  local path = love.filesystem.getRequirePath()
+  love.filesystem.setRequirePath("lib/?.lua;lib/?/init.lua;" .. path)
+
   _game = {
     view = View()
   }
