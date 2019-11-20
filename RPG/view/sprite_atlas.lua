@@ -40,6 +40,10 @@ function AtlasRenderer:get(name)
   return self.instances[name]
 end
 
+function AtlasRenderer:remove(name)
+  self.instances[name] = nil
+end
+
 function AtlasRenderer:clear()
   self.instances = {}
 end

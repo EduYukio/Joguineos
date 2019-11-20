@@ -15,7 +15,7 @@ function PlayerTurnState:_init(stack)
   self.menu = ListMenu(TURN_OPTIONS)
   self.ongoing_state = nil
   self.cursor = nil
-  self.atlas = nil
+  self.atlas = self:view():get('atlas')
   self.monster_index = 0
 end
 
@@ -35,7 +35,6 @@ function PlayerTurnState:_show_menu()
 end
 
 function PlayerTurnState:_show_cursor()
-  self.atlas = self:view():get('atlas')
   local sprite_instance = self.atlas:get(self.character)
   self.cursor = TurnCursor(sprite_instance)
   self:view():add('turn_cursor', self.cursor)
@@ -54,7 +53,14 @@ function PlayerTurnState:leave()
   self:view():remove('char_stats')
 end
 
-function PlayerTurnState:next_monster(_)
+function PlayerTurnState:fill_the_hole(array, index) --luacheck: no self
+  for i = index + 1, #array do
+    array[i-1] = array[i]
+  end
+  array[#array] = nil
+end
+
+function PlayerTurnState:next_monster()
   self.monster_index = self.monster_index + 1
   if self.monster_index == #self.monsters + 1 then
     self.monster_index = 1
@@ -64,7 +70,7 @@ function PlayerTurnState:next_monster(_)
   self.cursor.selected_drawable = sprite_instance
 end
 
-function PlayerTurnState:prev_monster(_)
+function PlayerTurnState:prev_monster()
   self.monster_index = self.monster_index - 1
   if self.monster_index == 0 then
     self.monster_index = #self.monsters
@@ -84,6 +90,8 @@ function PlayerTurnState:on_keypressed(key)
       local monster = self.monsters[self.monster_index]
       monster.hp = monster.hp - self.character.damage
       if monster.hp <= 0 then
+        self.atlas:remove(monster)
+        self:fill_the_hole(self.monsters, self.monster_index)
         print(monster.name .. " morreu coitado")
       end
       self.ongoing_state = "choosing_option"
