@@ -10,7 +10,7 @@ local EncounterState = require 'common.class' (State)
 local CHARACTER_GAP = 96
 
 local MESSAGES = {
-  Fight = "%s attacked something",
+  Fight = "%s attacked %s",
   Skill = "%s unleashed a skill",
   Item = "%s used an item",
 }
@@ -67,12 +67,15 @@ function EncounterState:update(_)
 end
 
 function EncounterState:resume(params)
-  if params.action ~= 'Run' then
-    local message = MESSAGES[params.action]:format(params.character:get_name())
-    self:view():get('message'):set(message)
+  local message
+  if params.action == 'Fight' then
+    message = MESSAGES[params.action]:format(params.character.name, params.monster.name)
+  elseif params.action ~= 'Run' then
+    message = MESSAGES[params.action]:format(params.character.name)
   else
     return self:pop()
   end
+  self:view():get('message'):set(message)
 end
 
 return EncounterState
