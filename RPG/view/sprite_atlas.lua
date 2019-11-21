@@ -40,6 +40,10 @@ function AtlasRenderer:get(name)
   return self.instances[name]
 end
 
+function AtlasRenderer:enrage_monster(name)
+  self.instances[name].enraged = true
+end
+
 function AtlasRenderer:remove(name)
   self.instances[name] = nil
 end
@@ -56,7 +60,11 @@ function AtlasRenderer:draw()
     local x, y = instance.position:get()
     x = math.floor(x)
     y = math.floor(y)
-    g.setColor(PALLETE_DB[sprite.color])
+    if instance.enraged then
+      g.setColor(PALLETE_DB.red)
+    else
+      g.setColor(PALLETE_DB[sprite.color])
+    end
     g.draw(tex, sprite.quad, x, y, 0, 4, 4,
            ATLAS_DB.frame_width/2, ATLAS_DB.frame_height/2)
   end

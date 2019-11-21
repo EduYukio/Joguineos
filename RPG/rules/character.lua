@@ -2,7 +2,14 @@ return function (ruleset)
 
   local r = ruleset.record
 
-  r:new_property('character', {name = "Character", max_hp = 15, hp = 15, damage = 10, appearance = "none"})
+  r:new_property('character', {
+    name = "Character",
+    max_hp = 15,
+    hp = 15,
+    damage = 10,
+    enraged = false,
+    appearance = "none"
+  })
 
   function ruleset.define:new_character(spec)
     function self.when()
@@ -57,6 +64,33 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:get_enraged(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'enraged')
+    end
+  end
+
+  function ruleset.define:set_enraged(e, enraged)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:set(e, 'character', {enraged = enraged})
+    end
+  end
+
+  function ruleset.define:set_damage(e, amount)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:set(e, 'character', { damage = amount} )
+    end
+  end
+
   function ruleset.define:get_appearance(e)
     function self.when()
       return r:is(e, 'character')
@@ -88,6 +122,21 @@ return function (ruleset)
           unit_array[i-1] = unit_array[i]
         end
         unit_array[#unit_array] = nil
+      end
+    end
+  end
+
+  function ruleset.define:enrage_if_dying(e, atlas)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      if e.enraged then return end
+
+      if e.hp/e.max_hp <= 0.3 then
+        e.enraged = true
+        e.damage = e.damage*2
+        atlas:enrage_monster(e)
       end
     end
   end

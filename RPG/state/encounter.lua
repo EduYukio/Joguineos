@@ -29,15 +29,15 @@ function EncounterState:enter(params)
   local battlefield = BattleField()
   local bfbox = battlefield.bounds
   local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
-  local n = 0
   local party_origin = battlefield:east_team_origin()
   self.players = {}
   self.next_player = 1
   for i, character in ipairs(params.party) do
-    local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
-    self.players[i] = character
-    self.atlas:add(character, pos, character.appearance)
-    n = n + 1
+    if character.hp > 0 then
+      local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
+      self.players[i] = character
+      self.atlas:add(character, pos, character.appearance)
+    end
   end
 
 
