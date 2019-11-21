@@ -17,9 +17,9 @@ local MESSAGES = {
 
 function EncounterState:_init(stack)
   self:super(stack)
-  self.turns = nil
+  self.players = nil
   self.monsters = nil
-  self.next_turn = nil
+  self.next_player = nil
 end
 
 function EncounterState:enter(params)
@@ -29,11 +29,11 @@ function EncounterState:enter(params)
   local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
   local n = 0
   local party_origin = battlefield:east_team_origin()
-  self.turns = {}
-  self.next_turn = 1
+  self.players = {}
+  self.next_player = 1
   for i, character in ipairs(params.party) do
     local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
-    self.turns[i] = character
+    self.players[i] = character
     atlas:add(character, pos, character.appearance)
     n = n + 1
   end
@@ -59,9 +59,22 @@ function EncounterState:leave()
   self:view():remove('message')
 end
 
+function EncounterState:attack_player(monster)
+  local random = math.random(#self.players)
+  local player = self.players[random]
+  self.rules:take_damage(player, monster.damage)
+end
+
 function EncounterState:update(_)
-  local current_character = self.turns[self.next_turn]
-  self.next_turn = self.next_turn % #self.turns + 1
+  if self.next_player > #self.players then
+    self.next_player = 1
+    for _, monster in pairs(self.monsters) do
+      self:attack_player(monster)
+    end
+  end
+
+  local current_character = self.players[self.next_player]
+  self.next_player = self.next_player + 1
   local params = { current_character = current_character, monsters = self.monsters }
   return self:push('player_turn', params)
 end
