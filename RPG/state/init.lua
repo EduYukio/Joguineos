@@ -1,8 +1,15 @@
 
 local State = require 'common.class' ()
 
+local RULE_MODULES = { 'rules' }
+local RULESETS = {
+  'character'
+}
+local RuleEngine = require 'ur-proto' (RULE_MODULES, RULESETS)
+
 function State:_init(stack)
   self.stack = stack
+  self.rules = RuleEngine
 end
 
 function State:view()

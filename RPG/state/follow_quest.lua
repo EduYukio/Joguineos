@@ -1,5 +1,4 @@
 
-local Character = require 'model.character'
 local State = require 'state'
 
 local FollowQuestState = require 'common.class' (State)
@@ -18,7 +17,7 @@ function FollowQuestState:enter(params)
   self.party = {}
   for i, character_name in ipairs(quest.party) do
     local character_spec = require('database.characters.' .. character_name)
-    self.party[i] = Character(character_spec)
+    self.party[i] = self.rules:new_character(character_spec)
   end
 end
 
@@ -29,7 +28,7 @@ function FollowQuestState:update(_)
     self.next_encounter = self.next_encounter + 1
     for i, character_name in ipairs(encounter_specnames) do
       local character_spec = require('database.characters.' .. character_name)
-      encounter[i] = Character(character_spec)
+      encounter[i] = self.rules:new_character(character_spec)
     end
     local params = { party = self.party, encounter = encounter }
     return self:push('encounter', params)

@@ -54,11 +54,10 @@ function PlayerTurnState:leave()
   self:view():remove('char_stats')
 end
 
-function PlayerTurnState:fill_the_hole(array, index) --luacheck: no self
-  for i = index + 1, #array do
-    array[i-1] = array[i]
-  end
-  array[#array] = nil
+
+function PlayerTurnState:switch_cursor()
+  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
+  self.cursor.selected_drawable = sprite_instance
 end
 
 function PlayerTurnState:next_monster()
@@ -67,8 +66,7 @@ function PlayerTurnState:next_monster()
     self.monster_index = 1
   end
 
-  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
-  self.cursor.selected_drawable = sprite_instance
+  self:switch_cursor()
 end
 
 function PlayerTurnState:prev_monster()
@@ -77,8 +75,7 @@ function PlayerTurnState:prev_monster()
     self.monster_index = #self.monsters
   end
 
-  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
-  self.cursor.selected_drawable = sprite_instance
+  self:switch_cursor()
 end
 
 function PlayerTurnState:on_keypressed(key)
@@ -89,10 +86,9 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_monster()
     elseif key == 'return' or key == 'kpenter' then
       local monster = self.monsters[self.monster_index]
-      monster.hp = monster.hp - self.character.damage
+      self.rules:take_damage(monster, self.character.damage)
       if monster.hp <= 0 then
-        self.atlas:remove(monster)
-        self:fill_the_hole(self.monsters, self.monster_index)
+        self.rules:die(monster, self.atlas, self.monsters, self.monster_index)
       end
       self.ongoing_state = "choosing_option"
       self.monster_index = 0

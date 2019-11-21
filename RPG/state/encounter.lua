@@ -34,7 +34,7 @@ function EncounterState:enter(params)
   for i, character in ipairs(params.party) do
     local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
     self.turns[i] = character
-    atlas:add(character, pos, character:get_appearance())
+    atlas:add(character, pos, character.appearance)
     n = n + 1
   end
 
@@ -44,7 +44,7 @@ function EncounterState:enter(params)
   for i, character in ipairs(params.encounter) do
     local pos = encounter_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
     self.monsters[i] = character
-    atlas:add(character, pos, character:get_appearance())
+    atlas:add(character, pos, character.appearance)
   end
   self:view():add('atlas', atlas)
   self:view():add('battlefield', battlefield)

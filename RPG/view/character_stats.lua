@@ -14,9 +14,9 @@ function CharacterStats:draw()
   g.setFont(self.font)
   g.setColor(1, 1, 1)
   g.translate(self.position:get())
-  g.print(self.character:get_name())
+  g.print(self.character.name)
   g.translate(0, self.font:getHeight())
-  g.print(("HP: %d/%d"):format(self.character:get_hp()))
+  g.print(("HP: %d/%d"):format(self.character.hp, self.character.max_hp))
   g.pop()
 end
 
