@@ -61,7 +61,7 @@ function AtlasRenderer:draw()
     x = math.floor(x)
     y = math.floor(y)
     if instance.enraged then
-      g.setColor(PALLETE_DB.red)
+      g.setColor(PALLETE_DB.dark_red)
     else
       g.setColor(PALLETE_DB[sprite.color])
     end

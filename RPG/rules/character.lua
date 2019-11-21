@@ -133,7 +133,8 @@ return function (ruleset)
     function self.apply()
       if e.enraged then return end
 
-      if e.hp/e.max_hp <= 0.3 then
+      local hp_perc = e.hp/e.max_hp
+      if hp_perc > 0 and hp_perc <= 0.3 then
         e.enraged = true
         e.damage = e.damage*2
         atlas:enrage_monster(e)

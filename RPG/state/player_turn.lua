@@ -17,6 +17,7 @@ function PlayerTurnState:_init(stack)
   self.cursor = nil
   self.atlas = self:view():get('atlas')
   self.monster_index = 0
+  self.message = self:view():get('message')
 end
 
 function PlayerTurnState:enter(params)
@@ -87,8 +88,8 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'return' or key == 'kpenter' then
       local monster = self.monsters[self.monster_index]
       self.rules:take_damage(monster, self.character.damage)
-      self.rules:enrage_if_dying(monster, self.atlas)
       self.rules:remove_if_dead(monster, self.atlas, self.monsters, self.monster_index)
+      self.rules:enrage_if_dying(monster, self.atlas)
 
       self.ongoing_state = "choosing_option"
       self.monster_index = 0

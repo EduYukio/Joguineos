@@ -32,10 +32,12 @@ function EncounterState:enter(params)
   local party_origin = battlefield:east_team_origin()
   self.players = {}
   self.next_player = 1
+  local n = 1
   for i, character in ipairs(params.party) do
     if character.hp > 0 then
       local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
-      self.players[i] = character
+      self.players[n] = character
+      n = n + 1
       self.atlas:add(character, pos, character.appearance)
     end
   end
@@ -87,8 +89,12 @@ end
 
 function EncounterState:resume(params)
   local message
+  local monster = params.monster
   if params.action == 'Fight' then
-    message = MESSAGES[params.action]:format(params.character.name, params.monster.name)
+    message = MESSAGES[params.action]:format(params.character.name, monster.name)
+    if monster.hp > 0 and monster.enraged then
+      message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
+    end
   elseif params.action == "Run" or params.action == "Victory" then
     return self:pop()
   else
