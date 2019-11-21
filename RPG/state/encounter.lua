@@ -73,6 +73,9 @@ function EncounterState:update(_)
     for _, monster in pairs(self.monsters) do
       self:attack_player(monster)
       self.rules:remove_if_dead(self.chosen_player, self.atlas, self.players, self.player_index)
+      if #self.players == 0 then
+        return self:pop({ action = "Defeat" })
+      end
     end
   end
 

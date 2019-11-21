@@ -37,6 +37,12 @@ function FollowQuestState:update(_)
   end
 end
 
+function FollowQuestState:resume(params)
+  if params and params.action == "Defeat" then
+    return self:pop()
+  end
+end
+
 return FollowQuestState
 
 
