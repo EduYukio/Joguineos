@@ -87,9 +87,8 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'return' or key == 'kpenter' then
       local monster = self.monsters[self.monster_index]
       self.rules:take_damage(monster, self.character.damage)
-      if monster.hp <= 0 then
-        self.rules:die(monster, self.atlas, self.monsters, self.monster_index)
-      end
+      self.rules:remove_if_dead(monster, self.atlas, self.monsters, self.monster_index)
+
       self.ongoing_state = "choosing_option"
       self.monster_index = 0
 

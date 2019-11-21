@@ -8,7 +8,7 @@ local _stack
 function love.load()
   local path = love.filesystem.getRequirePath()
   love.filesystem.setRequirePath("lib/?.lua;lib/?/init.lua;" .. path)
-  
+
   math.randomseed(os.time())
 
   _game = {

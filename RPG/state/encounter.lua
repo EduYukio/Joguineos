@@ -19,11 +19,13 @@ function EncounterState:_init(stack)
   self:super(stack)
   self.players = nil
   self.monsters = nil
+  self.chosen_player = nil
+  self.player_index = nil
   self.next_player = nil
 end
 
 function EncounterState:enter(params)
-  local atlas = SpriteAtlas()
+  self.atlas = SpriteAtlas()
   local battlefield = BattleField()
   local bfbox = battlefield.bounds
   local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
@@ -34,7 +36,7 @@ function EncounterState:enter(params)
   for i, character in ipairs(params.party) do
     local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
     self.players[i] = character
-    atlas:add(character, pos, character.appearance)
+    self.atlas:add(character, pos, character.appearance)
     n = n + 1
   end
 
@@ -44,9 +46,9 @@ function EncounterState:enter(params)
   for i, character in ipairs(params.encounter) do
     local pos = encounter_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
     self.monsters[i] = character
-    atlas:add(character, pos, character.appearance)
+    self.atlas:add(character, pos, character.appearance)
   end
-  self:view():add('atlas', atlas)
+  self:view():add('atlas', self.atlas)
   self:view():add('battlefield', battlefield)
   self:view():add('message', message)
   message:set("You stumble upon an encounter")
@@ -60,9 +62,9 @@ function EncounterState:leave()
 end
 
 function EncounterState:attack_player(monster)
-  local random = math.random(#self.players)
-  local player = self.players[random]
-  self.rules:take_damage(player, monster.damage)
+  self.player_index = math.random(#self.players)
+  self.chosen_player = self.players[self.player_index]
+  self.rules:take_damage(self.chosen_player, monster.damage)
 end
 
 function EncounterState:update(_)
@@ -70,6 +72,7 @@ function EncounterState:update(_)
     self.next_player = 1
     for _, monster in pairs(self.monsters) do
       self:attack_player(monster)
+      self.rules:remove_if_dead(self.chosen_player, self.atlas, self.players, self.player_index)
     end
   end
 

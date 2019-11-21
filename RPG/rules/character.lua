@@ -77,16 +77,18 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:die(e, atlas, monsters, monster_index)
+  function ruleset.define:remove_if_dead(e, atlas, unit_array, unit_index)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
-      atlas:remove(e)
-      for i = monster_index + 1, #monsters do
-        monsters[i-1] = monsters[i]
+      if e.hp <= 0 then
+        atlas:remove(e)
+        for i = unit_index + 1, #unit_array do
+          unit_array[i-1] = unit_array[i]
+        end
+        unit_array[#unit_array] = nil
       end
-      monsters[#monsters] = nil
     end
   end
 end
