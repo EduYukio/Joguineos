@@ -45,6 +45,7 @@ function EncounterState:enter(params)
 
   local encounter_origin = battlefield:west_team_origin()
   self.monsters = {}
+  self.next_monster = 1
   for i, character in ipairs(params.encounter) do
     local pos = encounter_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
     self.monsters[i] = character
@@ -63,41 +64,51 @@ function EncounterState:leave()
   self:view():remove('message')
 end
 
-function EncounterState:attack_player(monster)
-  --SOUND: play attack sound
-  self.player_index = math.random(#self.players)
-  self.chosen_player = self.players[self.player_index]
-  self.rules:take_damage(self.chosen_player, monster.damage)
-end
+
 
 function EncounterState:update(_)
   --monsters turn
-  if self.next_player > #self.players then
+  local current_character
+  local attacker
+  if self.next_monster > #self.monsters then
     self.next_player = 1
-    for _, monster in pairs(self.monsters) do
-      self:attack_player(monster)
-      self.rules:remove_if_dead(self.chosen_player, self.atlas, self.players, self.player_index)
-    end
+    self.next_monster = 1
   end
 
-  --setup players turn
-  local current_character = self.players[self.next_player]
-  self.next_player = self.next_player + 1
-  local params = { current_character = current_character, monsters = self.monsters, players = self.players }
+
+  if self.next_player > #self.players then
+    --turno dos monstros
+    attacker = "Monster"
+    current_character = self.monsters[self.next_monster]
+    self.next_monster = self.next_monster + 1
+  else
+    --turno dos players
+    attacker = "Player"
+    current_character = self.players[self.next_player]
+    self.next_player = self.next_player + 1
+  end
+
+  --setup battle turn
+  local params = {
+    current_character = current_character,
+    attacker = attacker,
+    monsters = self.monsters,
+    players = self.players
+  }
   return self:push('player_turn', params)
 end
 
 function EncounterState:resume(params)
   local message
-  local monster = params.monster
+  local selected = params.selected
   local char = params.character
 
   if params.action == 'Fight' then
-    message = MESSAGES[params.action]:format(char.name, monster.name, char.damage)
-    if monster.hp <= 0 then
-      message = message .. "\n" .. monster.name .. " died."
-    elseif monster.enraged then
-      message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
+    message = MESSAGES[params.action]:format(char.name, selected.name, char.damage)
+    if selected.hp <= 0 then
+      message = message .. "\n" .. selected.name .. " died."
+    elseif selected.enraged then
+      message = message .. "\n" .. selected.name .. " became enraged, increasing its damage!"
     end
   elseif params.action == "Defeat" then
     return self:pop({ action = "Defeat" })

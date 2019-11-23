@@ -28,23 +28,24 @@ end
 
 function PlayerTurnState:enter(params)
   self.character = params.current_character
-  if not self.character then
-    self:setup_delay_animation(2.5, "Defeat")
-  else
-    self.atlas = self:view():get('atlas')
-    self.character_sprite = self.atlas:get(self.character)
+  self.attacker = params.attacker
 
-    self.monsters = params.monsters
-    self.players = params.players
+  self.atlas = self:view():get('atlas')
+  self.character_sprite = self.atlas:get(self.character)
+  self.monsters = params.monsters
+  self.players = params.players
+  self.waiting_time = 0
 
+  if self.attacker == "Player" then
     self.ongoing_state = "choosing_option"
-    self.waiting_time = 0
     self.selected_monster = nil
     self.monster_index = 0
 
     self:_show_menu()
     self:_show_cursor()
     self:_show_stats()
+  elseif self.attacker == "Monster" then
+    self:setup_attack_animation(0.2)
   end
 end
 
@@ -99,6 +100,10 @@ function PlayerTurnState:prev_monster()
   self:switch_cursor()
 end
 
+
+
+
+--Animations
 function PlayerTurnState:setup_delay_animation(delay_duration, return_action)
   self.ongoing_state = "animation"
   self.delay_animation = true
@@ -125,21 +130,34 @@ function PlayerTurnState:setup_attack_animation(walking_duration)
 
   self.walking_duration = walking_duration
 
-  self.selected_monster = self.monsters[self.monster_index]
-  self.selected_monster_sprite = self.atlas:get(self.selected_monster)
+  if self.attacker == "Player" then
+    self.selected_monster = self.monsters[self.monster_index]
+    self.selected_monster_sprite = self.atlas:get(self.selected_monster)
+  elseif self.attacker == "Monster" then
+    self.player_index = math.random(#self.players)
+    self.selected_player = self.players[self.player_index]
+    self.selected_player_sprite = self.atlas:get(self.selected_player)
+  end
 
-  local duration = 0.2
-  self:setup_getting_hit_animation(duration)
+  self:setup_getting_hit_animation(0.2)
 end
 
 function PlayerTurnState:manage_attack_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.walking_duration then
-    self:play_walking_animation(dt, self.character_sprite, self.left_dir, 400)
+    if self.attacker == "Player" then
+      self:play_walking_animation(dt, self.character_sprite, self.left_dir, 400)
+    elseif self.attacker == "Monster" then
+      self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
+    end
   elseif self.waiting_time < self.walking_duration + 0.15 then
     return
   else
-    self:attack_monster()
+    if self.attacker == "Player" then
+      self:attack_monster()
+    elseif self.attacker == "Monster" then
+      self:attack_player()
+    end
     self.waiting_time = 0
     self.attack_animation = false
     self.getting_hit_animation = true
@@ -160,41 +178,66 @@ end
 function PlayerTurnState:manage_getting_hit_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.shaking_duration then
-    self:play_shaking_animation(dt, self.selected_monster_sprite)
+    if self.attacker == "Player" then
+      self:play_shaking_animation(dt, self.selected_monster_sprite, self.left_dir)
+    elseif self.attacker == "Monster" then
+      self:play_shaking_animation(dt, self.selected_player_sprite, self.right_dir)
+    end
   elseif self.waiting_time < self.shaking_duration + 0.15 then
     return
   elseif self.waiting_time < self.shaking_duration + 0.15 + self.walking_duration then
-    self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
-  elseif self.waiting_time < self.shaking_duration + 0.30 + self.walking_duration then
+    if self.attacker == "Player" then
+      self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
+    elseif self.attacker == "Monster" then
+      self:play_walking_animation(dt, self.character_sprite, self.left_dir, 400)
+    end
+  elseif self.waiting_time < self.shaking_duration + 0.15 + 0.4 + self.walking_duration then
     return
   else
     self.waiting_time = 0
     self.getting_hit_animation = false
-    self.ongoing_state = "choosing_option"
-    self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
-    self.monster_index = 0
 
-    if #self.monsters == 0 then
-      self:setup_delay_animation(2.5, "Victory")
-      return
+    if self.attacker == "Player" then
+      self.ongoing_state = "choosing_option"
+      self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
+      self.monster_index = 0
+
+      if #self.monsters == 0 then
+        self:setup_delay_animation(2.5, "Victory")
+        return
+      end
+
+      return self:pop({
+        action = "Fight",
+        character = self.character,
+        selected = self.selected_monster,
+      })
+    elseif self.attacker == "Monster" then
+      self.ongoing_state = "monster_turn"
+      self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.player_index)
+
+      if #self.players == 0 then
+        self:setup_delay_animation(2.5, "Defeat")
+        return
+      end
+
+      return self:pop({
+        action = "Fight",
+        character = self.character,
+        selected = self.selected_player,
+      })
     end
-
-    return self:pop({
-      action = "Fight",
-      character = self.character,
-      monster = self.selected_monster,
-    })
   end
 end
 
-function PlayerTurnState:play_shaking_animation(dt, unit_sprite)
+function PlayerTurnState:play_shaking_animation(dt, unit_sprite, back_direction)
   local speed = 250 * dt
   local delta_s
 
   if self.waiting_time < self.shaking_duration/2 then
-    delta_s = self.left_dir * speed
+    delta_s = back_direction * speed
   else
-    delta_s = self.right_dir * speed
+    delta_s = back_direction*-1 * speed
   end
 
   unit_sprite.position:add(delta_s)
@@ -228,10 +271,19 @@ function PlayerTurnState:manage_run_away_animations(dt)
   end
 end
 
+
+
+
+
+
+function PlayerTurnState:attack_player()
+  --SOUND: play attack sound
+  self.rules:take_damage(self.selected_player, self.character.damage)
+end
+
 function PlayerTurnState:attack_monster()
   --SOUND: play attack sound
 
-  self.selected_monster = self.monsters[self.monster_index]
   self.rules:take_damage(self.selected_monster, self.character.damage)
   self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
@@ -243,8 +295,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_monster()
     elseif key == 'return' or key == 'kpenter' then
-      local walking_duration = 0.2
-      self:setup_attack_animation(walking_duration)
+      self:setup_attack_animation(0.2)
     end
   elseif self.ongoing_state == "choosing_option" then
     if key == 'down' then
