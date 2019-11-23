@@ -1,8 +1,8 @@
 
 return {
-  name = "Recluse Archer",
+  name = "Archer",
   appearance = 'archer',
   max_hp = 12,
-  damage = 10,
+  damage = 15,
 }
 
