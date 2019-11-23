@@ -28,21 +28,20 @@ end
 
 function PlayerTurnState:enter(params)
   self.character = params.current_character
-
-  self.atlas = self:view():get('atlas')
-  self.character_sprite = self.atlas:get(self.character)
-
-  self.monsters = params.monsters
-  self.players = params.players
-
-  self.ongoing_state = "choosing_option"
-  self.waiting_time = 0
-  self.selected_monster = nil
-  self.monster_index = 0
-
   if not self.character then
     self:setup_delay_animation(2.5, "Defeat")
   else
+    self.atlas = self:view():get('atlas')
+    self.character_sprite = self.atlas:get(self.character)
+
+    self.monsters = params.monsters
+    self.players = params.players
+
+    self.ongoing_state = "choosing_option"
+    self.waiting_time = 0
+    self.selected_monster = nil
+    self.monster_index = 0
+
     self:_show_menu()
     self:_show_cursor()
     self:_show_stats()
@@ -173,10 +172,10 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
     self.getting_hit_animation = false
     self.ongoing_state = "choosing_option"
     self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
+    self.monster_index = 0
 
     if #self.monsters == 0 then
       self:setup_delay_animation(2.5, "Victory")
-      self:view():get('message'):set("You won this encounter!")
       return
     end
 
@@ -235,7 +234,6 @@ function PlayerTurnState:attack_monster()
   self.selected_monster = self.monsters[self.monster_index]
   self.rules:take_damage(self.selected_monster, self.character.damage)
   self.rules:enrage_if_dying(self.selected_monster, self.atlas)
-  self.monster_index = 0
 end
 
 function PlayerTurnState:on_keypressed(key)
