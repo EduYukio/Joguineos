@@ -95,7 +95,7 @@ function EncounterState:update(_)
     monsters = self.monsters,
     players = self.players
   }
-  return self:push('player_turn', params)
+  return self:push('battle_turn', params)
 end
 
 function EncounterState:resume(params)
