@@ -13,7 +13,6 @@ local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",
   Skill = "%s unleashed a skill",
   Item = "%s used an item",
-  Defeat = "You lost this encounter..."
 }
 
 function EncounterState:_init(stack)
@@ -65,23 +64,23 @@ function EncounterState:leave()
 end
 
 function EncounterState:attack_player(monster)
+  --SOUND: play attack sound
   self.player_index = math.random(#self.players)
   self.chosen_player = self.players[self.player_index]
   self.rules:take_damage(self.chosen_player, monster.damage)
 end
 
 function EncounterState:update(_)
+  --monsters turn
   if self.next_player > #self.players then
     self.next_player = 1
     for _, monster in pairs(self.monsters) do
       self:attack_player(monster)
       self.rules:remove_if_dead(self.chosen_player, self.atlas, self.players, self.player_index)
-      if #self.players == 0 then
-        return self:pop({ action = "Defeat" })
-      end
     end
   end
 
+  --setup players turn
   local current_character = self.players[self.next_player]
   self.next_player = self.next_player + 1
   local params = { current_character = current_character, monsters = self.monsters, players = self.players }
@@ -100,14 +99,9 @@ function EncounterState:resume(params)
     elseif monster.enraged then
       message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
     end
-  elseif params.action == "Victory" then
-    --**acho que vai ter que refatorar no player turn tb**
-
-
-    -- message = MESSAGES[params.action]:format(char.name, monster.name, char.damage)
-    -- message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
-    return self:pop()
-  elseif params.action == "Run" then
+  elseif params.action == "Defeat" then
+    return self:pop({ action = "Defeat" })
+  elseif params.action == "Run" or params.action == "Victory" then
     return self:pop()
   end
   self:view():get('message'):set(message)

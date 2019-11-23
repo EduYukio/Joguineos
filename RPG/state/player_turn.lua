@@ -9,33 +9,44 @@ local PlayerTurnState = require 'common.class' (State)
 
 local TURN_OPTIONS = { 'Fight', 'Skill', 'Item', 'Run' }
 
+local MESSAGES = {
+  Victory = "You won this encounter!",
+  Run = "You ran away safely.",
+  Defeat = "You lost this encounter..."
+}
+
 function PlayerTurnState:_init(stack)
   self:super(stack)
   self.character = nil
   self.menu = ListMenu(TURN_OPTIONS)
   self.cursor = nil
-  self.atlas = self:view():get('atlas')
   self.message = self:view():get('message')
 
-  self.selected_monster = nil
-  self.monster_index = 0
-
-  self.waiting_time = 0
   self.left_dir = Vec(-1, 0)
   self.right_dir = Vec(1, 0)
 end
 
 function PlayerTurnState:enter(params)
   self.character = params.current_character
+
+  self.atlas = self:view():get('atlas')
   self.character_sprite = self.atlas:get(self.character)
 
   self.monsters = params.monsters
   self.players = params.players
 
   self.ongoing_state = "choosing_option"
-  self:_show_menu()
-  self:_show_cursor()
-  self:_show_stats()
+  self.waiting_time = 0
+  self.selected_monster = nil
+  self.monster_index = 0
+
+  if not self.character then
+    self:setup_delay_animation(2.5, "Defeat")
+  else
+    self:_show_menu()
+    self:_show_cursor()
+    self:_show_stats()
+  end
 end
 
 function PlayerTurnState:_show_menu()
@@ -94,8 +105,8 @@ function PlayerTurnState:setup_delay_animation(delay_duration, return_action)
   self.delay_animation = true
   self.delay_duration = delay_duration
   self.return_action = return_action
-  self:view():get('message'):set("You won this encounter!")
   self:view():remove('turn_cursor')
+  self:view():get('message'):set(MESSAGES[return_action])
 end
 
 function PlayerTurnState:manage_delay_animation(dt)
@@ -133,7 +144,6 @@ function PlayerTurnState:manage_attack_animations(dt)
     self.waiting_time = 0
     self.attack_animation = false
     self.getting_hit_animation = true
-    -- play attack sound
   end
 end
 
@@ -165,7 +175,8 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
     self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
 
     if #self.monsters == 0 then
-      self:setup_delay_animation(3, "Victory")
+      self:setup_delay_animation(2.5, "Victory")
+      self:view():get('message'):set("You won this encounter!")
       return
     end
 
@@ -208,7 +219,7 @@ function PlayerTurnState:manage_run_away_animations(dt)
     for i = 1, #self.players do
       self.atlas:remove(self.players[i])
     end
-    self:view():get('message'):set("You ran away succesfully!")
+    self:view():get('message'):set(MESSAGES["Run"])
   elseif self.waiting_time < self.run_away_duration + 2 then
     return
   else
@@ -219,6 +230,8 @@ function PlayerTurnState:manage_run_away_animations(dt)
 end
 
 function PlayerTurnState:attack_monster()
+  --SOUND: play attack sound
+
   self.selected_monster = self.monsters[self.monster_index]
   self.rules:take_damage(self.selected_monster, self.character.damage)
   self.rules:enrage_if_dying(self.selected_monster, self.atlas)
@@ -234,7 +247,6 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'return' or key == 'kpenter' then
       local walking_duration = 0.2
       self:setup_attack_animation(walking_duration)
-      --
     end
   elseif self.ongoing_state == "choosing_option" then
     if key == 'down' then
