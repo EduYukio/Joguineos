@@ -10,7 +10,7 @@ local EncounterState = require 'common.class' (State)
 local CHARACTER_GAP = 96
 
 local MESSAGES = {
-  Fight = "%s attacked %s",
+  Fight = "%s attacked %s dealing %d damage",
   Skill = "%s unleashed a skill",
   Item = "%s used an item",
 }
@@ -90,9 +90,13 @@ end
 function EncounterState:resume(params)
   local message
   local monster = params.monster
+  local char = params.character
+
   if params.action == 'Fight' then
-    message = MESSAGES[params.action]:format(params.character.name, monster.name)
-    if monster.hp > 0 and monster.enraged then
+    message = MESSAGES[params.action]:format(char.name, monster.name, char.damage)
+    if monster.hp <= 0 then
+      message = message .. "\n" .. monster.name .. " died."
+    elseif monster.enraged then
       message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
     end
   elseif params.action == "Run" or params.action == "Victory" then

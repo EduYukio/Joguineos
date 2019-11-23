@@ -139,7 +139,7 @@ function PlayerTurnState:play_getting_hit_animation(dt)
     return
   elseif self.waiting_time < self.shaking_duration + 0.5 + self.walking_duration then
     self:play_walking_animation(dt, self.front_direction*-1)
-  elseif self.waiting_time < self.shaking_duration + 1.5 + self.walking_duration then
+  elseif self.waiting_time < self.shaking_duration + 0.7 + self.walking_duration then
     return
   else
     self.waiting_time = 0
@@ -150,7 +150,11 @@ function PlayerTurnState:play_getting_hit_animation(dt)
       return self:pop({ action = "Victory" })
     end
 
-    return self:pop({ action = "Fight", character = self.character, monster = self.monster })
+    return self:pop({
+      action = "Fight",
+      character = self.character,
+      monster = self.monster,
+    })
   end
 end
 
