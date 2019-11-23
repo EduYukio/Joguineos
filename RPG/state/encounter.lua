@@ -13,7 +13,6 @@ local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",
   Skill = "%s unleashed a skill",
   Item = "%s used an item",
-  Victory = "You won this encounter!",
   Defeat = "You lost this encounter..."
 }
 

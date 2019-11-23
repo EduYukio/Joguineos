@@ -20,10 +20,7 @@ function PlayerTurnState:_init(stack)
   self.selected_monster = nil
   self.monster_index = 0
 
-  self.walking_animation = false
-  self.getting_hit_animation = false
   self.waiting_time = 0
-
   self.left_dir = Vec(-1, 0)
   self.right_dir = Vec(1, 0)
 end
@@ -92,6 +89,26 @@ function PlayerTurnState:prev_monster()
   self:switch_cursor()
 end
 
+function PlayerTurnState:setup_delay_animation(delay_duration, return_action)
+  self.ongoing_state = "animation"
+  self.delay_animation = true
+  self.delay_duration = delay_duration
+  self.return_action = return_action
+  self:view():get('message'):set("You won this encounter!")
+  self:view():remove('turn_cursor')
+end
+
+function PlayerTurnState:manage_delay_animation(dt)
+  self.waiting_time = self.waiting_time + dt
+  if self.waiting_time < self.delay_duration then
+    return
+  else
+    self.waiting_time = 0
+    self.delay_animation = false
+    return self:pop({ action = self.return_action })
+  end
+end
+
 function PlayerTurnState:setup_attack_animation(walking_duration)
   self.ongoing_state = "animation"
   self.attack_animation = true
@@ -109,7 +126,7 @@ function PlayerTurnState:manage_attack_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.walking_duration then
     self:play_walking_animation(dt, self.character_sprite, self.left_dir, 400)
-  elseif self.waiting_time < self.walking_duration + 0.5 then
+  elseif self.waiting_time < self.walking_duration + 0.15 then
     return
   else
     self:attack_monster()
@@ -135,19 +152,21 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.shaking_duration then
     self:play_shaking_animation(dt, self.selected_monster_sprite)
-  elseif self.waiting_time < self.shaking_duration + 0.5 then
+  elseif self.waiting_time < self.shaking_duration + 0.15 then
     return
-  elseif self.waiting_time < self.shaking_duration + 0.5 + self.walking_duration then
+  elseif self.waiting_time < self.shaking_duration + 0.15 + self.walking_duration then
     self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
-  elseif self.waiting_time < self.shaking_duration + 0.7 + self.walking_duration then
+  elseif self.waiting_time < self.shaking_duration + 0.30 + self.walking_duration then
     return
   else
     self.waiting_time = 0
     self.getting_hit_animation = false
     self.ongoing_state = "choosing_option"
     self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
+
     if #self.monsters == 0 then
-      return self:pop({ action = "Victory" })
+      self:setup_delay_animation(3, "Victory")
+      return
     end
 
     return self:pop({
@@ -189,7 +208,7 @@ function PlayerTurnState:manage_run_away_animations(dt)
     for i = 1, #self.players do
       self.atlas:remove(self.players[i])
     end
-    self:view():get('message'):set("You run away succesfully!")
+    self:view():get('message'):set("You ran away succesfully!")
   elseif self.waiting_time < self.run_away_duration + 2 then
     return
   else
@@ -245,6 +264,8 @@ function PlayerTurnState:update(dt)
     self:manage_getting_hit_animations(dt)
   elseif self.run_away_animation then
     self:manage_run_away_animations(dt)
+  elseif self.delay_animation then
+    self:manage_delay_animation(dt)
   end
 end
 
