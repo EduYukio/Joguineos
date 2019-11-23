@@ -4,5 +4,6 @@ return {
   appearance = 'archer',
   max_hp = 12,
   damage = 15,
+  resistance = 0,
 }
 

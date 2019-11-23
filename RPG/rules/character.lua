@@ -7,6 +7,7 @@ return function (ruleset)
     max_hp = 15,
     hp = 15,
     damage = 10,
+    resistance = 0,
     enraged = false,
     appearance = "none"
   })
@@ -22,6 +23,7 @@ return function (ruleset)
         max_hp = spec.max_hp,
         hp = spec.max_hp,
         damage = spec.damage,
+        resistance = spec.resistance,
         appearance = spec.appearance
       })
       return e
@@ -61,6 +63,15 @@ return function (ruleset)
     end
     function self.apply()
       return r:get(e, 'character', 'damage')
+    end
+  end
+
+  function ruleset.define:get_resistance(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'resistance')
     end
   end
 
@@ -106,8 +117,12 @@ return function (ruleset)
     end
     function self.apply()
       local hp = e.hp
-      hp = hp - amount
-      r:set(e, 'character', 'hp', hp)
+      local dmg_after_mitigation = math.max(amount - e.resistance, 0)
+      if dmg_after_mitigation > 0 then
+        hp = hp - dmg_after_mitigation
+        r:set(e, 'character', 'hp', hp)
+      end
+      return dmg_after_mitigation
     end
   end
 

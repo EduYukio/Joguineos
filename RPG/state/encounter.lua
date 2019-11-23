@@ -101,10 +101,9 @@ end
 function EncounterState:resume(params)
   local message
   local selected = params.selected
-  local char = params.character
 
   if params.action == 'Fight' then
-    message = MESSAGES[params.action]:format(char.name, selected.name, char.damage)
+    message = MESSAGES[params.action]:format(params.character.name, selected.name, params.dmg_dealt)
     if selected.hp <= 0 then
       message = message .. "\n" .. selected.name .. " died."
     elseif selected.enraged then

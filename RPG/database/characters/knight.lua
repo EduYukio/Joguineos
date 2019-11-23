@@ -4,5 +4,6 @@ return {
   appearance = 'knight',
   max_hp = 10,
   damage = 10,
+  resitance = 0,
 }
 

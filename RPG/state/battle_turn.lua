@@ -35,6 +35,7 @@ function PlayerTurnState:enter(params)
   self.monsters = params.monsters
   self.players = params.players
   self.waiting_time = 0
+  self.dmg_dealt = 0
 
   if self.attacker == "Player" then
     self.ongoing_state = "choosing_option"
@@ -211,6 +212,7 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
         action = "Fight",
         character = self.character,
         selected = self.selected_monster,
+        dmg_dealt = self.dmg_dealt,
       })
     elseif self.attacker == "Monster" then
       self.ongoing_state = "monster_turn"
@@ -225,6 +227,7 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
         action = "Fight",
         character = self.character,
         selected = self.selected_player,
+        dmg_dealt = self.dmg_dealt,
       })
     end
   end
@@ -278,13 +281,13 @@ end
 
 function PlayerTurnState:attack_player()
   --SOUND: play attack sound
-  self.rules:take_damage(self.selected_player, self.character.damage)
+  self.dmg_dealt = self.rules:take_damage(self.selected_player, self.character.damage)
 end
 
 function PlayerTurnState:attack_monster()
   --SOUND: play attack sound
 
-  self.rules:take_damage(self.selected_monster, self.character.damage)
+  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage)
   self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
 
