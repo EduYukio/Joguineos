@@ -13,6 +13,8 @@ local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",
   Skill = "%s unleashed a skill",
   Item = "%s used an item",
+  Victory = "You won this encounter!",
+  Defeat = "You lost this encounter..."
 }
 
 function EncounterState:_init(stack)
@@ -83,7 +85,7 @@ function EncounterState:update(_)
 
   local current_character = self.players[self.next_player]
   self.next_player = self.next_player + 1
-  local params = { current_character = current_character, monsters = self.monsters }
+  local params = { current_character = current_character, monsters = self.monsters, players = self.players }
   return self:push('player_turn', params)
 end
 
@@ -99,10 +101,15 @@ function EncounterState:resume(params)
     elseif monster.enraged then
       message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
     end
-  elseif params.action == "Run" or params.action == "Victory" then
+  elseif params.action == "Victory" then
+    --**acho que vai ter que refatorar no player turn tb**
+
+
+    -- message = MESSAGES[params.action]:format(char.name, monster.name, char.damage)
+    -- message = message .. "\n" .. monster.name .. " became enraged, increasing its damage!"
     return self:pop()
-  else
-    message = MESSAGES[params.action]:format(params.character.name)
+  elseif params.action == "Run" then
+    return self:pop()
   end
   self:view():get('message'):set(message)
 end
