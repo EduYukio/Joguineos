@@ -6,6 +6,7 @@ local AtlasRenderer = require 'common.class' ()
 
 function AtlasRenderer:_init()
   self.texture = love.graphics.newImage('assets/textures/' .. ATLAS_DB.texture)
+  self.white_tex = love.graphics.newImage('assets/textures/white_screen.png')
   self.texture:setFilter('nearest', 'nearest')
   self.sprites = {}
   for name, sprite in pairs(ATLAS_DB.sprites) do
@@ -13,6 +14,7 @@ function AtlasRenderer:_init()
     self.sprites[name] = sprite
   end
   self.instances = {}
+  self.flash_timer = 0
 end
 
 function AtlasRenderer:makeQuad(frame)
@@ -44,6 +46,10 @@ function AtlasRenderer:enrage_monster(name)
   self.instances[name].enraged = true
 end
 
+function AtlasRenderer:flash_crit()
+  self.flash_timer = 1
+end
+
 function AtlasRenderer:remove(name)
   self.instances[name] = nil
 end
@@ -55,6 +61,7 @@ end
 function AtlasRenderer:draw()
   local g = love.graphics
   g.push()
+
   for _, instance in pairs(self.instances) do
     local tex, sprite = self.texture, self.sprites[instance.sprite_id]
     local x, y = instance.position:get()
@@ -68,6 +75,13 @@ function AtlasRenderer:draw()
     g.draw(tex, sprite.quad, x, y, 0, 4, 4,
            ATLAS_DB.frame_width/2, ATLAS_DB.frame_height/2)
   end
+
+  if self.flash_timer > 0 then
+    self.flash_timer = self.flash_timer - 0.1
+    g.setColor(1,1,1, self.flash_timer)
+    g.draw(self.white_tex, 0, 0)
+  end
+
   g.pop()
 end
 

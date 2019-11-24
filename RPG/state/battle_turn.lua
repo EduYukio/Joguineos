@@ -57,7 +57,7 @@ function PlayerTurnState:enter(params)
     self:_show_stats()
   elseif self.attacker == "Monster" then
     if self.character == self.monsters[1] then
-      self:setup_delay_animation(2, "MonsterTurn")
+      self:setup_delay_animation(1.3, "MonsterTurn")
     else
       self:setup_attack_animation(0.2)
     end
@@ -345,11 +345,15 @@ function PlayerTurnState:attack_player()
 end
 
 function PlayerTurnState:attack_monster()
-  --SOUND: play attack sound
   self.crit_attack = false
   local crit_attempt = math.random()
   if crit_attempt < self.character.crit_chance then
+   --SOUND: play crit attack sound
     self.crit_attack = true
+    self.atlas:flash_crit()
+
+  -- else
+    --SOUND: play normal attack sound
   end
 
   self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
