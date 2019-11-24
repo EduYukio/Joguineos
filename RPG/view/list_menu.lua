@@ -53,6 +53,7 @@ function ListMenu:draw()
   g.translate(self.position:get())
   g.setColor(1, 1, 1)
   g.setLineWidth(4)
+  g.translate(Vec(0,40):get())
   g.rectangle('line', 0, 0, size:get())
   g.translate(ListMenu.PADDING:get())
   for i, option in ipairs(self.options) do

@@ -56,6 +56,9 @@ function UI_Info:draw()
     self:draw_monster_frame(monster, line_gap)
     self:draw_monster_box(monster, line_gap)
   end
+
+  g.print("    Monsters don't crit.\nPlayers don't have resistance.", 770, 500)
+
   g.pop()
 end
 
