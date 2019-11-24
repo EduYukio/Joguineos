@@ -1,4 +1,5 @@
 
+local PALETTE_DB = require 'database.palette'
 local g = love.graphics
 
 local CharacterStats = require 'common.class' ()
@@ -25,9 +26,9 @@ function CharacterStats:draw()
   g.setFont(self.text_font)
 
   local line_gap = 20
-  g.setColor(0, 0, 0.75)
+  g.setColor(PALETTE_DB.blue)
   g.print(("MANA: %d/%d"):format(char.mana, char.max_mana))
-  g.setColor(1, 1, 1)
+  g.setColor(PALETTE_DB.pure_white)
   g.print(("DMG:  %d"):format(char.damage), 0, line_gap)
   g.print(("EVA:  %d%%"):format(char.evasion*100), 0, line_gap*2)
   g.print(("CRI:  %d%%"):format(char.crit_chance*100), 0, line_gap*3)

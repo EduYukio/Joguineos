@@ -1,5 +1,7 @@
 
+local PALETTE_DB = require 'database.palette'
 local Vec = require 'common.vec'
+
 local Lives = require 'common.class' ()
 
 function Lives:_init()
@@ -28,7 +30,7 @@ function Lives:draw()
   local g = love.graphics
   g.push()
 
-  g.setColor(0, 0.75, 0)
+  g.setColor(PALETTE_DB.dark_green)
 
   for _, life in pairs(self.list) do
     local x1, y1 = life.position:get()
