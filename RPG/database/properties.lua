@@ -22,7 +22,13 @@ return {
     none = 0,
     low = 0.05,
     medium = 0.20,
-    high = 0.50,
+    high = 0.40,
+  },
+  crit_chance = {
+    none = 0,
+    low = 0.1,
+    medium = 0.20,
+    high = 0.35,
   },
 }
 

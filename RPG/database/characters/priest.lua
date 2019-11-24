@@ -8,6 +8,7 @@ return {
   damage = p.damage.low*2,
   resistance = p.resistance.none,
   evasion = p.evasion.medium,
+  crit_chance = p.crit_chance.medium,
   category = "player",
 }
 

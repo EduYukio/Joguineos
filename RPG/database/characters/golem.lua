@@ -8,6 +8,7 @@ return {
   damage = p.damage.low,
   resistance = p.resistance.high,
   evasion = p.evasion.low,
+  crit_chance = p.crit_chance.none,
   category = "monster",
 }
 
