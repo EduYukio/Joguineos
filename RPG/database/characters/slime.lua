@@ -7,6 +7,7 @@ return {
   max_hp = p.hp.low,
   damage = p.damage.medium,
   resistance = p.resistance.medium,
+  evasion = p.evasion.medium,
   category = "monster",
 }
 

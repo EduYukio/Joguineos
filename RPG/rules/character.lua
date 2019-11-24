@@ -8,6 +8,7 @@ return function (ruleset)
     hp = 15,
     damage = 10,
     resistance = 0,
+    evasion = 0,
     enraged = false,
     appearance = "none"
   })
@@ -27,6 +28,7 @@ return function (ruleset)
         hp = spec.max_hp,
         damage = spec.damage,
         resistance = spec.resistance,
+        evasion = spec.evasion,
         appearance = spec.appearance
       })
 
@@ -82,6 +84,15 @@ return function (ruleset)
     end
     function self.apply()
       return r:get(e, 'character', 'resistance')
+    end
+  end
+
+  function ruleset.define:get_evasion(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'evasion')
     end
   end
 

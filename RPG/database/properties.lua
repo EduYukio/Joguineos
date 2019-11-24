@@ -18,7 +18,11 @@ return {
     medium = 4,
     high = 7,
   },
-  upgrade_dmg = 2/60,
-  buff_factor = 4,
+  evasion = {
+    none = 0,
+    low = 0.05,
+    medium = 0.20,
+    high = 0.50,
+  },
 }
 
