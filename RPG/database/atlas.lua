@@ -14,9 +14,13 @@ return {
       frame = { 27, 8 },
       color = 'green'
     },
-    blue_slime = {
-      frame = { 27, 8 },
-      color = 'blue'
+    golem = {
+      frame = { 30, 6 },
+      color = 'brown'
+    },
+    ninja = {
+      frame = { 29, 9 },
+      color = 'gray'
     },
     knight = {
       frame = { 28, 0 },
