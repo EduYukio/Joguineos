@@ -9,6 +9,7 @@ return {
   resistance = p.resistance.none,
   evasion = p.evasion.medium,
   crit_chance = p.crit_chance.low,
+  max_mana = p.mana.high,
   category = "player",
 }
 

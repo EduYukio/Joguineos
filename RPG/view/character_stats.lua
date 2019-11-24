@@ -15,19 +15,22 @@ end
 function CharacterStats:draw()
   g.push()
 
-  g.setColor(1, 1, 1)
+  local char = self.character
   g.translate(self.position:get())
 
   g.setFont(self.title_font)
-  g.print(self.character.name)
+  g.print(char.name)
 
   g.translate(0, self.title_font:getHeight())
   g.setFont(self.text_font)
 
   local line_gap = 20
-  g.print(("DMG: %d"):format(self.character.damage))
-  g.print(("EVA: %d%%"):format(self.character.evasion*100), 0, line_gap)
-  g.print(("CRI: %d%%"):format(self.character.crit_chance*100), 0, line_gap*2)
+  g.setColor(0, 0, 0.75)
+  g.print(("MANA: %d/%d"):format(char.mana, char.max_mana))
+  g.setColor(1, 1, 1)
+  g.print(("DMG:  %d"):format(char.damage), 0, line_gap)
+  g.print(("EVA:  %d%%"):format(char.evasion*100), 0, line_gap*2)
+  g.print(("CRI:  %d%%"):format(char.crit_chance*100), 0, line_gap*3)
 
   g.pop()
 end

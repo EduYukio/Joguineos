@@ -10,6 +10,8 @@ return function (ruleset)
     resistance = 0,
     evasion = 0,
     crit_chance = 0,
+    mana = 0,
+    max_mana = 0,
     enraged = false,
     appearance = "none"
   })
@@ -30,6 +32,8 @@ return function (ruleset)
         damage = spec.damage,
         resistance = spec.resistance,
         evasion = spec.evasion,
+        mana = spec.max_mana,
+        max_mana = spec.max_mana,
         crit_chance = spec.crit_chance,
         appearance = spec.appearance
       })
@@ -104,6 +108,24 @@ return function (ruleset)
     end
     function self.apply()
       return r:get(e, 'character', 'crit_chance')
+    end
+  end
+
+  function ruleset.define:get_mana(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'mana')
+    end
+  end
+
+  function ruleset.define:get_max_mana(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'max_mana')
     end
   end
 

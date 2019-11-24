@@ -30,5 +30,11 @@ return {
     medium = 0.20,
     high = 0.35,
   },
+  mana = {
+    none = 0,
+    low = 2,
+    medium = 4,
+    high = 10,
+  },
 }
 
