@@ -12,6 +12,9 @@ return function (ruleset)
     appearance = "none"
   })
 
+  r:new_property('monster', {})
+  r:new_property('player', {})
+
   function ruleset.define:new_character(spec)
     function self.when()
       return true
@@ -26,6 +29,13 @@ return function (ruleset)
         resistance = spec.resistance,
         appearance = spec.appearance
       })
+
+      if spec.category == "monster" then
+        r:set(e, 'monster', {})
+      elseif spec.category == "player" then
+        r:set(e, 'player', {})
+      end
+
       return e
     end
   end
@@ -86,7 +96,7 @@ return function (ruleset)
 
   function ruleset.define:set_enraged(e, enraged)
     function self.when()
-      return r:is(e, 'character')
+      return r:is(e, 'character') and r:is(e, "monster")
     end
     function self.apply()
       return r:set(e, 'character', {enraged = enraged})
@@ -143,17 +153,19 @@ return function (ruleset)
 
   function ruleset.define:enrage_if_dying(e, atlas)
     function self.when()
-      return r:is(e, 'character')
+      return r:is(e, 'character') and r:is(e, "monster")
     end
     function self.apply()
-      if e.enraged then return end
+      if e.enraged then return false end
 
       local hp_perc = e.hp/e.max_hp
       if hp_perc > 0 and hp_perc <= 0.3 then
         e.enraged = true
         e.damage = e.damage*2
         atlas:enrage_monster(e)
+        return true
       end
+      return false
     end
   end
 end
