@@ -106,7 +106,7 @@ function EncounterState:resume(params)
     message = MESSAGES[params.action]:format(params.character.name, selected.name, params.dmg_dealt)
     if selected.hp <= 0 then
       message = message .. "\n" .. selected.name .. " died."
-    elseif selected.enraged then
+    elseif params.became_enraged then
       message = message .. "\n" .. selected.name .. " became enraged, increasing its damage!"
     end
   elseif params.action == "Defeat" then

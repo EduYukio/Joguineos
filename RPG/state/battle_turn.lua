@@ -3,6 +3,7 @@ local Vec = require 'common.vec'
 local CharacterStats = require 'view.character_stats'
 local TurnCursor = require 'view.turn_cursor'
 local ListMenu = require 'view.list_menu'
+local UI_Info = require 'view.ui_info'
 local State = require 'state'
 
 local PlayerTurnState = require 'common.class' (State)
@@ -10,15 +11,16 @@ local PlayerTurnState = require 'common.class' (State)
 local TURN_OPTIONS = { 'Fight', 'Skill', 'Item', 'Run' }
 
 local MESSAGES = {
-  Victory = "You won this encounter!",
+  Victory = "You won the encounter!",
   Run = "You ran away safely.",
-  Defeat = "You lost this encounter..."
+  Defeat = "You lost the adventure..."
 }
 
 function PlayerTurnState:_init(stack)
   self:super(stack)
   self.character = nil
   self.menu = ListMenu(TURN_OPTIONS)
+
   self.cursor = nil
   self.message = self:view():get('message')
 
@@ -30,7 +32,14 @@ function PlayerTurnState:enter(params)
   self.character = params.current_character
   self.attacker = params.attacker
 
+  self.battlefield = self:view():get('battlefield')
+  local _, right, top, _ = self.battlefield.bounds:get()
+  self.ui_info = UI_Info(Vec(right + 250, top + 10))
+  self:view():add('ui_info', self.ui_info)
+
   self.atlas = self:view():get('atlas')
+  self:add_ui_info_sprites()
+
   self.character_sprite = self.atlas:get(self.character)
   self.monsters = params.monsters
   self.players = params.players
@@ -75,7 +84,16 @@ function PlayerTurnState:leave()
   self:view():remove('turn_menu')
   self:view():remove('turn_cursor')
   self:view():remove('char_stats')
+  self:view():remove('ui_info')
 end
+
+function PlayerTurnState:add_ui_info_sprites()
+  for _, v in pairs(self.ui_info.monsters_info) do
+    self.atlas:add(v.name, v.pos, v.appearance)
+  end
+end
+
+
 
 
 function PlayerTurnState:switch_cursor()
@@ -213,6 +231,7 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
         character = self.character,
         selected = self.selected_monster,
         dmg_dealt = self.dmg_dealt,
+        became_enraged = self.became_enraged,
       })
     elseif self.attacker == "Monster" then
       self.ongoing_state = "monster_turn"
@@ -288,7 +307,7 @@ function PlayerTurnState:attack_monster()
   --SOUND: play attack sound
 
   self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage)
-  self.rules:enrage_if_dying(self.selected_monster, self.atlas)
+  self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
 
 function PlayerTurnState:on_keypressed(key)
