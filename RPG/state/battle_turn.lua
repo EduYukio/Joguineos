@@ -13,7 +13,8 @@ local TURN_OPTIONS = { 'Fight', 'Skill', 'Item', 'Run' }
 local MESSAGES = {
   Victory = "You won the encounter!",
   Run = "You ran away safely.",
-  Defeat = "You lost the adventure..."
+  Defeat = "You lost the adventure...",
+  Missed = "The attack missed...",
 }
 
 function PlayerTurnState:_init(stack)
@@ -139,7 +140,11 @@ function PlayerTurnState:manage_delay_animation(dt)
   else
     self.waiting_time = 0
     self.delay_animation = false
-    return self:pop({ action = self.return_action })
+    if self.return_action == "Missed" then
+      self.retreat_animation = true
+    else
+      return self:pop({ action = self.return_action })
+    end
   end
 end
 
@@ -172,14 +177,28 @@ function PlayerTurnState:manage_attack_animations(dt)
   elseif self.waiting_time < self.walking_duration + 0.15 then
     return
   else
-    if self.attacker == "Player" then
-      self:attack_monster()
-    elseif self.attacker == "Monster" then
-      self:attack_player()
-    end
     self.waiting_time = 0
     self.attack_animation = false
-    self.getting_hit_animation = true
+    self.missed_attack = true
+
+    local accuracy = math.random()
+    if self.attacker == "Player" then
+      if accuracy > self.selected_monster.evasion then
+        self:attack_monster()
+        self.getting_hit_animation = true
+        self.missed_attack = false
+      end
+    elseif self.attacker == "Monster" then
+      if accuracy > self.selected_player.evasion then
+        self:attack_player()
+        self.getting_hit_animation = true
+        self.missed_attack = false
+      end
+    end
+
+    if self.missed_attack then
+      self:setup_delay_animation(1.5, "Missed")
+    end
   end
 end
 
@@ -204,17 +223,30 @@ function PlayerTurnState:manage_getting_hit_animations(dt)
     end
   elseif self.waiting_time < self.shaking_duration + 0.15 then
     return
-  elseif self.waiting_time < self.shaking_duration + 0.15 + self.walking_duration then
+  else
+    self.waiting_time = 0
+    self.getting_hit_animation = false
+    self.retreat_animation = true
+  end
+end
+
+function PlayerTurnState:manage_retreat_animations(dt)
+  self.waiting_time = self.waiting_time + dt
+  if self.waiting_time < self.walking_duration then
     if self.attacker == "Player" then
       self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
     elseif self.attacker == "Monster" then
       self:play_walking_animation(dt, self.character_sprite, self.left_dir, 400)
     end
-  elseif self.waiting_time < self.shaking_duration + 0.15 + 0.4 + self.walking_duration then
+  elseif self.waiting_time < self.walking_duration + 0.5 then
     return
   else
     self.waiting_time = 0
-    self.getting_hit_animation = false
+    self.retreat_animation = false
+
+    if self.missed_attack then
+      return self:pop({})
+    end
 
     if self.attacker == "Player" then
       self.ongoing_state = "choosing_option"
@@ -341,14 +373,18 @@ function PlayerTurnState:on_keypressed(key)
 end
 
 function PlayerTurnState:update(dt)
-  if self.attack_animation then
-    self:manage_attack_animations(dt)
-  elseif self.getting_hit_animation then
-    self:manage_getting_hit_animations(dt)
-  elseif self.run_away_animation then
-    self:manage_run_away_animations(dt)
-  elseif self.delay_animation then
-    self:manage_delay_animation(dt)
+  if self.ongoing_state == "animation" then
+    if self.attack_animation then
+      self:manage_attack_animations(dt)
+    elseif self.getting_hit_animation then
+      self:manage_getting_hit_animations(dt)
+    elseif self.run_away_animation then
+      self:manage_run_away_animations(dt)
+    elseif self.delay_animation then
+      self:manage_delay_animation(dt)
+    elseif self.retreat_animation then
+      self:manage_retreat_animations(dt)
+    end
   end
 end
 
