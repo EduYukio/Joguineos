@@ -9,6 +9,7 @@ return function (ruleset)
     damage = 10,
     resistance = 0,
     evasion = 0,
+    crit_chance = 0,
     enraged = false,
     appearance = "none"
   })
@@ -29,6 +30,7 @@ return function (ruleset)
         damage = spec.damage,
         resistance = spec.resistance,
         evasion = spec.evasion,
+        crit_chance = spec.crit_chance,
         appearance = spec.appearance
       })
 
@@ -93,6 +95,15 @@ return function (ruleset)
     end
     function self.apply()
       return r:get(e, 'character', 'evasion')
+    end
+  end
+
+  function ruleset.define:get_crit_chance(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'crit_chance')
     end
   end
 
