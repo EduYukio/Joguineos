@@ -1,9 +1,12 @@
 
+local p = require 'database.properties'
+
 return {
   name = "Knight",
   appearance = 'knight',
-  max_hp = 10,
-  damage = 10,
-  resitance = 0,
+  max_hp = p.hp.high*2,
+  damage = p.damage.medium*2,
+  resistance = p.resistance.none,
+  category = "player",
 }
 
