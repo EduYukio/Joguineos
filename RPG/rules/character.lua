@@ -143,18 +143,26 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:take_damage(e, amount)
+  function ruleset.define:take_damage(e, amount, crit)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
+      local final_dmg
       local hp = e.hp
-      local dmg_after_mitigation = math.max(amount - e.resistance, 0)
-      if dmg_after_mitigation > 0 then
-        hp = hp - dmg_after_mitigation
+
+      if crit then
+        final_dmg = amount + 5
+      else
+        final_dmg = math.max(amount - e.resistance, 0)
+      end
+
+      if final_dmg > 0 then
+        hp = hp - final_dmg
         r:set(e, 'character', 'hp', hp)
       end
-      return dmg_after_mitigation
+
+      return final_dmg
     end
   end
 
@@ -183,7 +191,7 @@ return function (ruleset)
       local hp_perc = e.hp/e.max_hp
       if hp_perc > 0 and hp_perc <= 0.3 then
         e.enraged = true
-        e.damage = e.damage*2
+        e.damage = e.damage + 5
         atlas:enrage_monster(e)
         return true
       end

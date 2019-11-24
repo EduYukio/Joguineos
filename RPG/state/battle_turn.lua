@@ -56,7 +56,11 @@ function PlayerTurnState:enter(params)
     self:_show_cursor()
     self:_show_stats()
   elseif self.attacker == "Monster" then
-    self:setup_attack_animation(0.2)
+    if self.character == self.monsters[1] then
+      self:setup_delay_animation(2, "MonsterTurn")
+    else
+      self:setup_attack_animation(0.2)
+    end
   end
 end
 
@@ -130,7 +134,9 @@ function PlayerTurnState:setup_delay_animation(delay_duration, return_action)
   self.delay_duration = delay_duration
   self.return_action = return_action
   self:view():remove('turn_cursor')
-  self:view():get('message'):set(MESSAGES[return_action])
+  if MESSAGES[return_action] then
+    self:view():get('message'):set(MESSAGES[return_action])
+  end
 end
 
 function PlayerTurnState:manage_delay_animation(dt)
@@ -142,6 +148,8 @@ function PlayerTurnState:manage_delay_animation(dt)
     self.delay_animation = false
     if self.return_action == "Missed" then
       self.retreat_animation = true
+    elseif self.return_action == "MonsterTurn" then
+      self:setup_attack_animation(0.2)
     else
       return self:pop({ action = self.return_action })
     end
@@ -264,6 +272,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
         selected = self.selected_monster,
         dmg_dealt = self.dmg_dealt,
         became_enraged = self.became_enraged,
+        crit_attack = self.crit_attack,
       })
     elseif self.attacker == "Monster" then
       self.ongoing_state = "monster_turn"
@@ -337,8 +346,13 @@ end
 
 function PlayerTurnState:attack_monster()
   --SOUND: play attack sound
+  self.crit_attack = false
+  local crit_attempt = math.random()
+  if crit_attempt < self.character.crit_chance then
+    self.crit_attack = true
+  end
 
-  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage)
+  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
   self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
 

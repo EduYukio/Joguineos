@@ -42,7 +42,6 @@ function EncounterState:enter(params)
     end
   end
 
-
   local encounter_origin = battlefield:west_team_origin()
   self.monsters = {}
   self.next_monster = 1
@@ -75,7 +74,6 @@ function EncounterState:update(_)
     self.next_monster = 1
   end
 
-
   if self.next_player > #self.players then
     --turno dos monstros
     attacker = "Monster"
@@ -99,11 +97,20 @@ function EncounterState:update(_)
 end
 
 function EncounterState:resume(params)
-  local message
+  local message = ""
   local selected = params.selected
 
   if params.action == 'Fight' then
-    message = MESSAGES[params.action]:format(params.character.name, selected.name, params.dmg_dealt)
+    if params.crit_attack then
+      message = message .. "Critical attack!!!\n"
+    end
+
+    message = message .. MESSAGES[params.action]:format(
+      params.character.name,
+      selected.name,
+      params.dmg_dealt
+    )
+
     if selected.hp <= 0 then
       message = message .. "\n" .. selected.name .. " died."
     elseif params.became_enraged then
