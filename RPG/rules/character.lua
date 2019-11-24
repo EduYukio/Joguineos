@@ -158,7 +158,7 @@ return function (ruleset)
       end
 
       if final_dmg > 0 then
-        hp = hp - final_dmg
+        hp = math.max(hp - final_dmg, 0)
         r:set(e, 'character', 'hp', hp)
       end
 

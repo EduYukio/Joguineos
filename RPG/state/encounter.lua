@@ -7,7 +7,7 @@ local State = require 'state'
 
 local EncounterState = require 'common.class' (State)
 
-local CHARACTER_GAP = 96
+local CHARACTER_GAP = 96 + 8
 
 local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",

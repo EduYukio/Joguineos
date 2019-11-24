@@ -10,11 +10,11 @@ function BattleField:_init()
 end
 
 function BattleField:west_team_origin()
-  return Vec(self.bounds.left + 64, self.bounds.top + 64)
+  return Vec(self.bounds.left + 64, self.bounds.top + 57)
 end
 
 function BattleField:east_team_origin()
-  return Vec(self.bounds.right - 64, self.bounds.top + 64)
+  return Vec(self.bounds.right - 64, self.bounds.top + 57)
 end
 
 function BattleField:draw()

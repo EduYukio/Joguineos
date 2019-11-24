@@ -4,6 +4,7 @@ local CharacterStats = require 'view.character_stats'
 local TurnCursor = require 'view.turn_cursor'
 local ListMenu = require 'view.list_menu'
 local UI_Info = require 'view.ui_info'
+local Lives = require 'view.lives'
 local State = require 'state'
 
 local PlayerTurnState = require 'common.class' (State)
@@ -34,18 +35,22 @@ function PlayerTurnState:enter(params)
   self.attacker = params.attacker
 
   self.battlefield = self:view():get('battlefield')
-  local _, right, top, _ = self.battlefield.bounds:get()
-  self.ui_info = UI_Info(Vec(right + 250, top + 10))
-  self:view():add('ui_info', self.ui_info)
-
   self.atlas = self:view():get('atlas')
-  self:add_ui_info_sprites()
 
   self.character_sprite = self.atlas:get(self.character)
   self.monsters = params.monsters
   self.players = params.players
   self.waiting_time = 0
   self.dmg_dealt = 0
+
+  local _, right, top, _ = self.battlefield.bounds:get()
+  self.ui_info = UI_Info(Vec(right + 250, top + 10))
+  self:view():add('ui_info', self.ui_info)
+  self:add_ui_info_sprites()
+
+  self.lives = Lives()
+  self:view():add('lives', self.lives)
+  self:add_ui_lives()
 
   if self.attacker == "Player" then
     self.ongoing_state = "choosing_option"
@@ -90,11 +95,24 @@ function PlayerTurnState:leave()
   self:view():remove('turn_cursor')
   self:view():remove('char_stats')
   self:view():remove('ui_info')
+  self:view():remove('lives')
 end
 
 function PlayerTurnState:add_ui_info_sprites()
   for _, v in pairs(self.ui_info.monsters_info) do
     self.atlas:add(v.name, v.pos, v.appearance)
+  end
+end
+
+function PlayerTurnState:add_ui_lives()
+  for _, player in pairs(self.players) do
+    local spr = self.atlas:get(player)
+    self.lives:add(spr, player.hp, player.max_hp)
+  end
+
+  for _, monster in pairs(self.monsters) do
+    local spr = self.atlas:get(monster)
+    self.lives:add(spr, monster.hp, monster.max_hp)
   end
 end
 
@@ -213,6 +231,7 @@ end
 function PlayerTurnState:play_walking_animation(dt, unit_sprite, direction, speed) --luacheck: no self
   local delta_s = direction * speed * dt
 
+  self.lives:add_position(unit_sprite, delta_s)
   unit_sprite.position:add(delta_s)
 end
 
@@ -303,6 +322,7 @@ function PlayerTurnState:play_shaking_animation(dt, unit_sprite, back_direction)
     delta_s = back_direction*-1 * speed
   end
 
+  self.lives:add_position(unit_sprite, delta_s)
   unit_sprite.position:add(delta_s)
 end
 
