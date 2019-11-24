@@ -29,17 +29,18 @@ end
 function UI_Info:draw_monster_frame(monster) --luacheck: no self
   g.setColor(PALETTE_DB.pure_white)
   local x, y = monster.pos:get()
-  g.rectangle('line', x - 40, y - 47, 220, 100)
+  g.rectangle('line', x - 40, y - 55, 220, 115)
 end
 
 function UI_Info:draw_monster_box(monster, line_gap) --luacheck: no self
   local x, y = monster.pos:get()
   x = x + 50
-  y = y - 32
+  y = y - 42
   g.setColor(PALETTE_DB.pure_white)
   g.print("HP:  " .. monster.hp, x, y)
   g.print("RES: " .. monster.resistance, x, y + line_gap)
   g.print("DMG: " .. monster.damage, x, y + line_gap*2)
+  g.print("EVA: " .. monster.damage, x, y + line_gap*3)
 end
 
 function UI_Info:draw()

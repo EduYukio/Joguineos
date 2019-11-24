@@ -4,7 +4,7 @@ local Vec = require 'common.vec'
 local x0 = 838
 local y0 = 145
 local sq = 32
-local v_gap = 25  + sq*3
+local v_gap = 25  + sq*3.5
 
 return {
   monsters_info = {
@@ -13,6 +13,7 @@ return {
       hp = "Low",
       resistance = "Medium",
       damage = "Medium",
+      evasion = "Medium",
       pos = Vec(x0, y0),
       appearance = "slime",
     },
@@ -21,6 +22,7 @@ return {
       hp = "High",
       resistance = "High",
       damage = "Low",
+      evasion = "Low",
       pos = Vec(x0, y0 + v_gap),
       appearance = "golem",
     },
@@ -29,6 +31,7 @@ return {
       hp = "Medium",
       resistance = "Low",
       damage = "High",
+      evasion = "High",
       pos = Vec(x0, y0 + 2*v_gap),
       appearance = "ninja",
     },
