@@ -1,0 +1,87 @@
+
+local g = love.graphics
+local PSystems = require 'common.class' ()
+local Vec = require 'common.vec'
+local PALETTE_DB = require 'database.palette'
+
+function PSystems:_init()
+  self.list = {}
+end
+
+function PSystems:add_all(unit, position)
+  local p_systems = {
+    green = self:add(unit, position, "green"),
+    dark_green = self:add(unit, position, "dark_green"),
+    blue = self:add(unit, position, "blue"),
+    dark_blue = self:add(unit, position, "dark_blue"),
+    red = self:add(unit, position, "red"),
+    pink = self:add(unit, position, "pink"),
+    orange = self:add(unit, position, "orange"),
+  }
+
+  return p_systems
+end
+
+function PSystems:add(unit, position, color)
+  local img = g.newImage("assets/textures/white_particle.png")
+
+  local p_system = {
+    sys = g.newParticleSystem(img, 80),
+    position = position + Vec(0, 25),
+    color = color,
+  }
+
+  p_system.sys:setParticleLifetime(1, 2.5)
+  p_system.sys:setLinearAcceleration(-4, -12, 4, -20)
+  p_system.sys:setSpeed(10)
+  p_system.sys:setEmissionArea("normal", 3, 6, 3*math.pi/2, true)
+
+  if not self.list[unit] then
+    self.list[unit] = {}
+  end
+
+  self.list[unit][color] = p_system
+
+  return p_system.sys
+end
+
+function PSystems:remove_all(unit)
+  self:remove(unit, "green")
+  self:remove(unit, "dark_green")
+  self:remove(unit, "blue")
+  self:remove(unit, "dark_blue")
+  self:remove(unit, "red")
+  self:remove(unit, "pink")
+  self:remove(unit, "orange")
+end
+
+function PSystems:remove(unit, color)
+  if self.list[unit] and self.list[unit][color] then
+    self.list[unit][color] = nil
+  end
+end
+
+function PSystems:update(dt)
+  for _, unit in pairs(self.list) do
+    for _, p_system in pairs(unit) do
+      p_system.sys:update(dt)
+    end
+  end
+end
+
+function PSystems:draw()
+  g.push()
+
+  for _, unit in pairs(self.list) do
+    for _, p_system in pairs(unit) do
+      local color = p_system.color
+      g.setColor(PALETTE_DB[color])
+      g.draw(p_system.sys, p_system.position:get())
+    end
+  end
+
+  g.pop()
+end
+
+return PSystems
+

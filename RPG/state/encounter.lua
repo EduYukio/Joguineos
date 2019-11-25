@@ -4,6 +4,7 @@ local MessageBox = require 'view.message_box'
 local SpriteAtlas = require 'view.sprite_atlas'
 local BattleField = require 'view.battlefield'
 local State = require 'state'
+local P_Systems = require 'view.p_systems'
 
 local EncounterState = require 'common.class' (State)
 
@@ -22,6 +23,7 @@ function EncounterState:_init(stack)
   self.chosen_player = nil
   self.player_index = nil
   self.next_player = nil
+  self.p_systems = P_Systems()
 end
 
 function EncounterState:enter(params)
@@ -36,6 +38,7 @@ function EncounterState:enter(params)
   for i, character in ipairs(params.party) do
     if character.hp > 0 then
       local pos = party_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
+      character.p_systems = self.p_systems:add_all(character, pos)
       self.players[n] = character
       n = n + 1
       self.atlas:add(character, pos, character.appearance)
@@ -47,12 +50,14 @@ function EncounterState:enter(params)
   self.next_monster = 1
   for i, character in ipairs(params.encounter) do
     local pos = encounter_origin + Vec(0, 1) * CHARACTER_GAP * (i - 1)
+    character.p_systems = self.p_systems:add_all(character, pos)
     self.monsters[i] = character
     self.atlas:add(character, pos, character.appearance)
   end
   self:view():add('atlas', self.atlas)
   self:view():add('battlefield', battlefield)
   self:view():add('message', message)
+  self:view():add('p_systems', self.p_systems)
   message:set("You stumble upon an encounter")
 end
 
@@ -61,6 +66,7 @@ function EncounterState:leave()
   self:view():remove('atlas')
   self:view():remove('battlefield')
   self:view():remove('message')
+  self:view():remove('p_systems')
 end
 
 

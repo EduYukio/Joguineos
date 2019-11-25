@@ -16,7 +16,8 @@ return function (ruleset)
     enraged = false,
     crit_ensured = false,
     charmed = false,
-    appearance = "none"
+    appearance = "none",
+    p_systems = {},
   })
 
   r:new_property('monster', {})
@@ -39,7 +40,7 @@ return function (ruleset)
         max_mana = spec.max_mana,
         skill_set = spec.skill_set,
         crit_chance = spec.crit_chance,
-        appearance = spec.appearance
+        appearance = spec.appearance,
       })
 
       if spec.category == "monster" then
@@ -169,6 +170,15 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:get_p_systems(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'p_systems')
+    end
+  end
+
   function ruleset.define:set_enraged(e, enraged)
     function self.when()
       return r:is(e, 'character') and r:is(e, "monster")
@@ -178,30 +188,39 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:set_hp(e, amount)
+  function ruleset.define:set_hp(e, hp)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
-      return r:set(e, 'character', { hp = amount} )
+      return r:set(e, 'character', { hp = hp} )
     end
   end
 
-  function ruleset.define:set_mana(e, amount)
+  function ruleset.define:set_mana(e, mana)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
-      return r:set(e, 'character', { mana = amount} )
+      return r:set(e, 'character', { mana = mana} )
     end
   end
 
-  function ruleset.define:set_damage(e, amount)
+  function ruleset.define:set_damage(e, damage)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
-      return r:set(e, 'character', { damage = amount} )
+      return r:set(e, 'character', { damage = damage} )
+    end
+  end
+
+  function ruleset.define:set_p_systems(e, p_systems)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:set(e, 'character', { p_systems = p_systems} )
     end
   end
 
@@ -299,6 +318,7 @@ return function (ruleset)
     function self.apply()
       local heal_amount = 10
       e.hp = math.min(e.hp + heal_amount, e.max_hp)
+      e.p_systems.green:emit(60)
     end
   end
 

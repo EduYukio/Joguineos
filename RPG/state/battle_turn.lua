@@ -521,6 +521,17 @@ function PlayerTurnState:on_keypressed(key)
 end
 
 function PlayerTurnState:update(dt)
+  for _, player in pairs(self.players) do
+    for _, p_system in pairs(player.p_systems) do
+      p_system:update(dt)
+    end
+  end
+  for _, monster in pairs(self.monsters) do
+    for _, p_system in pairs(monster.p_systems) do
+      p_system:update(dt)
+    end
+  end
+
   if self.ongoing_state == "animation" then
     if self.attack_animation then
       self:manage_attack_animations(dt)
