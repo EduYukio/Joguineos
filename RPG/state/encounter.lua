@@ -11,7 +11,7 @@ local CHARACTER_GAP = 96 + 8
 
 local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",
-  Skill = "%s unleashed a skill",
+  Skill = "%s cast %s on %s, %s",
   Item = "%s used an item",
 }
 
@@ -102,7 +102,7 @@ function EncounterState:resume(params)
 
   if params.action == 'Fight' then
     if params.crit_attack then
-      message = message .. "Critical attack!!!\n"
+      message = "Critical attack!\n"
     end
 
     message = message .. MESSAGES[params.action]:format(
@@ -116,6 +116,13 @@ function EncounterState:resume(params)
     elseif params.became_enraged then
       message = message .. "\n" .. selected.name .. " became enraged, increasing its damage!"
     end
+  elseif params.action == "Skill" then
+    message = message .. MESSAGES[params.action]:format(
+        params.character.name,
+        params.skill,
+        selected.name,
+        params.msg_complement
+      )
   elseif params.action == "Defeat" then
     return self:pop({ action = "Defeat" })
   elseif params.action == "Run" or params.action == "Victory" then

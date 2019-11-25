@@ -18,11 +18,15 @@ local MESSAGES = {
   Missed = "The attack missed...",
 }
 
+local MSG_COMPLEMENTS = {
+  Heal = "healing 10 points.",
+  WarCry = "ensuring the next\nattack is critical.",
+  Charm = "reducing its\nresistance to 0.",
+}
+
 function PlayerTurnState:_init(stack)
   self:super(stack)
   self.character = nil
-  self.menu = ListMenu(TURN_OPTIONS)
-
   self.cursor = nil
   self.message = self:view():get('message')
 
@@ -36,6 +40,7 @@ function PlayerTurnState:enter(params)
 
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
+  self.menu = ListMenu(TURN_OPTIONS)
 
   self.character_sprite = self.atlas:get(self.character)
   self.monsters = params.monsters
@@ -56,6 +61,7 @@ function PlayerTurnState:enter(params)
     self.ongoing_state = "choosing_option"
     self.selected_monster = nil
     self.monster_index = 0
+    self.player_index = 0
 
     self:_show_menu()
     self:_show_cursor()
@@ -119,27 +125,47 @@ end
 
 
 
-function PlayerTurnState:switch_cursor()
-  local sprite_instance = self.atlas:get(self.monsters[self.monster_index])
+function PlayerTurnState:switch_cursor(category)
+  local sprite_instance
+  if category == "monster" then
+    sprite_instance = self.atlas:get(self.monsters[self.monster_index])
+  elseif category == "player" then
+    sprite_instance = self.atlas:get(self.players[self.player_index])
+  end
+
   self.cursor.selected_drawable = sprite_instance
 end
 
-function PlayerTurnState:next_monster()
-  self.monster_index = self.monster_index + 1
-  if self.monster_index == #self.monsters + 1 then
-    self.monster_index = 1
+function PlayerTurnState:next_unit(category)
+  if category == "monster" then
+    self.monster_index = self.monster_index + 1
+    if self.monster_index == #self.monsters + 1 then
+      self.monster_index = 1
+    end
+  elseif category == "player" then
+    self.player_index = self.player_index + 1
+    if self.player_index == #self.players + 1 then
+      self.player_index = 1
+    end
   end
 
-  self:switch_cursor()
+  self:switch_cursor(category)
 end
 
-function PlayerTurnState:prev_monster()
-  self.monster_index = self.monster_index - 1
-  if self.monster_index == 0 then
-    self.monster_index = #self.monsters
+function PlayerTurnState:prev_unit(category)
+  if category == "monster" then
+    self.monster_index = self.monster_index - 1
+    if self.monster_index == 0 then
+      self.monster_index = #self.monsters
+    end
+  elseif category == "player" then
+    self.player_index = self.player_index - 1
+    if self.player_index == 0 then
+      self.player_index = #self.players
+    end
   end
 
-  self:switch_cursor()
+  self:switch_cursor(category)
 end
 
 
@@ -212,7 +238,7 @@ function PlayerTurnState:manage_attack_animations(dt)
 
     local accuracy = math.random()
     if self.attacker == "Player" then
-      if accuracy > self.selected_monster.evasion then
+      if self.character.crit_ensured or accuracy > self.selected_monster.evasion then
         self:attack_monster()
         self.getting_hit_animation = true
         self.missed_attack = false
@@ -302,6 +328,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
     elseif self.attacker == "Monster" then
       self.ongoing_state = "monster_turn"
       self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.player_index)
+      self.player_index = 0
 
       if #self.players == 0 then
         self:setup_delay_animation(2.5, "Defeat")
@@ -374,15 +401,15 @@ end
 function PlayerTurnState:attack_monster()
   self.crit_attack = false
   local crit_attempt = math.random()
-  if crit_attempt < self.character.crit_chance then
+  if self.character.crit_ensured or crit_attempt < self.character.crit_chance then
    --SOUND: play crit attack sound
     self.crit_attack = true
     self.atlas:flash_crit()
+    self.character.crit_ensured = false
 
-  -- else
-    --SOUND: play normal attack sound
+    -- else
+      --SOUND: play normal attack sound
   end
-
   self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
   self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
@@ -390,12 +417,65 @@ end
 function PlayerTurnState:on_keypressed(key)
   if self.ongoing_state == "fighting" then
     if key == 'down' then
-      self:next_monster()
+      self:next_unit("monster")
     elseif key == 'up' then
-      self:prev_monster()
+      self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
       self:setup_attack_animation(55)
     end
+  elseif self.ongoing_state == "choosing_skill" then
+    if key == 'down' then
+      self.menu:next()
+    elseif key == 'up' then
+      self.menu:previous()
+    elseif key == 'return' or key == 'kpenter' then
+      self.selected_skill = self.character.skill_set[self.menu:current_option()]
+      if self.selected_skill == "Charm" then
+        self:next_unit("monster")
+        self.ongoing_state = "using_skill_on_monster"
+      else
+        self:next_unit("player")
+        self.ongoing_state = "using_skill_on_player"
+      end
+    end
+  elseif self.ongoing_state == "using_skill_on_player" then
+    if key == 'down' then
+      self:next_unit("player")
+    elseif key == 'up' then
+      self:prev_unit("player")
+    elseif key == 'return' or key == 'kpenter' then
+      --activate particles
+      local target = self.players[self.player_index]
+      self.rules:cast_skill(target, self.selected_skill)
+
+      return self:pop({
+        action = "Skill",
+        character = self.character,
+        skill = self.selected_skill,
+        selected = target,
+        msg_complement = MSG_COMPLEMENTS[self.selected_skill],
+      })
+    end
+  elseif self.ongoing_state == "using_skill_on_monster" then
+    if key == 'down' then
+      self:next_unit("monster")
+    elseif key == 'up' then
+      self:prev_unit("monster")
+    elseif key == 'return' or key == 'kpenter' then
+      --activate particles
+      local target = self.monsters[self.monster_index]
+      self.rules:cast_skill(target, self.selected_skill)
+
+      return self:pop({
+        action = "Skill",
+        character = self.character,
+        skill = self.selected_skill,
+        selected = target,
+        msg_complement = MSG_COMPLEMENTS[self.selected_skill],
+      })
+    end
+  elseif self.ongoing_state == "using_item" then
+    print("using item")
   elseif self.ongoing_state == "choosing_option" then
     if key == 'down' then
       self.menu:next()
@@ -405,13 +485,17 @@ function PlayerTurnState:on_keypressed(key)
       local option = TURN_OPTIONS[self.menu:current_option()]
       if option == "Fight" then
         self.ongoing_state = "fighting"
-        self:next_monster()
+        self:next_unit("monster")
       elseif option == "Run" then
-        self.ongoing_state = "running"
+        self.ongoing_state = "running_away"
         self:setup_run_away_animation()
-      else
-        -- go to the next character action
-        return self:pop({ action = option, character = self.character })
+      elseif option == "Skill" then
+        self.ongoing_state = "choosing_skill"
+        self:view():remove('turn_menu', self.menu)
+        self.menu = ListMenu(self.character.skill_set)
+        self:_show_menu()
+      elseif option == "Item" then
+        self.ongoing_state = "using_item"
       end
     end
   end
