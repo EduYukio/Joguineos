@@ -187,6 +187,15 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:set_mana(e, amount)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:set(e, 'character', { mana = amount} )
+    end
+  end
+
   function ruleset.define:set_damage(e, amount)
     function self.when()
       return r:is(e, 'character')

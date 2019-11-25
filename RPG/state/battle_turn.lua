@@ -16,6 +16,8 @@ local MESSAGES = {
   Run = "You ran away safely.",
   Defeat = "You lost the adventure...",
   Missed = "The attack missed...",
+  NoMana = "Not enough mana.",
+  ChooseTarget = "Select the target of the skill.",
 }
 
 local MSG_COMPLEMENTS = {
@@ -68,7 +70,7 @@ function PlayerTurnState:enter(params)
     self:_show_stats()
   elseif self.attacker == "Monster" then
     if self.character == self.monsters[1] then
-      self:setup_delay_animation(1.3, "MonsterTurn")
+      self:setup_delay_animation(2, "MonsterTurn")
     else
       self:setup_attack_animation(55)
     end
@@ -428,14 +430,31 @@ function PlayerTurnState:on_keypressed(key)
       self.menu:next()
     elseif key == 'up' then
       self.menu:previous()
+    -- elseif key == 'escape' then
+    --   self.ongoing_state = "choosing_option"
+    --   self.menu = ListMenu(TURN_OPTIONS)
+    --   self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
       self.selected_skill = self.character.skill_set[self.menu:current_option()]
-      if self.selected_skill == "Charm" then
-        self:next_unit("monster")
-        self.ongoing_state = "using_skill_on_monster"
+      if self.character.mana > 0 then
+        if self.selected_skill == "Charm" then
+          self:next_unit("monster")
+          self.ongoing_state = "using_skill_on_monster"
+          self:view():remove('turn_menu', self.menu)
+          self:view():get('message'):set(MESSAGES.ChooseTarget)
+        else
+          self:next_unit("player")
+          self.ongoing_state = "using_skill_on_player"
+          self:view():remove('turn_menu', self.menu)
+          self:view():get('message'):set(MESSAGES.ChooseTarget)
+        end
+        self.character.mana = self.character.mana - 1
       else
-        self:next_unit("player")
-        self.ongoing_state = "using_skill_on_player"
+        --SOUND: fail
+        self:view():get('message'):set(MESSAGES.NoMana)
+        self.ongoing_state = "choosing_option"
+        self.menu = ListMenu(TURN_OPTIONS)
+        self:_show_menu()
       end
     end
   elseif self.ongoing_state == "using_skill_on_player" then
