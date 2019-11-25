@@ -36,5 +36,18 @@ return {
     medium = 4,
     high = 10,
   },
+  skill_set = {
+    priest = {
+      "Heal",
+      "WarCry",
+      "Charm",
+    },
+    knight = {
+      "WarCry",
+    },
+    archer = {
+      "Charm",
+    },
+  },
 }
 

@@ -12,7 +12,10 @@ return function (ruleset)
     crit_chance = 0,
     mana = 0,
     max_mana = 0,
+    skill_set = {},
     enraged = false,
+    crit_ensured = false,
+    charmed = false,
     appearance = "none"
   })
 
@@ -34,6 +37,7 @@ return function (ruleset)
         evasion = spec.evasion,
         mana = spec.max_mana,
         max_mana = spec.max_mana,
+        skill_set = spec.skill_set,
         crit_chance = spec.crit_chance,
         appearance = spec.appearance
       })
@@ -129,6 +133,33 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:get_skill_set(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'skill_set')
+    end
+  end
+
+  function ruleset.define:get_crit_ensured(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'crit_ensured')
+    end
+  end
+
+  function ruleset.define:get_charmed(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'charmed')
+    end
+  end
+
   function ruleset.define:get_enraged(e)
     function self.when()
       return r:is(e, 'character')
@@ -147,12 +178,39 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:set_hp(e, amount)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:set(e, 'character', { hp = amount} )
+    end
+  end
+
   function ruleset.define:set_damage(e, amount)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', { damage = amount} )
+    end
+  end
+
+  function ruleset.define:set_crit_ensured(e, crit_ensured)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "player")
+    end
+    function self.apply()
+      return r:set(e, 'character', {crit_ensured = crit_ensured})
+    end
+  end
+
+  function ruleset.define:set_charmed(e, charmed)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "monster")
+    end
+    function self.apply()
+      return r:set(e, 'character', {charmed = charmed})
     end
   end
 
@@ -175,6 +233,9 @@ return function (ruleset)
 
       if crit then
         final_dmg = amount + 5
+      elseif e.charmed then
+        final_dmg = math.max(amount, 0)
+        e.charmed = false
       else
         final_dmg = math.max(amount - e.resistance, 0)
       end
@@ -218,6 +279,50 @@ return function (ruleset)
         return true
       end
       return false
+    end
+  end
+
+  function ruleset.define:heal(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, 'player')
+    end
+
+    function self.apply()
+      local heal_amount = 10
+      e.hp = math.min(e.hp + heal_amount, e.max_hp)
+    end
+  end
+
+  function ruleset.define:war_cry(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      e.crit_ensured = true
+    end
+  end
+
+  function ruleset.define:charm(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "monster")
+    end
+    function self.apply()
+      e.charmed = true
+    end
+  end
+
+  function ruleset.define:cast_skill(e, skill)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      if skill == "Heal" then
+        e:heal()
+      elseif skill == "WarCry" then
+        e:war_cry()
+      elseif skill == "Charm" then
+        e:charm()
+      end
     end
   end
 end
