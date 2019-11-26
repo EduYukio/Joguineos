@@ -6,11 +6,16 @@ local ListMenu = require 'common.class' ()
 ListMenu.GAP = 4
 ListMenu.PADDING = Vec(24, 8)
 
-function ListMenu:_init(options)
-  self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
+function ListMenu:_init(options, category)
+  self.category = category
+  if category == "items" then
+    self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 22)
+  else
+    self.font = love.graphics.newFont('assets/fonts/VT323-Regular.ttf', 36)
+  end
   self.font:setFilter('nearest', 'nearest')
-  self.position = Vec()
   self.options = {}
+  self.position = Vec()
   local vert_offset = 0
   local max_width = 0
   for i, option in ipairs(options) do
@@ -19,7 +24,11 @@ function ListMenu:_init(options)
     if width > max_width then
       max_width = width
     end
-    vert_offset = vert_offset + height + ListMenu.GAP
+    if category == "items" then
+      vert_offset = vert_offset + height + ListMenu.GAP
+    else
+      vert_offset = vert_offset + 36 + ListMenu.GAP
+    end
   end
   self.size = Vec(max_width, vert_offset)
   self.current = 1
@@ -51,9 +60,12 @@ function ListMenu:draw()
   local voffset = 0
   g.push()
   g.translate(self.position:get())
+  if self.category == "items" then
+    g.translate(Vec(0, 55):get())
+  end
   g.setColor(1, 1, 1)
   g.setLineWidth(4)
-  g.translate(Vec(0,40):get())
+  g.translate(Vec(-5,40):get())
   g.rectangle('line', 0, 0, size:get())
   g.translate(ListMenu.PADDING:get())
   for i, option in ipairs(self.options) do

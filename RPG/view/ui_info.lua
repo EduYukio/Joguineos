@@ -20,7 +20,7 @@ end
 
 function UI_Info:draw_monster_title()
   g.origin()
-  g.translate((self.position + Vec(46, 0)):get())
+  g.translate((self.position + Vec(96, 0)):get())
   g.setColor(PALETTE_DB.pure_white)
   g.setFont(self.title_font)
   g.print("Monsters:")
@@ -46,7 +46,7 @@ end
 function UI_Info:draw()
   g.push()
   g.setColor(PALETTE_DB.pure_white)
-  g.line(734,40, 734,560)
+  g.line(784,40, 784,560)
 
   self:draw_monster_title()
   g.origin()
@@ -57,7 +57,7 @@ function UI_Info:draw()
     self:draw_monster_box(monster, line_gap)
   end
 
-  g.print("    Monsters don't crit.\nPlayers don't have resistance.", 770, 500)
+  g.print("    Monsters don't crit.\nPlayers don't have resistance.", 820, 500)
 
   g.pop()
 end
