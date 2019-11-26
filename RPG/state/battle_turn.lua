@@ -440,10 +440,10 @@ function PlayerTurnState:on_keypressed(key)
       self.menu:next()
     elseif key == 'up' then
       self.menu:previous()
-    -- elseif key == 'escape' then
-    --   self.ongoing_state = "choosing_option"
-    --   self.menu = ListMenu(TURN_OPTIONS)
-    --   self:_show_menu()
+    elseif key == 'escape' then
+      self.ongoing_state = "choosing_option"
+      self.menu = ListMenu(TURN_OPTIONS)
+      self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
       self.selected_skill = self.character.skill_set[self.menu:current_option()]
       if self.character.mana > 0 then
@@ -506,10 +506,10 @@ function PlayerTurnState:on_keypressed(key)
       self.menu:next()
     elseif key == 'up' then
       self.menu:previous()
-    -- elseif key == 'escape' then
-    --   self.ongoing_state = "choosing_option"
-    --   self.menu = ListMenu(TURN_OPTIONS)
-    --   self:_show_menu()
+    elseif key == 'escape' then
+      self.ongoing_state = "choosing_option"
+      self.menu = ListMenu(TURN_OPTIONS)
+      self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
       self.selected_item = self.items[self.menu:current_option()]
       if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
