@@ -12,9 +12,9 @@ function PSystems:add_all(unit, position)
   local p_systems = {
     green = self:add(unit, position, "green"),
     dark_green = self:add(unit, position, "dark_green"),
-    blue = self:add(unit, position, "blue"),
+    light_blue = self:add(unit, position, "light_blue"),
     dark_blue = self:add(unit, position, "dark_blue"),
-    red = self:add(unit, position, "red"),
+    dark_red = self:add(unit, position, "dark_red"),
     pink = self:add(unit, position, "pink"),
     orange = self:add(unit, position, "orange"),
   }
@@ -27,13 +27,13 @@ function PSystems:add(unit, position, color)
 
   local p_system = {
     sys = g.newParticleSystem(img, 30),
-    position = position + Vec(0, 20),
+    position = position + Vec(0, 17),
     color = color,
   }
 
-  p_system.sys:setParticleLifetime(1, 1.8)
+  p_system.sys:setParticleLifetime(0.5, 1.3)
   p_system.sys:setLinearAcceleration(-4, -19, 4, -30)
-  p_system.sys:setSpeed(15)
+  p_system.sys:setSpeed(30)
   p_system.sys:setEmissionArea("normal", 3, 6, 3*math.pi/2, true)
 
   if not self.list[unit] then

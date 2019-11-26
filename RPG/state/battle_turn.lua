@@ -522,6 +522,18 @@ end
 
 function PlayerTurnState:update(dt)
   for _, player in pairs(self.players) do
+    if player.crit_ensured then
+      player.p_systems.dark_red:emit(1)
+    end
+
+    if player.energized then
+      player.p_systems.light_blue:emit(1)
+    end
+
+    if player.empowered then
+      player.p_systems.orange:emit(1)
+    end
+
     for _, p_system in pairs(player.p_systems) do
       p_system:update(dt)
     end
@@ -529,6 +541,14 @@ function PlayerTurnState:update(dt)
   for _, monster in pairs(self.monsters) do
     if monster.charmed then
       monster.p_systems.pink:emit(1)
+    end
+
+    if monster.poisoned then
+      monster.p_systems.dark_green:emit(1)
+    end
+
+    if monster.sticky then
+      monster.p_systems.dark_blue:emit(1)
     end
 
     for _, p_system in pairs(monster.p_systems) do

@@ -16,6 +16,10 @@ return function (ruleset)
     enraged = false,
     crit_ensured = false,
     charmed = false,
+    poisoned = false,
+    energized = false,
+    empowered = false,
+    sticky = false,
     appearance = "none",
     p_systems = {},
   })
@@ -170,6 +174,42 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:get_poisoned(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'poisoned')
+    end
+  end
+
+  function ruleset.define:get_energized(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'energized')
+    end
+  end
+
+  function ruleset.define:get_empowered(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'empowered')
+    end
+  end
+
+  function ruleset.define:get_sticky(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      return r:get(e, 'character', 'sticky')
+    end
+  end
+
   function ruleset.define:get_p_systems(e)
     function self.when()
       return r:is(e, 'character')
@@ -239,6 +279,42 @@ return function (ruleset)
     end
     function self.apply()
       return r:set(e, 'character', {charmed = charmed})
+    end
+  end
+
+  function ruleset.define:set_poisoned(e, poisoned)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "monster")
+    end
+    function self.apply()
+      return r:set(e, 'character', {poisoned = poisoned})
+    end
+  end
+
+  function ruleset.define:set_energized(e, energized)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "player")
+    end
+    function self.apply()
+      return r:set(e, 'character', {energized = energized})
+    end
+  end
+
+  function ruleset.define:set_empowered(e, empowered)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "player")
+    end
+    function self.apply()
+      return r:set(e, 'character', {empowered = empowered})
+    end
+  end
+
+  function ruleset.define:set_sticky(e, sticky)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, "monster")
+    end
+    function self.apply()
+      return r:set(e, 'character', {sticky = sticky})
     end
   end
 
