@@ -19,7 +19,9 @@ function Lives:add(unit, hp, max_hp)
 end
 
 function Lives:remove(unit)
-  self.list[unit] = nil
+  if self.list[unit] then
+    self.list[unit] = nil
+  end
 end
 
 function Lives:add_position(unit, value)
