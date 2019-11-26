@@ -415,25 +415,7 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:war_cry(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, 'player')
-    end
-    function self.apply()
-      e.crit_ensured = true
-    end
-  end
-
-  function ruleset.define:charm(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, "monster")
-    end
-    function self.apply()
-      e.charmed = true
-    end
-  end
-
-  function ruleset.define:cast_skill(e, skill)
+  function ruleset.define:cast_skill(e, skill, turn)
     function self.when()
       return r:is(e, 'character')
     end
@@ -441,64 +423,28 @@ return function (ruleset)
       if skill == "Heal" then
         e:heal()
       elseif skill == "War Cry" then
-        e:war_cry()
+        e.crit_ensured = {turn = turn}
       elseif skill == "Charm" then
-        e:charm()
+        e.charmed = {turn = turn}
       end
     end
   end
 
 
   --Items
-  function ruleset.define:energy_drink(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, 'player')
-    end
-    function self.apply()
-      e.energized = true
-    end
-  end
-
-  function ruleset.define:mud_slap(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, 'monster')
-    end
-    function self.apply()
-      e.sticky = true
-    end
-  end
-
-  function ruleset.define:spinach(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, 'player')
-    end
-    function self.apply()
-      e.empowered = true
-    end
-  end
-
-  function ruleset.define:bandejaos_fish(e)
-    function self.when()
-      return r:is(e, 'character') and r:is(e, 'monster')
-    end
-    function self.apply()
-      e.poisoned = true
-    end
-  end
-
-  function ruleset.define:use_item(e, item, item_array, item_index)
+  function ruleset.define:use_item(e, item, item_array, item_index, turn)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
       if item == "Energy Drink" then
-        e:energy_drink()
+        e.energized = {turn = turn}
       elseif item == "Mud Slap" then
-        e:mud_slap()
+        e.sticky = {turn = turn}
       elseif item == "Spinach" then
-        e:spinach()
+        e.empowered = {turn = turn}
       elseif item == "Bandejao's Fish" then
-        e:bandejaos_fish()
+        e.poisoned = {turn = turn}
       end
       e:remove_from_array(item_array, item_index)
     end
