@@ -284,9 +284,9 @@ end
 function PlayerTurnState:manage_getting_hit_animations(dt)
   if self.walked_length < self.shaking_length then
     if self.attacker == "Player" then
-      self:play_shaking_animation(dt, self.selected_monster_sprite, self.left_dir)
+      self:play_shaking_animation(dt, self.selected_monster, self.selected_monster_sprite, self.left_dir)
     elseif self.attacker == "Monster" then
-      self:play_shaking_animation(dt, self.selected_player_sprite, self.right_dir)
+      self:play_shaking_animation(dt, self.selected_player, self.selected_player_sprite, self.right_dir)
     end
   elseif self.waiting_time < 0.4 then
     self.waiting_time = self.waiting_time + dt
@@ -356,7 +356,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
   end
 end
 
-function PlayerTurnState:play_shaking_animation(dt, unit_sprite, back_direction)
+function PlayerTurnState:play_shaking_animation(dt, unit, unit_sprite, back_direction)
   local speed = 250 * dt
   local delta_s
 
@@ -368,7 +368,7 @@ function PlayerTurnState:play_shaking_animation(dt, unit_sprite, back_direction)
 
   self.walked_length = self.walked_length + speed
   self.lives:add_position(unit_sprite, delta_s)
-  self.p_systems:add_position(self.character, delta_s)
+  self.p_systems:add_position(unit, delta_s)
   unit_sprite.position:add(delta_s)
 end
 
