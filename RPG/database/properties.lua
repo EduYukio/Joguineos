@@ -51,5 +51,7 @@ return {
   },
   evasion_buff = 0.5,
   evasion_debuff = -0.5,
+  damage_buff = 5,
+  poison_dmg = 10,
 }
 

@@ -28,6 +28,10 @@ function Lives:add_position(unit, value)
   self.list[unit].position = self.list[unit].position + value
 end
 
+function Lives:upgrade_life(unit, value)
+  self.list[unit].hp = value
+end
+
 function Lives:draw()
   local g = love.graphics
   g.push()

@@ -6,6 +6,7 @@ local ListMenu = require 'view.list_menu'
 local UI_Info = require 'view.ui_info'
 local Lives = require 'view.lives'
 local State = require 'state'
+local p = require 'database.properties'
 
 local PlayerTurnState = require 'common.class' (State)
 
@@ -104,10 +105,8 @@ function PlayerTurnState:check_condition_turns()
     end
   end
 
-  for _, monster in pairs(self.monsters) do
+  for i, monster in pairs(self.monsters) do
     if monster.sticky then
-      print(monster.sticky)
-      print(monster.sticky.turn)
       if self.turn - monster.sticky.turn == self.p_systems:get_lifetime(monster, "dark_blue") then
         monster.sticky = false
       end
@@ -116,6 +115,18 @@ function PlayerTurnState:check_condition_turns()
       if self.turn - monster.poisoned.turn == self.p_systems:get_lifetime(monster, "pure_black") then
         monster.poisoned = false
       end
+      monster.hp = monster.hp - p.poison_dmg
+      local spr = self.atlas:get(monster)
+      self.lives:upgrade_life(spr, monster.hp)
+
+      local died = self.rules:remove_if_dead(monster, self.atlas, self.monsters, i, self.lives)
+      local msg = monster.name .. " took " .. tostring(p.poison_dmg) .. " damage from poison."
+
+      if died then
+        msg = msg .. "\nIt died from bandejao's mighty fish..."
+      end
+
+      self:view():get('message'):set(msg)
     end
   end
 end

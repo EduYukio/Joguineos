@@ -391,6 +391,8 @@ return function (ruleset)
         end 
         e:remove_from_array(unit_array, unit_index)
       end
+
+      return e.hp <= 0
     end
   end
 
