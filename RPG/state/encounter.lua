@@ -98,7 +98,8 @@ function EncounterState:update(_)
     attacker = attacker,
     monsters = self.monsters,
     players = self.players,
-    items = self.items
+    items = self.items,
+    p_systems = self.p_systems,
   }
   return self:push('battle_turn', params)
 end
@@ -133,6 +134,10 @@ function EncounterState:resume(params)
   elseif params.action == "Defeat" then
     return self:pop({ action = "Defeat" })
   elseif params.action == "Run" or params.action == "Victory" then
+    for _, player in pairs(self.players) do
+      self.rules:reset_conditions(player)
+    end
+
     return self:pop()
   end
   self:view():get('message'):set(message)

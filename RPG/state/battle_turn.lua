@@ -46,6 +46,7 @@ function PlayerTurnState:enter(params)
   self.character = params.current_character
   self.attacker = params.attacker
   self.items = params.items
+  self.p_systems = params.p_systems
 
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
@@ -271,6 +272,7 @@ function PlayerTurnState:play_walking_animation(dt, unit_sprite, direction, spee
 
   self.walked_length = self.walked_length + speed * dt
   self.lives:add_position(unit_sprite, delta_s)
+  self.p_systems:add_position(self.character, delta_s)
   unit_sprite.position:add(delta_s)
 end
 
@@ -318,7 +320,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
 
     if self.attacker == "Player" then
       self.ongoing_state = "choosing_option"
-      self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index)
+      self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index, self.lives)
       self.monster_index = 0
 
       if #self.monsters == 0 then
@@ -336,7 +338,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
       })
     elseif self.attacker == "Monster" then
       self.ongoing_state = "monster_turn"
-      self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.player_index)
+      self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.player_index, self.lives)
       self.player_index = 0
 
       if #self.players == 0 then
@@ -366,6 +368,7 @@ function PlayerTurnState:play_shaking_animation(dt, unit_sprite, back_direction)
 
   self.walked_length = self.walked_length + speed
   self.lives:add_position(unit_sprite, delta_s)
+  self.p_systems:add_position(self.character, delta_s)
   unit_sprite.position:add(delta_s)
 end
 
@@ -381,6 +384,9 @@ function PlayerTurnState:manage_run_away_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.run_away_duration then
     for _, player in pairs(self.players) do
+      self.p_systems:reset_all(player)
+      self.rules:reset_conditions(player)
+
       local player_sprite = self.atlas:get(player)
       self:play_walking_animation(dt, player_sprite, self.right_dir, 100)
     end
@@ -399,11 +405,6 @@ function PlayerTurnState:manage_run_away_animations(dt)
     return self:pop({ action = "Run" })
   end
 end
-
-
-
-
-
 
 function PlayerTurnState:attack_player()
   --SOUND: play attack sound

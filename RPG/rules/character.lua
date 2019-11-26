@@ -13,6 +13,9 @@ return function (ruleset)
     mana = 0,
     max_mana = 0,
     skill_set = {},
+    appearance = "none",
+    p_systems = {},
+
     enraged = false,
     crit_ensured = false,
     charmed = false,
@@ -20,8 +23,6 @@ return function (ruleset)
     energized = false,
     empowered = false,
     sticky = false,
-    appearance = "none",
-    p_systems = {},
   })
 
   r:new_property('monster', {})
@@ -266,7 +267,7 @@ return function (ruleset)
 
   function ruleset.define:set_crit_ensured(e, crit_ensured)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "player")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {crit_ensured = crit_ensured})
@@ -275,7 +276,7 @@ return function (ruleset)
 
   function ruleset.define:set_charmed(e, charmed)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "monster")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {charmed = charmed})
@@ -284,7 +285,7 @@ return function (ruleset)
 
   function ruleset.define:set_poisoned(e, poisoned)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "monster")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {poisoned = poisoned})
@@ -293,7 +294,7 @@ return function (ruleset)
 
   function ruleset.define:set_energized(e, energized)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "player")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {energized = energized})
@@ -302,7 +303,7 @@ return function (ruleset)
 
   function ruleset.define:set_empowered(e, empowered)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "player")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {empowered = empowered})
@@ -311,7 +312,7 @@ return function (ruleset)
 
   function ruleset.define:set_sticky(e, sticky)
     function self.when()
-      return r:is(e, 'character') and r:is(e, "monster")
+      return r:is(e, 'character')
     end
     function self.apply()
       return r:set(e, 'character', {sticky = sticky})
@@ -365,12 +366,14 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:remove_if_dead(e, atlas, unit_array, unit_index)
+  function ruleset.define:remove_if_dead(e, atlas, unit_array, unit_index, lives)
     function self.when()
       return r:is(e, 'character')
     end
     function self.apply()
       if e.hp <= 0 then
+        local spr = atlas:get(e)
+        lives:remove(spr)
         atlas:remove(e)
         for _, p_system in pairs(e.p_systems) do
           p_system:reset()
@@ -498,6 +501,20 @@ return function (ruleset)
         e:bandejaos_fish()
       end
       e:remove_from_array(item_array, item_index)
+    end
+  end
+
+  function ruleset.define:reset_conditions(e)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      e.crit_ensured = false
+      e.charmed = false
+      e.poisoned = false
+      e.energized = false
+      e.empowered = false
+      e.sticky = false
     end
   end
 end

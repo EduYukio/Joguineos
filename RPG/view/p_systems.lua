@@ -61,6 +61,18 @@ function PSystems:remove(unit, color)
   end
 end
 
+function PSystems:reset_all(unit)
+  for _, p_system in pairs(self.list[unit]) do
+    p_system.sys:reset()
+  end
+end
+
+function PSystems:add_position(unit, value)
+  for _, p_system in pairs(self.list[unit]) do
+    p_system.position = p_system.position + value
+  end
+end
+
 function PSystems:update(dt)
   for _, unit in pairs(self.list) do
     for _, p_system in pairs(unit) do
