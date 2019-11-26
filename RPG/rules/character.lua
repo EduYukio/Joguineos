@@ -91,7 +91,11 @@ return function (ruleset)
       return r:is(e, 'character')
     end
     function self.apply()
-      return r:get(e, 'character', 'damage')
+      local final_damage = r:get(e, 'character', 'damage')
+      if e.empowered then
+        final_damage = final_damage + p.damage_buff
+      end
+      return final_damage
     end
   end
 
