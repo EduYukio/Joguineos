@@ -13,7 +13,7 @@ local CHARACTER_GAP = 96 + 8
 local MESSAGES = {
   Fight = "%s attacked %s dealing %d damage",
   Skill = "%s cast %s on %s, %s",
-  Item = "%s used an item",
+  Item = "%s used %s on %s, %s",
 }
 
 function EncounterState:_init(stack)
@@ -28,6 +28,7 @@ end
 
 function EncounterState:enter(params)
   self.atlas = SpriteAtlas()
+  self.items = params.items
   local battlefield = BattleField()
   local bfbox = battlefield.bounds
   local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
@@ -72,7 +73,6 @@ end
 
 
 function EncounterState:update(_)
-  --monsters turn
   local current_character
   local attacker
   if self.next_monster > #self.monsters then
@@ -97,7 +97,8 @@ function EncounterState:update(_)
     current_character = current_character,
     attacker = attacker,
     monsters = self.monsters,
-    players = self.players
+    players = self.players,
+    items = self.items
   }
   return self:push('battle_turn', params)
 end
@@ -122,10 +123,10 @@ function EncounterState:resume(params)
     elseif params.became_enraged then
       message = message .. "\n" .. selected.name .. " became enraged, increasing its damage!"
     end
-  elseif params.action == "Skill" then
+  elseif params.action == "Skill" or params.action == "Item" then
     message = message .. MESSAGES[params.action]:format(
         params.character.name,
-        params.skill,
+        params.skill_or_item,
         selected.name,
         params.msg_complement
       )

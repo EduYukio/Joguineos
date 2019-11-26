@@ -17,13 +17,19 @@ local MESSAGES = {
   Defeat = "You lost the adventure...",
   Missed = "The attack missed...",
   NoMana = "Not enough mana.",
-  ChooseTarget = "Select the target of the skill.",
+  NoItems = "You don\'t have items.",
+  ChooseSkillTarget = "Select the target of the skill.",
+  ChooseItemTarget = "Select the target of the item.",
 }
 
 local MSG_COMPLEMENTS = {
-  Heal = "healing 10 points.",
-  WarCry = "ensuring the next\nattack is critical.",
-  Charm = "reducing its\nresistance to 0.",
+  ["Heal"] = "healing 10 points.",
+  ["War Cry"] = "ensuring the next\nattack is critical.",
+  ["Charm"] = "reducing its\nresistance to 0.",
+  ["Energy Drink"] = "increasing the evasion\nfor 2 turns!",
+  ["Mud Slap"] = "decreasing the evasion\nfor 2 turns!",
+  ["Spinach"] = "raising the strength\nfor 2 turns!",
+  ["Bandejao's Fish"] = "poisoning him\nfor 2 turns!",
 }
 
 function PlayerTurnState:_init(stack)
@@ -39,6 +45,7 @@ end
 function PlayerTurnState:enter(params)
   self.character = params.current_character
   self.attacker = params.attacker
+  self.items = params.items
 
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
@@ -367,18 +374,21 @@ function PlayerTurnState:setup_run_away_animation()
   self:view():remove('turn_cursor')
   self.run_away_animation = true
   self.run_away_duration = 0.4
+  self.walked_length = 0
 end
 
 function PlayerTurnState:manage_run_away_animations(dt)
   self.waiting_time = self.waiting_time + dt
   if self.waiting_time < self.run_away_duration then
-    for i = 1, #self.players do
-      local player_sprite = self.atlas:get(self.players[i])
+    for _, player in pairs(self.players) do
+      local player_sprite = self.atlas:get(player)
       self:play_walking_animation(dt, player_sprite, self.right_dir, 100)
     end
   elseif self.waiting_time < self.run_away_duration + 0.1 then
-    for i = 1, #self.players do
-      self.atlas:remove(self.players[i])
+    for _, player in pairs(self.players) do
+      local player_sprite = self.atlas:get(player)
+      self.atlas:remove(player)
+      self.lives:remove(player_sprite)
     end
     self:view():get('message'):set(MESSAGES["Run"])
   elseif self.waiting_time < self.run_away_duration + 2 then
@@ -463,14 +473,13 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("player")
     elseif key == 'return' or key == 'kpenter' then
-      --activate particles
       local target = self.players[self.player_index]
       self.rules:cast_skill(target, self.selected_skill)
 
       return self:pop({
         action = "Skill",
         character = self.character,
-        skill = self.selected_skill,
+        skill_or_item = self.selected_skill,
         selected = target,
         msg_complement = MSG_COMPLEMENTS[self.selected_skill],
       })
@@ -481,20 +490,74 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
-      --activate particles
       local target = self.monsters[self.monster_index]
       self.rules:cast_skill(target, self.selected_skill)
 
       return self:pop({
         action = "Skill",
         character = self.character,
-        skill = self.selected_skill,
+        skill_or_item = self.selected_skill,
         selected = target,
         msg_complement = MSG_COMPLEMENTS[self.selected_skill],
       })
     end
-  elseif self.ongoing_state == "using_item" then
-    print("using item")
+  elseif self.ongoing_state == "choosing_item" then
+    if key == 'down' then
+      self.menu:next()
+    elseif key == 'up' then
+      self.menu:previous()
+    -- elseif key == 'escape' then
+    --   self.ongoing_state = "choosing_option"
+    --   self.menu = ListMenu(TURN_OPTIONS)
+    --   self:_show_menu()
+    elseif key == 'return' or key == 'kpenter' then
+      self.selected_item = self.items[self.menu:current_option()]
+      if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
+        self:next_unit("monster")
+        self.ongoing_state = "using_item_on_monster"
+        self:view():remove('turn_menu', self.menu)
+        self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+      else
+        self:next_unit("player")
+        self.ongoing_state = "using_item_on_player"
+        self:view():remove('turn_menu', self.menu)
+        self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+      end
+    end
+  elseif self.ongoing_state == "using_item_on_player" then
+    if key == 'down' then
+      self:next_unit("player")
+    elseif key == 'up' then
+      self:prev_unit("player")
+    elseif key == 'return' or key == 'kpenter' then
+      local target = self.players[self.player_index]
+      self.rules:use_item(target, self.selected_item)
+
+      return self:pop({
+        action = "Item",
+        character = self.character,
+        skill_or_item = self.selected_item,
+        selected = target,
+        msg_complement = MSG_COMPLEMENTS[self.selected_item],
+      })
+    end
+  elseif self.ongoing_state == "using_item_on_monster" then
+    if key == 'down' then
+      self:next_unit("monster")
+    elseif key == 'up' then
+      self:prev_unit("monster")
+    elseif key == 'return' or key == 'kpenter' then
+      local target = self.monsters[self.monster_index]
+      self.rules:use_item(target, self.selected_item)
+
+      return self:pop({
+        action = "Item",
+        character = self.character,
+        skill_or_item = self.selected_item,
+        selected = target,
+        msg_complement = MSG_COMPLEMENTS[self.selected_item],
+      })
+    end
   elseif self.ongoing_state == "choosing_option" then
     if key == 'down' then
       self.menu:next()
@@ -514,7 +577,16 @@ function PlayerTurnState:on_keypressed(key)
         self.menu = ListMenu(self.character.skill_set)
         self:_show_menu()
       elseif option == "Item" then
-        self.ongoing_state = "using_item"
+        if #self.items == 0 then
+          --SOUND: fail
+          self:view():get('message'):set(MESSAGES.NoItems)
+          self.ongoing_state = "choosing_option"
+        else
+          self.ongoing_state = "choosing_item"
+          self:view():remove('turn_menu', self.menu)
+          self.menu = ListMenu(self.items, "items")
+          self:_show_menu()
+        end
       end
     end
   end
@@ -544,7 +616,7 @@ function PlayerTurnState:update(dt)
     end
 
     if monster.poisoned then
-      monster.p_systems.dark_green:emit(1)
+      monster.p_systems.pure_black:emit(1)
     end
 
     if monster.sticky then
