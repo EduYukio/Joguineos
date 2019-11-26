@@ -47,6 +47,7 @@ function PlayerTurnState:enter(params)
   self.attacker = params.attacker
   self.items = params.items
   self.p_systems = params.p_systems
+  self.turn = params.turn
 
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
@@ -68,6 +69,9 @@ function PlayerTurnState:enter(params)
   self:add_ui_lives()
 
   if self.attacker == "Player" then
+    if self.character == self.players[1] then
+      self:check_condition_turns()
+    end
     self.ongoing_state = "choosing_option"
     self.selected_monster = nil
     self.monster_index = 0
@@ -78,9 +82,40 @@ function PlayerTurnState:enter(params)
     self:_show_stats()
   elseif self.attacker == "Monster" then
     if self.character == self.monsters[1] then
+      self.turn = 0
       self:setup_delay_animation(2, "MonsterTurn")
     else
       self:setup_attack_animation(55)
+    end
+  end
+end
+
+function PlayerTurnState:check_condition_turns()
+  for _, player in pairs(self.players) do
+    if player.empowered then
+      if self.turn - player.empowered.turn == self.p_systems:get_lifetime(player, "orange") then
+        player.empowered = false
+      end
+    end
+    if player.energized then
+      if self.turn - player.energized.turn == self.p_systems:get_lifetime(player, "light_blue") then
+        player.energized = false
+      end
+    end
+  end
+
+  for _, monster in pairs(self.monsters) do
+    if monster.sticky then
+      print(monster.sticky)
+      print(monster.sticky.turn)
+      if self.turn - monster.sticky.turn == self.p_systems:get_lifetime(monster, "dark_blue") then
+        monster.sticky = false
+      end
+    end
+    if monster.poisoned then
+      if self.turn - monster.poisoned.turn == self.p_systems:get_lifetime(monster, "pure_black") then
+        monster.poisoned = false
+      end
     end
   end
 end
@@ -475,7 +510,7 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_unit("player")
     elseif key == 'return' or key == 'kpenter' then
       local target = self.players[self.player_index]
-      self.rules:cast_skill(target, self.selected_skill)
+      self.rules:cast_skill(target, self.selected_skill, self.turn)
 
       return self:pop({
         action = "Skill",
@@ -492,7 +527,7 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
       local target = self.monsters[self.monster_index]
-      self.rules:cast_skill(target, self.selected_skill)
+      self.rules:cast_skill(target, self.selected_skill, self.turn)
 
       return self:pop({
         action = "Skill",
@@ -534,6 +569,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'return' or key == 'kpenter' then
       local target = self.players[self.player_index]
       self.rules:use_item(target, self.selected_item, self.items, self.item_index)
+      self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
 
       return self:pop({
         action = "Item",
@@ -551,6 +587,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'return' or key == 'kpenter' then
       local target = self.monsters[self.monster_index]
       self.rules:use_item(target, self.selected_item, self.items, self.item_index)
+      self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
 
       return self:pop({
         action = "Item",

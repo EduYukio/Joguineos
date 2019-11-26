@@ -27,6 +27,7 @@ function EncounterState:_init(stack)
 end
 
 function EncounterState:enter(params)
+  self.turn = 0
   self.atlas = SpriteAtlas()
   self.items = params.items
   local battlefield = BattleField()
@@ -87,6 +88,9 @@ function EncounterState:update(_)
     self.next_monster = self.next_monster + 1
   else
     --turno dos players
+    if self.next_player == 1 then
+      self.turn = self.turn + 1
+    end
     attacker = "Player"
     current_character = self.players[self.next_player]
     self.next_player = self.next_player + 1
@@ -100,6 +104,7 @@ function EncounterState:update(_)
     players = self.players,
     items = self.items,
     p_systems = self.p_systems,
+    turn = self.turn,
   }
   return self:push('battle_turn', params)
 end

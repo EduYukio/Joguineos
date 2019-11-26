@@ -10,25 +10,26 @@ end
 
 function PSystems:add_all(unit, position)
   local p_systems = {
-    green = self:add(unit, position, "green"),
-    pure_black = self:add(unit, position, "pure_black"),
-    light_blue = self:add(unit, position, "light_blue"),
-    dark_blue = self:add(unit, position, "dark_blue"),
-    dark_red = self:add(unit, position, "dark_red"),
-    pink = self:add(unit, position, "pink"),
-    orange = self:add(unit, position, "orange"),
+    green = self:add(unit, position, "green", 99),
+    pure_black = self:add(unit, position, "pure_black", 2),
+    light_blue = self:add(unit, position, "light_blue", 2),
+    dark_blue = self:add(unit, position, "dark_blue", 2),
+    dark_red = self:add(unit, position, "dark_red", 99),
+    pink = self:add(unit, position, "pink", 99),
+    orange = self:add(unit, position, "orange", 2),
   }
 
   return p_systems
 end
 
-function PSystems:add(unit, position, color)
+function PSystems:add(unit, position, color, lifetime)
   local img = g.newImage("assets/textures/white_particle.png")
 
   local p_system = {
     sys = g.newParticleSystem(img, 30),
     position = position + Vec(0, 17),
     color = color,
+    lifetime = lifetime, --in turns
   }
 
   p_system.sys:setParticleLifetime(0.5, 1.3)
@@ -47,10 +48,10 @@ end
 
 function PSystems:remove_all(unit)
   self:remove(unit, "green")
-  self:remove(unit, "dark_green")
-  self:remove(unit, "blue")
+  self:remove(unit, "pure_black")
+  self:remove(unit, "light_blue")
   self:remove(unit, "dark_blue")
-  self:remove(unit, "red")
+  self:remove(unit, "dark_red")
   self:remove(unit, "pink")
   self:remove(unit, "orange")
 end
@@ -70,6 +71,12 @@ end
 function PSystems:add_position(unit, value)
   for _, p_system in pairs(self.list[unit]) do
     p_system.position = p_system.position + value
+  end
+end
+
+function PSystems:get_lifetime(unit, color)
+  if self.list[unit] and self.list[unit][color] then
+    return self.list[unit][color].lifetime
   end
 end
 
