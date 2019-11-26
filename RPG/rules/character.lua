@@ -353,6 +353,18 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:remove_from_array(e, array, index)
+    function self.when()
+      return true
+    end
+    function self.apply()
+      for i = index + 1, #array do
+        array[i-1] = array[i]
+      end
+      array[#array] = nil
+    end
+  end
+
   function ruleset.define:remove_if_dead(e, atlas, unit_array, unit_index)
     function self.when()
       return r:is(e, 'character')
@@ -360,10 +372,10 @@ return function (ruleset)
     function self.apply()
       if e.hp <= 0 then
         atlas:remove(e)
-        for i = unit_index + 1, #unit_array do
-          unit_array[i-1] = unit_array[i]
-        end
-        unit_array[#unit_array] = nil
+        for _, p_system in pairs(e.p_systems) do
+          p_system:reset()
+        end 
+        e:remove_from_array(unit_array, unit_index)
       end
     end
   end
@@ -471,7 +483,7 @@ return function (ruleset)
     end
   end
 
-  function ruleset.define:use_item(e, item)
+  function ruleset.define:use_item(e, item, item_array, item_index)
     function self.when()
       return r:is(e, 'character')
     end
@@ -485,6 +497,7 @@ return function (ruleset)
       elseif item == "Bandejao's Fish" then
         e:bandejaos_fish()
       end
+      e:remove_from_array(item_array, item_index)
     end
   end
 end

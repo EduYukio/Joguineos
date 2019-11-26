@@ -26,8 +26,8 @@ local MSG_COMPLEMENTS = {
   ["Heal"] = "healing 10 points.",
   ["War Cry"] = "ensuring the next\nattack is critical.",
   ["Charm"] = "reducing its\nresistance to 0.",
-  ["Energy Drink"] = "increasing the evasion\nfor 2 turns!",
-  ["Mud Slap"] = "decreasing the evasion\nfor 2 turns!",
+  ["Energy Drink"] = "increasing the\nevasion for 2 turns!",
+  ["Mud Slap"] = "decreasing the\nevasion for 2 turns!",
   ["Spinach"] = "raising the strength\nfor 2 turns!",
   ["Bandejao's Fish"] = "poisoning him\nfor 2 turns!",
 }
@@ -511,7 +511,8 @@ function PlayerTurnState:on_keypressed(key)
       self.menu = ListMenu(TURN_OPTIONS)
       self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
-      self.selected_item = self.items[self.menu:current_option()]
+      self.item_index = self.menu:current_option()
+      self.selected_item = self.items[self.item_index]
       if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
         self:next_unit("monster")
         self.ongoing_state = "using_item_on_monster"
@@ -531,7 +532,7 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_unit("player")
     elseif key == 'return' or key == 'kpenter' then
       local target = self.players[self.player_index]
-      self.rules:use_item(target, self.selected_item)
+      self.rules:use_item(target, self.selected_item, self.items, self.item_index)
 
       return self:pop({
         action = "Item",
@@ -548,7 +549,7 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
       local target = self.monsters[self.monster_index]
-      self.rules:use_item(target, self.selected_item)
+      self.rules:use_item(target, self.selected_item, self.items, self.item_index)
 
       return self:pop({
         action = "Item",
