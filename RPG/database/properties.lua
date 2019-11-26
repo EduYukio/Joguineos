@@ -39,11 +39,11 @@ return {
   skill_set = {
     priest = {
       "Heal",
-      "WarCry",
+      "War Cry",
       "Charm",
     },
     knight = {
-      "WarCry",
+      "War Cry",
     },
     archer = {
       "Charm",

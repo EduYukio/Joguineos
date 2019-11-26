@@ -12,6 +12,7 @@ end
 
 function FollowQuestState:enter(params)
   local quest = params.quest
+  self.items = params.quest.items
   self.encounters = quest.encounters
   self.next_encounter = 1
   self.party = {}
@@ -30,7 +31,7 @@ function FollowQuestState:update(_)
       local character_spec = require('database.characters.' .. character_name)
       encounter[i] = self.rules:new_character(character_spec)
     end
-    local params = { party = self.party, encounter = encounter }
+    local params = { party = self.party, encounter = encounter, items = self.items }
     return self:push('encounter', params)
   else
     return self:pop()

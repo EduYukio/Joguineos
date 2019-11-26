@@ -1,5 +1,6 @@
 
 return {
+  pure_black = { 0, 0, 0 },
   black = { .1, .1, .1 },
   red = { 1, .4, .4 },
   dark_red = { 1, .15, .15 },

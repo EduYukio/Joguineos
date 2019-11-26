@@ -386,6 +386,8 @@ return function (ruleset)
     end
   end
 
+
+  --Skills
   function ruleset.define:heal(e)
     function self.when()
       return r:is(e, 'character') and r:is(e, 'player')
@@ -400,7 +402,7 @@ return function (ruleset)
 
   function ruleset.define:war_cry(e)
     function self.when()
-      return r:is(e, 'character')
+      return r:is(e, 'character') and r:is(e, 'player')
     end
     function self.apply()
       e.crit_ensured = true
@@ -423,10 +425,65 @@ return function (ruleset)
     function self.apply()
       if skill == "Heal" then
         e:heal()
-      elseif skill == "WarCry" then
+      elseif skill == "War Cry" then
         e:war_cry()
       elseif skill == "Charm" then
         e:charm()
+      end
+    end
+  end
+
+
+  --Items
+  function ruleset.define:energy_drink(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, 'player')
+    end
+    function self.apply()
+      e.energized = true
+    end
+  end
+
+  function ruleset.define:mud_slap(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, 'monster')
+    end
+    function self.apply()
+      e.sticky = true
+    end
+  end
+
+  function ruleset.define:spinach(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, 'player')
+    end
+    function self.apply()
+      e.empowered = true
+    end
+  end
+
+  function ruleset.define:bandejaos_fish(e)
+    function self.when()
+      return r:is(e, 'character') and r:is(e, 'monster')
+    end
+    function self.apply()
+      e.poisoned = true
+    end
+  end
+
+  function ruleset.define:use_item(e, item)
+    function self.when()
+      return r:is(e, 'character')
+    end
+    function self.apply()
+      if item == "Energy Drink" then
+        e:energy_drink()
+      elseif item == "Mud Slap" then
+        e:mud_slap()
+      elseif item == "Spinach" then
+        e:spinach()
+      elseif item == "Bandejao's Fish" then
+        e:bandejaos_fish()
       end
     end
   end

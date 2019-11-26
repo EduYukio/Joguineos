@@ -11,7 +11,7 @@ end
 function PSystems:add_all(unit, position)
   local p_systems = {
     green = self:add(unit, position, "green"),
-    dark_green = self:add(unit, position, "dark_green"),
+    pure_black = self:add(unit, position, "pure_black"),
     light_blue = self:add(unit, position, "light_blue"),
     dark_blue = self:add(unit, position, "dark_blue"),
     dark_red = self:add(unit, position, "dark_red"),
