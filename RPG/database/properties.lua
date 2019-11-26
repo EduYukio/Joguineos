@@ -49,5 +49,7 @@ return {
       "Charm",
     },
   },
+  evasion_buff = 0.5,
+  evasion_debuff = -0.5,
 }
 

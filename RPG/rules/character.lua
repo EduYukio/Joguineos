@@ -1,6 +1,7 @@
 return function (ruleset)
 
   local r = ruleset.record
+  local p = require 'database.properties'
 
   r:new_property('character', {
     name = "Character",
@@ -108,7 +109,13 @@ return function (ruleset)
       return r:is(e, 'character')
     end
     function self.apply()
-      return r:get(e, 'character', 'evasion')
+      local final_evasion = r:get(e, 'character', 'evasion')
+      if e.energized then
+        final_evasion = final_evasion + p.evasion_buff
+      elseif e.sticky then
+        final_evasion = final_evasion + p.evasion_debuff
+      end
+      return final_evasion
     end
   end
 
