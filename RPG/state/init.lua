@@ -16,6 +16,10 @@ function State:view()
   return self.stack.game.view
 end
 
+function State:fg_view()
+  return self.stack.game.fg_view
+end
+
 function State:push(statename, info)
   return self.stack:push(statename, info)
 end

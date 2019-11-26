@@ -527,6 +527,10 @@ function PlayerTurnState:update(dt)
     end
   end
   for _, monster in pairs(self.monsters) do
+    if monster.charmed then
+      monster.p_systems.pink:emit(1)
+    end
+
     for _, p_system in pairs(monster.p_systems) do
       p_system:update(dt)
     end

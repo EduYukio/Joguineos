@@ -26,14 +26,14 @@ function PSystems:add(unit, position, color)
   local img = g.newImage("assets/textures/white_particle.png")
 
   local p_system = {
-    sys = g.newParticleSystem(img, 80),
-    position = position + Vec(0, 25),
+    sys = g.newParticleSystem(img, 30),
+    position = position + Vec(0, 20),
     color = color,
   }
 
-  p_system.sys:setParticleLifetime(1, 2.5)
-  p_system.sys:setLinearAcceleration(-4, -12, 4, -20)
-  p_system.sys:setSpeed(10)
+  p_system.sys:setParticleLifetime(1, 1.8)
+  p_system.sys:setLinearAcceleration(-4, -19, 4, -30)
+  p_system.sys:setSpeed(15)
   p_system.sys:setEmissionArea("normal", 3, 6, 3*math.pi/2, true)
 
   if not self.list[unit] then

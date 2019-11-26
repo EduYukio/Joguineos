@@ -12,7 +12,8 @@ function love.load()
   math.randomseed(os.time())
 
   _game = {
-    view = View()
+    view = View(),
+    fg_view = View()
   }
   _stack = Stack(_game)
   _stack:push('choose_quest')
@@ -25,6 +26,7 @@ end
 
 function love.draw()
   _game.view:draw()
+  _game.fg_view:draw()
 end
 
 for eventname, _ in pairs(love.handlers) do

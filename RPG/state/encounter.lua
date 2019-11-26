@@ -57,7 +57,7 @@ function EncounterState:enter(params)
   self:view():add('atlas', self.atlas)
   self:view():add('battlefield', battlefield)
   self:view():add('message', message)
-  self:view():add('p_systems', self.p_systems)
+  self:fg_view():add('p_systems', self.p_systems)
   message:set("You stumble upon an encounter")
 end
 
@@ -66,7 +66,7 @@ function EncounterState:leave()
   self:view():remove('atlas')
   self:view():remove('battlefield')
   self:view():remove('message')
-  self:view():remove('p_systems')
+  self:fg_view():remove('p_systems')
 end
 
 
