@@ -12,7 +12,7 @@ end
 
 function FollowQuestState:enter(params)
   local quest = params.quest
-  self.items = params.quest.items
+  self.items = params.items
   self.encounters = quest.encounters
   self.next_encounter = 1
   self.party = {}

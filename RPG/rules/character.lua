@@ -480,6 +480,10 @@ return function (ruleset)
       return r:is(e, 'character')
     end
     function self.apply()
+      for _, p_system in pairs(e.p_systems) do
+        p_system:reset()
+      end
+
       e.crit_ensured = false
       e.charmed = false
       e.poisoned = false

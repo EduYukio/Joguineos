@@ -55,7 +55,12 @@ function ChooseQuestState:on_keypressed(key)
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local option = self.menu:current_option()
-    local params = { quest = self.quests[option] }
+    local quest = self.quests[option]
+    local items = {}
+    for i, item in ipairs(quest.items) do
+      items[i] = item
+    end
+    local params = { quest = quest, items = items }
     return self:push('follow_quest', params)
   elseif key == 'escape' then
     return self:pop()
