@@ -3,7 +3,8 @@ local State = require 'common.class' ()
 
 local RULE_MODULES = { 'rules' }
 local RULESETS = {
-  'character'
+  'character',
+  'ui_related'
 }
 local RuleEngine = require 'ur-proto' (RULE_MODULES, RULESETS)
 

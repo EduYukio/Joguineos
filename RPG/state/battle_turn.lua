@@ -64,11 +64,12 @@ function PlayerTurnState:enter(params)
   local _, right, top, _ = self.battlefield.bounds:get()
   self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self:view():add('ui_info', self.ui_info)
-  self:add_ui_info_sprites()
+  self.rules:add_ui_sprites(self.atlas, self.ui_info.monsters_info)
 
   self.lives = Lives()
   self:view():add('lives', self.lives)
-  self:add_ui_lives()
+  self.rules:add_ui_lives(self.lives, self.atlas, self.players)
+  self.rules:add_ui_lives(self.lives, self.atlas, self.monsters)
 
   if self.attacker == "Player" then
     if self.character == self.players[1] then
@@ -162,23 +163,7 @@ function PlayerTurnState:leave()
   self:view():remove('lives')
 end
 
-function PlayerTurnState:add_ui_info_sprites()
-  for _, v in pairs(self.ui_info.monsters_info) do
-    self.atlas:add(v.name, v.pos, v.appearance)
-  end
-end
 
-function PlayerTurnState:add_ui_lives()
-  for _, player in pairs(self.players) do
-    local spr = self.atlas:get(player)
-    self.lives:add(spr, player.hp, player.max_hp)
-  end
-
-  for _, monster in pairs(self.monsters) do
-    local spr = self.atlas:get(monster)
-    self.lives:add(spr, monster.hp, monster.max_hp)
-  end
-end
 
 
 
