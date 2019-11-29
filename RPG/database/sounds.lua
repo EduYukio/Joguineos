@@ -14,7 +14,7 @@ local game_over = a.newSource(path .. "game_over.wav", "static")
 
 fail:setVolume(0.6)
 crit_attack:setVolume(0.6)
-fanfare:setVolume(0.6)
+fanfare:setVolume(0.8)
 
 return {
   unit_take_hit = unit_take_hit,
