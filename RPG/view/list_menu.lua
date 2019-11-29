@@ -1,5 +1,6 @@
 
 local Vec = require 'common.vec'
+local SOUNDS_DB = require 'database.sounds'
 
 local ListMenu = require 'common.class' ()
 
@@ -40,10 +41,12 @@ end
 
 function ListMenu:next()
   self.current = math.min(#self.options, self.current + 1)
+  SOUNDS_DB.cursor_menu:play()
 end
 
 function ListMenu:previous()
   self.current = math.max(1, self.current - 1)
+  SOUNDS_DB.cursor_menu:play()
 end
 
 function ListMenu:current_option()

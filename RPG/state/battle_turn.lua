@@ -7,6 +7,7 @@ local UI_Info = require 'view.ui_info'
 local Lives = require 'view.lives'
 local State = require 'state'
 local p = require 'database.properties'
+local SOUNDS_DB = require 'database.sounds'
 
 local PlayerTurnState = require 'common.class' (State)
 
@@ -115,6 +116,7 @@ function PlayerTurnState:check_condition_turns()
       if self.turn - monster.poisoned.turn == self.p_systems:get_lifetime(monster, "pure_black") then
         monster.poisoned = false
       end
+      SOUNDS_DB.unit_take_hit:play()
       monster.hp = monster.hp - p.poison_dmg
       local spr = self.atlas:get(monster)
       self.lives:upgrade_life(spr, monster.hp)
@@ -370,6 +372,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
       self.monster_index = 0
 
       if #self.monsters == 0 then
+        SOUNDS_DB.fanfare:play()
         self:setup_delay_animation(2.5, "Victory")
         return
       end
@@ -388,6 +391,7 @@ function PlayerTurnState:manage_retreat_animations(dt)
       self.player_index = 0
 
       if #self.players == 0 then
+        SOUNDS_DB.game_over:play()
         self:setup_delay_animation(2.5, "Defeat")
         return
       end
@@ -453,7 +457,7 @@ function PlayerTurnState:manage_run_away_animations(dt)
 end
 
 function PlayerTurnState:attack_player()
-  --SOUND: play attack sound
+  SOUNDS_DB.unit_take_hit:play()
   self.dmg_dealt = self.rules:take_damage(self.selected_player, self.character.damage)
 end
 
@@ -461,13 +465,9 @@ function PlayerTurnState:attack_monster()
   self.crit_attack = false
   local crit_attempt = math.random()
   if self.character.crit_ensured or crit_attempt < self.character.crit_chance then
-   --SOUND: play crit attack sound
     self.crit_attack = true
     self.atlas:flash_crit()
     self.character.crit_ensured = false
-
-    -- else
-      --SOUND: play normal attack sound
   end
   self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
   self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
@@ -480,6 +480,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       self:setup_attack_animation(55)
     end
   elseif self.ongoing_state == "choosing_skill" then
@@ -492,6 +493,7 @@ function PlayerTurnState:on_keypressed(key)
       self.menu = ListMenu(TURN_OPTIONS)
       self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       self.selected_skill = self.character.skill_set[self.menu:current_option()]
       if self.character.mana > 0 then
         if self.selected_skill == "Charm" then
@@ -507,7 +509,7 @@ function PlayerTurnState:on_keypressed(key)
         end
         self.character.mana = self.character.mana - 1
       else
-        --SOUND: fail
+        SOUNDS_DB.fail:play()
         self:view():get('message'):set(MESSAGES.NoMana)
         self.ongoing_state = "choosing_option"
         self.menu = ListMenu(TURN_OPTIONS)
@@ -520,6 +522,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("player")
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       local target = self.players[self.player_index]
       self.rules:cast_skill(target, self.selected_skill, self.turn)
 
@@ -537,6 +540,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       local target = self.monsters[self.monster_index]
       self.rules:cast_skill(target, self.selected_skill, self.turn)
 
@@ -558,6 +562,7 @@ function PlayerTurnState:on_keypressed(key)
       self.menu = ListMenu(TURN_OPTIONS)
       self:_show_menu()
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       self.item_index = self.menu:current_option()
       self.selected_item = self.items[self.item_index]
       if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
@@ -578,8 +583,8 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("player")
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       local target = self.players[self.player_index]
-      self.rules:use_item(target, self.selected_item, self.items, self.item_index)
       self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
 
       return self:pop({
@@ -596,8 +601,8 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       local target = self.monsters[self.monster_index]
-      self.rules:use_item(target, self.selected_item, self.items, self.item_index)
       self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
 
       return self:pop({
@@ -614,6 +619,7 @@ function PlayerTurnState:on_keypressed(key)
     elseif key == 'up' then
       self.menu:previous()
     elseif key == 'return' or key == 'kpenter' then
+      SOUNDS_DB.select_menu:play()
       local option = TURN_OPTIONS[self.menu:current_option()]
       if option == "Fight" then
         self.ongoing_state = "fighting"
@@ -628,7 +634,7 @@ function PlayerTurnState:on_keypressed(key)
         self:_show_menu()
       elseif option == "Item" then
         if #self.items == 0 then
-          --SOUND: fail
+          SOUNDS_DB.fail:play()
           self:view():get('message'):set(MESSAGES.NoItems)
           self.ongoing_state = "choosing_option"
         else

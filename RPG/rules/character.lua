@@ -2,6 +2,7 @@ return function (ruleset)
 
   local r = ruleset.record
   local p = require 'database.properties'
+  local SOUNDS_DB = require 'database.sounds'
 
   r:new_property('character', {
     name = "Character",
@@ -349,10 +350,13 @@ return function (ruleset)
 
       if crit then
         final_dmg = amount + 5
+        SOUNDS_DB.crit_attack:play()
       elseif e.charmed then
+        SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount, 0)
         e.charmed = false
       else
+        SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount - e.resistance, 0)
       end
 
@@ -383,6 +387,7 @@ return function (ruleset)
     end
     function self.apply()
       if e.hp <= 0 then
+        SOUNDS_DB.unit_dying:play()
         local spr = atlas:get(e)
         lives:remove(spr)
         atlas:remove(e)
@@ -435,10 +440,13 @@ return function (ruleset)
     function self.apply()
       if skill == "Heal" then
         e:heal()
+        SOUNDS_DB.buff:play()
       elseif skill == "War Cry" then
         e.crit_ensured = {turn = turn}
+        SOUNDS_DB.buff:play()
       elseif skill == "Charm" then
         e.charmed = {turn = turn}
+        SOUNDS_DB.debuff:play()
       end
     end
   end
@@ -452,12 +460,16 @@ return function (ruleset)
     function self.apply()
       if item == "Energy Drink" then
         e.energized = {turn = turn}
+        SOUNDS_DB.buff:play()
       elseif item == "Mud Slap" then
         e.sticky = {turn = turn}
+        SOUNDS_DB.debuff:play()
       elseif item == "Spinach" then
         e.empowered = {turn = turn}
+        SOUNDS_DB.buff:play()
       elseif item == "Bandejao's Fish" then
         e.poisoned = {turn = turn}
+        SOUNDS_DB.debuff:play()
       end
       e:remove_from_array(item_array, item_index)
     end

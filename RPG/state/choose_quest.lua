@@ -3,6 +3,7 @@ local PALETTE_DB = require 'database.palette'
 local State = require 'state'
 local ListMenu = require 'view.list_menu'
 local Vec = require 'common.vec'
+local SOUNDS_DB = require 'database.sounds'
 
 local ChooseQuestState = require 'common.class' (State)
 
@@ -52,6 +53,7 @@ function ChooseQuestState:on_keypressed(key)
   elseif key == 'up' then
     self.menu:previous()
   elseif key == 'return' or key == 'kpenter' then
+    SOUNDS_DB.select_menu:play()
     local option = self.menu:current_option()
     local params = { quest = self.quests[option] }
     return self:push('follow_quest', params)
