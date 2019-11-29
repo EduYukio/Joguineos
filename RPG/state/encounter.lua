@@ -137,6 +137,12 @@ function EncounterState:resume(params)
         params.msg_complement
       )
   elseif params.action == "Defeat" then
+    for _, monster in pairs(self.monsters) do
+      for _, p_system in pairs(monster.p_systems) do
+        p_system:reset()
+      end
+    end
+
     return self:pop({ action = "Defeat" })
   elseif params.action == "Run" or params.action == "Victory" then
     for _, player in pairs(self.players) do

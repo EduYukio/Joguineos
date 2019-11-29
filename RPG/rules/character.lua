@@ -393,7 +393,7 @@ return function (ruleset)
         atlas:remove(e)
         for _, p_system in pairs(e.p_systems) do
           p_system:reset()
-        end 
+        end
         e:remove_from_array(unit_array, unit_index)
       end
 
