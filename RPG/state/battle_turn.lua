@@ -9,6 +9,7 @@ local State = require 'state'
 local Animation = require 'handlers.animation'
 local Condition = require 'handlers.condition'
 local Action = require 'handlers.action'
+local Particles = require 'handlers.particles'
 
 local PlayerTurnState = require 'common.class' (State)
 
@@ -43,6 +44,7 @@ function PlayerTurnState:enter(params)
   self.condition = Condition(self)
   self:load_units()
   self.action = Action(self)
+  self.particles = Particles(self)
 end
 
 function PlayerTurnState:leave()
@@ -151,7 +153,6 @@ function PlayerTurnState:prev_unit(category)
   self:switch_cursor(category)
 end
 
-
 function PlayerTurnState:on_keypressed(key)
   if key == 'down' then
     if self.action.choosing_list == "menu" then
@@ -175,49 +176,11 @@ function PlayerTurnState:on_keypressed(key)
   end
 end
 
-function PlayerTurnState:emit_players_particles(dt)
-  for _, player in pairs(self.players) do
-    if player.crit_ensured then
-      player.p_systems.dark_red:emit(1)
-    end
 
-    if player.energized then
-      player.p_systems.light_blue:emit(1)
-    end
-
-    if player.empowered then
-      player.p_systems.orange:emit(1)
-    end
-
-    for _, p_system in pairs(player.p_systems) do
-      p_system:update(dt)
-    end
-  end
-end
-
-function PlayerTurnState:emit_monsters_particles(dt)
-  for _, monster in pairs(self.monsters) do
-    if monster.charmed then
-      monster.p_systems.pink:emit(1)
-    end
-
-    if monster.poisoned then
-      monster.p_systems.pure_black:emit(1)
-    end
-
-    if monster.sticky then
-      monster.p_systems.dark_blue:emit(1)
-    end
-
-    for _, p_system in pairs(monster.p_systems) do
-      p_system:update(dt)
-    end
-  end
-end
 
 function PlayerTurnState:update(dt)
-  self:emit_players_particles(dt)
-  self:emit_monsters_particles(dt)
+  self.particles:emit_players_particles(dt)
+  self.particles:emit_monsters_particles(dt)
   self.animation:update_animations(dt)
 end
 
