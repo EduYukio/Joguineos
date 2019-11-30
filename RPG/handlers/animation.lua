@@ -7,10 +7,6 @@ local MESSAGES = {
   Run = "You ran away safely.",
   Defeat = "You lost the adventure...",
   Missed = "The attack missed...",
-  NoMana = "Not enough mana.",
-  NoItems = "You don\'t have items.",
-  ChooseSkillTarget = "Select the target of the skill.",
-  ChooseItemTarget = "Select the target of the item.",
 }
 
 local Animation = require 'common.class' ()
@@ -35,7 +31,6 @@ function Animation:_init(stage)
   self.right_dir = Vec(1, 0)
 end
 
---Delay
 function Animation:setup_delay_animation(delay_duration, return_action)
   self.stage.ongoing_state = "animation"
   self.delay_animation = true
@@ -66,9 +61,6 @@ function Animation:manage_delay_animation(dt)
   end
 end
 
-
-
---Attack
 function Animation:setup_attack_animation(walking_length, monster_index)
   self.stage.ongoing_state = "animation"
   self.attack_animation = true
@@ -112,9 +104,6 @@ function Animation:manage_attack_animations(dt)
   end
 end
 
-
-
---Walking
 function Animation:play_walking_animation(dt, unit_sprite, direction, speed)
   local delta_s = direction * speed * dt
 
@@ -124,9 +113,6 @@ function Animation:play_walking_animation(dt, unit_sprite, direction, speed)
   unit_sprite.position:add(delta_s)
 end
 
-
-
---Getting Hit
 function Animation:setup_getting_hit_animation(shaking_length)
   self.stage.ongoing_state = "animation"
   self.shaking_length = shaking_length
@@ -151,9 +137,6 @@ function Animation:manage_getting_hit_animations(dt)
   end
 end
 
-
-
---Retreat
 function Animation:manage_retreat_animations(dt)
   if self.walked_length < self.walking_length then
     if self.attacker == "Player" then
@@ -177,9 +160,6 @@ function Animation:manage_retreat_animations(dt)
   end
 end
 
-
-
---Shaking
 function Animation:play_shaking_animation(dt, unit, unit_sprite, back_direction)
   local speed = 250 * dt
   local delta_s
@@ -196,8 +176,6 @@ function Animation:play_shaking_animation(dt, unit, unit_sprite, back_direction)
   unit_sprite.position:add(delta_s)
 end
 
-
---Run Away
 function Animation:setup_run_away_animation()
   self.stage.ongoing_state = "animation"
   self.stage:view():remove('turn_cursor')
@@ -212,15 +190,12 @@ function Animation:manage_run_away_animations(dt)
     for _, player in pairs(self.players) do
       self.p_systems:reset_all(player)
       self.rules:reset_conditions(player)
-
-      local player_sprite = self.atlas:get(player)
-      self:play_walking_animation(dt, player_sprite, self.right_dir, 100)
+      self:play_walking_animation(dt, self.atlas:get(player), self.right_dir, 100)
     end
   elseif self.waiting_time < self.run_away_duration + 0.1 then
     for _, player in pairs(self.players) do
-      local player_sprite = self.atlas:get(player)
       self.atlas:remove(player)
-      self.lives:remove(player_sprite)
+      self.lives:remove(self.atlas:get(player))
     end
     self.stage:view():get('message'):set(MESSAGES["Run"])
   elseif self.waiting_time < self.run_away_duration + 2 then
@@ -231,9 +206,6 @@ function Animation:manage_run_away_animations(dt)
     return self.stage:pop({ action = "Run" })
   end
 end
-
-
-
 
 function Animation:update_animations(dt)
   if self.attack_animation then
