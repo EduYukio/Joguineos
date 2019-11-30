@@ -210,9 +210,10 @@ function PlayerTurnState:choosing_skill()
   self.selected_skill = self.character.skill_set[self.menu:current_option()]
   if self.character.mana > 0 then
     if self.selected_skill == "Charm" then
-      self:select_skill_target("monster")
+      self:select_target("monster", "skill")
     else
-      self:select_skill_target("player")
+      self.player_index = 0
+      self:select_target("player", "skill")
     end
   else
     SOUNDS_DB.fail:play()
@@ -224,21 +225,21 @@ function PlayerTurnState:choosing_skill()
   end
 end
 
-function PlayerTurnState:select_skill_target(category)
-  self.player_index = 0
-  self:next_unit(category)
-  self.ongoing_state = "using_skill"
-  self.choosing_list = category
+function PlayerTurnState:select_target(unit_category, usable_category)
+  local message
+  local state
+  if usable_category == "item" then
+    message = MESSAGES.ChooseItemTarget
+    state = "using_item"
+  elseif usable_category == "skill" then
+    message = MESSAGES.ChooseSkillTarget
+    state = "using_skill"
+  end
+  self:next_unit(unit_category)
+  self.ongoing_state = state
+  self.choosing_list = unit_category
   self:view():remove('turn_menu', self.menu)
-  self:view():get('message'):set(MESSAGES.ChooseTarget)
-end
-
-function PlayerTurnState:select_item_target(category)
-  self:next_unit(category)
-  self.ongoing_state = "using_item"
-  self.choosing_list = category
-  self:view():remove('turn_menu', self.menu)
-  self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+  self:view():get('message'):set(message)
 end
 
 function PlayerTurnState:using_skill()
@@ -266,10 +267,10 @@ function PlayerTurnState:choosing_item()
   self.selected_item = self.items[self.item_index]
   if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
     self.monster_index = 0
-    self:select_item_target("monster")
+    self:select_target("monster", "item")
   else
     self.player_index = 0
-    self:select_item_target("player")
+    self:select_target("player", "item")
   end
 end
 
