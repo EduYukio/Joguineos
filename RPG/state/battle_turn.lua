@@ -28,7 +28,7 @@ local MESSAGES = {
 local MSG_COMPLEMENTS = {
   ["Heal"] = "healing 10 points.",
   ["War Cry"] = "ensuring the next\nattack is critical.",
-  ["Charm"] = "reducing its\nresistance to 0.",
+  ["Charm"] = "reducing its\nresistance to 0 for 1 attack.",
   ["Energy Drink"] = "increasing the\nevasion for 2 turns!",
   ["Mud Slap"] = "decreasing the\nevasion for 2 turns!",
   ["Spinach"] = "raising the strength\nfor 2 turns!",
@@ -40,6 +40,17 @@ function PlayerTurnState:_init(stack)
   self.character = nil
   self.cursor = nil
   self.message = self:view():get('message')
+
+  self.function_array = {
+    fighting = self.fighting,
+    choosing_skill = self.choosing_skill,
+    using_skill_on_player = self.using_skill_on_player,
+    using_skill_on_monster = self.using_skill_on_monster,
+    choosing_item = self.choosing_item,
+    using_item_on_player = self.using_item_on_player,
+    using_item_on_monster = self.using_item_on_monster,
+    choosing_option = self.choosing_option,
+  }
 end
 
 function PlayerTurnState:enter(params)
@@ -235,12 +246,12 @@ end
 
 
 --States
-function PlayerTurnState:fighting_state()
+function PlayerTurnState:fighting()
   SOUNDS_DB.select_menu:play()
   self.animation:setup_attack_animation(55, self.monster_index)
 end
 
-function PlayerTurnState:choosing_skill_state()
+function PlayerTurnState:choosing_skill()
   SOUNDS_DB.select_menu:play()
   self.selected_skill = self.character.skill_set[self.menu:current_option()]
   if self.character.mana > 0 then
@@ -268,7 +279,7 @@ function PlayerTurnState:choosing_skill_state()
   end
 end
 
-function PlayerTurnState:using_skill_on_player_state()
+function PlayerTurnState:using_skill_on_player()
   SOUNDS_DB.select_menu:play()
   local target = self.players[self.player_index]
   self.rules:cast_skill(target, self.selected_skill, self.turn)
@@ -283,7 +294,7 @@ function PlayerTurnState:using_skill_on_player_state()
   })
 end
 
-function PlayerTurnState:using_skill_on_monster_state()
+function PlayerTurnState:using_skill_on_monster()
   SOUNDS_DB.select_menu:play()
   local target = self.monsters[self.monster_index]
   self.rules:cast_skill(target, self.selected_skill, self.turn)
@@ -298,7 +309,7 @@ function PlayerTurnState:using_skill_on_monster_state()
   })
 end
 
-function PlayerTurnState:choosing_item_state()
+function PlayerTurnState:choosing_item()
   SOUNDS_DB.select_menu:play()
   self.item_index = self.menu:current_option()
   self.selected_item = self.items[self.item_index]
@@ -319,7 +330,7 @@ function PlayerTurnState:choosing_item_state()
   end
 end
 
-function PlayerTurnState:using_item_on_player_state()
+function PlayerTurnState:using_item_on_player()
   SOUNDS_DB.select_menu:play()
   local target = self.players[self.player_index]
   self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
@@ -333,7 +344,7 @@ function PlayerTurnState:using_item_on_player_state()
   })
 end
 
-function PlayerTurnState:using_item_on_monster_state()
+function PlayerTurnState:using_item_on_monster()
   SOUNDS_DB.select_menu:play()
   local target = self.monsters[self.monster_index]
   self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
@@ -347,7 +358,7 @@ function PlayerTurnState:using_item_on_monster_state()
   })
 end
 
-function PlayerTurnState:choosing_option_state()
+function PlayerTurnState:choosing_option()
   SOUNDS_DB.select_menu:play()
   local option = TURN_OPTIONS[self.menu:current_option()]
   if option == "Fight" then
@@ -379,29 +390,6 @@ function PlayerTurnState:choosing_option_state()
   end
 end
 
-
-
-
-function PlayerTurnState:do_state_action()
-  if self.ongoing_state == "fighting" then
-    self:fighting_state()
-  elseif self.ongoing_state == "choosing_skill" then
-    self:choosing_skill_state()
-  elseif self.ongoing_state == "using_skill_on_player" then
-    self:using_skill_on_player_state()
-  elseif self.ongoing_state == "using_skill_on_monster" then
-    self:using_skill_on_monster_state()
-  elseif self.ongoing_state == "choosing_item" then
-    self:choosing_item_state()
-  elseif self.ongoing_state == "using_item_on_player" then
-    self:using_item_on_player_state()
-  elseif self.ongoing_state == "using_item_on_monster" then
-    self:using_item_on_monster_state()
-  elseif self.ongoing_state == "choosing_option" then
-    self:choosing_option_state()
-  end
-end
-
 function PlayerTurnState:on_keypressed(key)
   if key == 'down' then
     if self.choosing_list == "menu" then
@@ -418,7 +406,10 @@ function PlayerTurnState:on_keypressed(key)
   elseif key == 'escape' then
     self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
-    self:do_state_action()
+    local action = self.function_array[self.ongoing_state]
+    if action then
+      action(self)
+    end
   end
 end
 
