@@ -194,8 +194,8 @@ function Animation:manage_run_away_animations(dt)
     end
   elseif self.waiting_time < self.run_away_duration + 0.1 then
     for _, player in pairs(self.players) do
-      self.atlas:remove(player)
       self.lives:remove(self.atlas:get(player))
+      self.atlas:remove(player)
     end
     self.stage:view():get('message'):set(MESSAGES["Run"])
   elseif self.waiting_time < self.run_away_duration + 2 then

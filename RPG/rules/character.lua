@@ -354,11 +354,11 @@ return function (ruleset)
       elseif e.charmed then
         SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount, 0)
-        e.charmed = false
       else
         SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount - e.resistance, 0)
       end
+      e.charmed = false
 
       if final_dmg > 0 then
         hp = math.max(hp - final_dmg, 0)
