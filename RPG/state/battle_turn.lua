@@ -211,11 +211,38 @@ function PlayerTurnState:prev_unit(category)
   self:switch_cursor(category)
 end
 
+
+
+function PlayerTurnState:cancel_action()
+  self.ongoing_state = "choosing_option"
+  self.menu = ListMenu(TURN_OPTIONS)
+  self:_show_menu()
+  self.monster_index = 0
+  for i, player in ipairs(self.players) do
+    if player == self.character then
+      self.player_index = i
+    end
+  end
+  self:switch_cursor("player")
+end
+
+
+
+
+
+
+
+
+
+
+--States
 function PlayerTurnState:fighting_state(key)
   if key == 'down' then
     self:next_unit("monster")
   elseif key == 'up' then
     self:prev_unit("monster")
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     self.animation:setup_attack_animation(55, self.monster_index)
@@ -228,9 +255,7 @@ function PlayerTurnState:choosing_skill_state(key)
   elseif key == 'up' then
     self.menu:previous()
   elseif key == 'escape' then
-    self.ongoing_state = "choosing_option"
-    self.menu = ListMenu(TURN_OPTIONS)
-    self:_show_menu()
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     self.selected_skill = self.character.skill_set[self.menu:current_option()]
@@ -241,12 +266,12 @@ function PlayerTurnState:choosing_skill_state(key)
         self:view():remove('turn_menu', self.menu)
         self:view():get('message'):set(MESSAGES.ChooseTarget)
       else
+        self.player_index = 0
         self:next_unit("player")
         self.ongoing_state = "using_skill_on_player"
         self:view():remove('turn_menu', self.menu)
         self:view():get('message'):set(MESSAGES.ChooseTarget)
       end
-      self.character.mana = self.character.mana - 1
     else
       SOUNDS_DB.fail:play()
       self:view():get('message'):set(MESSAGES.NoMana)
@@ -262,10 +287,13 @@ function PlayerTurnState:using_skill_on_player_state(key)
     self:next_unit("player")
   elseif key == 'up' then
     self:prev_unit("player")
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local target = self.players[self.player_index]
     self.rules:cast_skill(target, self.selected_skill, self.turn)
+    self.character.mana = self.character.mana - 1
 
     return self:pop({
       action = "Skill",
@@ -282,10 +310,13 @@ function PlayerTurnState:using_skill_on_monster_state(key)
     self:next_unit("monster")
   elseif key == 'up' then
     self:prev_unit("monster")
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local target = self.monsters[self.monster_index]
     self.rules:cast_skill(target, self.selected_skill, self.turn)
+    self.character.mana = self.character.mana - 1
 
     return self:pop({
       action = "Skill",
@@ -303,9 +334,7 @@ function PlayerTurnState:choosing_item_state(key)
   elseif key == 'up' then
     self.menu:previous()
   elseif key == 'escape' then
-    self.ongoing_state = "choosing_option"
-    self.menu = ListMenu(TURN_OPTIONS)
-    self:_show_menu()
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     self.item_index = self.menu:current_option()
@@ -329,6 +358,8 @@ function PlayerTurnState:using_item_on_player_state(key)
     self:next_unit("player")
   elseif key == 'up' then
     self:prev_unit("player")
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local target = self.players[self.player_index]
@@ -349,6 +380,8 @@ function PlayerTurnState:using_item_on_monster_state(key)
     self:next_unit("monster")
   elseif key == 'up' then
     self:prev_unit("monster")
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local target = self.monsters[self.monster_index]
@@ -369,6 +402,8 @@ function PlayerTurnState:choosing_option_state(key)
     self.menu:next()
   elseif key == 'up' then
     self.menu:previous()
+  elseif key == 'escape' then
+    self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
     SOUNDS_DB.select_menu:play()
     local option = TURN_OPTIONS[self.menu:current_option()]
@@ -397,6 +432,11 @@ function PlayerTurnState:choosing_option_state(key)
     end
   end
 end
+
+
+
+
+
 
 function PlayerTurnState:on_keypressed(key)
   if self.ongoing_state == "fighting" then
