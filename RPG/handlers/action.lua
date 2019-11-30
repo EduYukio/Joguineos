@@ -1,7 +1,6 @@
 
 local SOUNDS_DB = require 'database.sounds'
 local ListMenu = require 'view.list_menu'
-
 local MESSAGES = {
   Victory = "You won the encounter!",
   Run = "You ran away safely.",
@@ -12,7 +11,6 @@ local MESSAGES = {
   ChooseSkillTarget = "Select the target of the skill.",
   ChooseItemTarget = "Select the target of the item.",
 }
-
 local MSG_COMPLEMENTS = {
   ["Heal"] = "healing 10 points.",
   ["War Cry"] = "ensuring the next\nattack is critical.",
@@ -22,7 +20,6 @@ local MSG_COMPLEMENTS = {
   ["Spinach"] = "raising the strength\nfor 2 turns!",
   ["Bandejao's Fish"] = "poisoning him\nfor 2 turns!",
 }
-
 local TURN_OPTIONS = { 'Fight', 'Skill', 'Item', 'Run' }
 
 local Action = require 'common.class' ()
@@ -35,6 +32,7 @@ function Action:_init(stage)
   self.animation = self.stage.animation
   self.rules = self.stage.rules
   self.turn = self.stage.turn
+  self.items = self.stage.items
 
   self.ongoing_state = "choosing_option"
   self.choosing_list = "menu"
@@ -113,7 +111,6 @@ function Action:using_skill()
   end
   self.rules:cast_skill(self.target, self.selected_skill, self.turn)
   self.character.mana = self.character.mana - 1
-
   return self.stage:pop({
     action = "Skill",
     character = self.character,
@@ -144,7 +141,6 @@ function Action:using_item()
     self.target = self.players[self.stage.player_index]
   end
   self.rules:use_item(self.target, self.selected_item, self.items, self.item_index, self.turn)
-
   return self.stage:pop({
     action = "Item",
     character = self.character,
