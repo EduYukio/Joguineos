@@ -40,8 +40,6 @@ function PlayerTurnState:_init(stack)
   self.character = nil
   self.cursor = nil
   self.message = self:view():get('message')
-
-
 end
 
 function PlayerTurnState:enter(params)
@@ -77,6 +75,7 @@ function PlayerTurnState:enter(params)
       self:check_condition_turns()
     end
     self.ongoing_state = "choosing_option"
+    self.choosing_list = "menu"
     self.monster_index = 0
     self.player_index = 0
 
@@ -175,7 +174,6 @@ function PlayerTurnState:switch_cursor(category)
   elseif category == "player" then
     sprite_instance = self.atlas:get(self.players[self.player_index])
   end
-
   self.cursor.selected_drawable = sprite_instance
 end
 
@@ -215,6 +213,7 @@ end
 
 function PlayerTurnState:cancel_action()
   self.ongoing_state = "choosing_option"
+  self.choosing_list = "menu"
   self.menu = ListMenu(TURN_OPTIONS)
   self:_show_menu()
   self.monster_index = 0
@@ -236,26 +235,6 @@ end
 
 
 --States
-function PlayerTurnState:state_template(key, list_category)
-  if key == 'down' then
-    if list_category == "menu" then
-      self.menu:next()
-    else
-      self:next_unit(list_category)
-    end
-  elseif key == 'up' then
-    if list_category == "menu" then
-      self.menu:previous()
-    else
-      self:prev_unit(list_category)
-    end
-  elseif key == 'escape' then
-    self:cancel_action()
-  elseif key == 'return' or key == 'kpenter' then
-    self:do_state_action()
-  end
-end
-
 function PlayerTurnState:fighting_state()
   SOUNDS_DB.select_menu:play()
   self.animation:setup_attack_animation(55, self.monster_index)
@@ -268,12 +247,14 @@ function PlayerTurnState:choosing_skill_state()
     if self.selected_skill == "Charm" then
       self:next_unit("monster")
       self.ongoing_state = "using_skill_on_monster"
+      self.choosing_list = "monster"
       self:view():remove('turn_menu', self.menu)
       self:view():get('message'):set(MESSAGES.ChooseTarget)
     else
       self.player_index = 0
       self:next_unit("player")
       self.ongoing_state = "using_skill_on_player"
+      self.choosing_list = "player"
       self:view():remove('turn_menu', self.menu)
       self:view():get('message'):set(MESSAGES.ChooseTarget)
     end
@@ -281,6 +262,7 @@ function PlayerTurnState:choosing_skill_state()
     SOUNDS_DB.fail:play()
     self:view():get('message'):set(MESSAGES.NoMana)
     self.ongoing_state = "choosing_option"
+    self.choosing_list = "menu"
     self.menu = ListMenu(TURN_OPTIONS)
     self:_show_menu()
   end
@@ -321,13 +303,17 @@ function PlayerTurnState:choosing_item_state()
   self.item_index = self.menu:current_option()
   self.selected_item = self.items[self.item_index]
   if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
+    self.monster_index = 0
     self:next_unit("monster")
     self.ongoing_state = "using_item_on_monster"
+    self.choosing_list = "monster"
     self:view():remove('turn_menu', self.menu)
     self:view():get('message'):set(MESSAGES.ChooseItemTarget)
   else
+    self.player_index = 0
     self:next_unit("player")
     self.ongoing_state = "using_item_on_player"
+    self.choosing_list = "player"
     self:view():remove('turn_menu', self.menu)
     self:view():get('message'):set(MESSAGES.ChooseItemTarget)
   end
@@ -366,12 +352,14 @@ function PlayerTurnState:choosing_option_state()
   local option = TURN_OPTIONS[self.menu:current_option()]
   if option == "Fight" then
     self.ongoing_state = "fighting"
+    self.choosing_list = "monster"
     self:next_unit("monster")
   elseif option == "Run" then
     self.ongoing_state = "running_away"
     self.animation:setup_run_away_animation()
   elseif option == "Skill" then
     self.ongoing_state = "choosing_skill"
+    self.choosing_list = "menu"
     self:view():remove('turn_menu', self.menu)
     self.menu = ListMenu(self.character.skill_set)
     self:_show_menu()
@@ -380,8 +368,10 @@ function PlayerTurnState:choosing_option_state()
       SOUNDS_DB.fail:play()
       self:view():get('message'):set(MESSAGES.NoItems)
       self.ongoing_state = "choosing_option"
+      self.choosing_list = "menu"
     else
       self.ongoing_state = "choosing_item"
+      self.choosing_list = "menu"
       self:view():remove('turn_menu', self.menu)
       self.menu = ListMenu(self.items, "items")
       self:_show_menu()
@@ -413,22 +403,22 @@ function PlayerTurnState:do_state_action()
 end
 
 function PlayerTurnState:on_keypressed(key)
-  if self.ongoing_state == "fighting" then
-    self:state_template(key, "monster")
-  elseif self.ongoing_state == "choosing_skill" then
-    self:state_template(key, "menu")
-  elseif self.ongoing_state == "using_skill_on_player" then
-    self:state_template(key, "player")
-  elseif self.ongoing_state == "using_skill_on_monster" then
-    self:state_template(key, "monster")
-  elseif self.ongoing_state == "choosing_item" then
-    self:state_template(key, "menu")
-  elseif self.ongoing_state == "using_item_on_player" then
-    self:state_template(key, "player")
-  elseif self.ongoing_state == "using_item_on_monster" then
-    self:state_template(key, "monster")
-  elseif self.ongoing_state == "choosing_option" then
-    self:state_template(key, "menu")
+  if key == 'down' then
+    if self.choosing_list == "menu" then
+      self.menu:next()
+    else
+      self:next_unit(self.choosing_list)
+    end
+  elseif key == 'up' then
+    if self.choosing_list == "menu" then
+      self.menu:previous()
+    else
+      self:prev_unit(self.choosing_list)
+    end
+  elseif key == 'escape' then
+    self:cancel_action()
+  elseif key == 'return' or key == 'kpenter' then
+    self:do_state_action()
   end
 end
 
