@@ -394,7 +394,7 @@ function PlayerTurnState:on_keypressed(key)
   end
 end
 
-function PlayerTurnState:emit_particles(dt)
+function PlayerTurnState:emit_players_particles(dt)
   for _, player in pairs(self.players) do
     if player.crit_ensured then
       player.p_systems.dark_red:emit(1)
@@ -412,6 +412,9 @@ function PlayerTurnState:emit_particles(dt)
       p_system:update(dt)
     end
   end
+end
+
+function PlayerTurnState:emit_monsters_particles(dt)
   for _, monster in pairs(self.monsters) do
     if monster.charmed then
       monster.p_systems.pink:emit(1)
@@ -432,20 +435,11 @@ function PlayerTurnState:emit_particles(dt)
 end
 
 function PlayerTurnState:update(dt)
-  self:emit_particles(dt)
+  self:emit_players_particles(dt)
+  self:emit_monsters_particles(dt)
 
   if self.ongoing_state == "animation" then
-    if self.attack_animation then
-      self.animation:manage_attack_animations(dt)
-    elseif self.getting_hit_animation then
-      self.animation:manage_getting_hit_animations(dt)
-    elseif self.run_away_animation then
-      self.animation:manage_run_away_animations(dt)
-    elseif self.delay_animation then
-      self.animation:manage_delay_animation(dt)
-    elseif self.retreat_animation then
-      self.animation:manage_retreat_animations(dt)
-    end
+    self.animation:update_animations(dt)
   end
 end
 

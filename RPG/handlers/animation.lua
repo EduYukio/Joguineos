@@ -54,7 +54,7 @@ end
 
 function Animation:setup_delay_animation(delay_duration, return_action)
   self.stage.ongoing_state = "animation"
-  self.stage.delay_animation = true
+  self.delay_animation = true
   self.delay_duration = delay_duration
   self.return_action = return_action
   self.stage:view():remove('turn_cursor')
@@ -70,9 +70,9 @@ function Animation:manage_delay_animation(dt)
     return
   else
     self.waiting_time = 0
-    self.stage.delay_animation = false
+    self.delay_animation = false
     if act == "Missed" then
-      self.stage.retreat_animation = true
+      self.retreat_animation = true
     elseif act == "MonsterTurn" then
       self:setup_attack_animation(55, self.monster_index)
     elseif act == "Victory" or act == "Defeat" then
@@ -83,7 +83,7 @@ end
 
 function Animation:setup_attack_animation(walking_length, monster_index)
   self.stage.ongoing_state = "animation"
-  self.stage.attack_animation = true
+  self.attack_animation = true
 
   self.walked_length = 0
   self.walking_length = walking_length
@@ -114,20 +114,20 @@ function Animation:manage_attack_animations(dt)
   else
     self.walked_length = 0
     self.waiting_time = 0
-    self.stage.attack_animation = false
+    self.attack_animation = false
     self.missed_attack = true
 
     local accuracy = math.random()
     if self.attacker == "Player" then
       if self.character.crit_ensured or accuracy > self.selected_monster.evasion then
         self:attack_monster()
-        self.stage.getting_hit_animation = true
+        self.getting_hit_animation = true
         self.missed_attack = false
       end
     elseif self.attacker == "Monster" then
       if accuracy > self.selected_player.evasion then
         self:attack_player()
-        self.stage.getting_hit_animation = true
+        self.getting_hit_animation = true
         self.missed_attack = false
       end
     end
@@ -165,8 +165,8 @@ function Animation:manage_getting_hit_animations(dt)
   else
     self.walked_length = 0
     self.waiting_time = 0
-    self.stage.getting_hit_animation = false
-    self.stage.retreat_animation = true
+    self.getting_hit_animation = false
+    self.retreat_animation = true
   end
 end
 
@@ -183,7 +183,7 @@ function Animation:manage_retreat_animations(dt)
   else
     self.walked_length = 0
     self.waiting_time = 0
-    self.stage.retreat_animation = false
+    self.retreat_animation = false
 
     if self.missed_attack then
       return self.stage:pop({})
@@ -248,7 +248,7 @@ end
 function Animation:setup_run_away_animation()
   self.stage.ongoing_state = "animation"
   self.stage:view():remove('turn_cursor')
-  self.stage.run_away_animation = true
+  self.run_away_animation = true
   self.run_away_duration = 0.4
   self.walked_length = 0
 end
@@ -274,8 +274,22 @@ function Animation:manage_run_away_animations(dt)
     return
   else
     self.waiting_time = 0
-    self.stage.run_away_animation = false
+    self.run_away_animation = false
     return self.stage:pop({ action = "Run" })
+  end
+end
+
+function Animation:update_animations(dt)
+  if self.attack_animation then
+    self:manage_attack_animations(dt)
+  elseif self.getting_hit_animation then
+    self:manage_getting_hit_animations(dt)
+  elseif self.run_away_animation then
+    self:manage_run_away_animations(dt)
+  elseif self.delay_animation then
+    self:manage_delay_animation(dt)
+  elseif self.retreat_animation then
+    self:manage_retreat_animations(dt)
   end
 end
 
