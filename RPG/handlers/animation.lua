@@ -37,12 +37,14 @@ function Animation:_init(stage)
   self.right_dir = Vec(1, 0)
 end
 
+--Delay
 function Animation:setup_delay_animation(delay_duration, return_action)
   self.stage.ongoing_state = "animation"
   self.delay_animation = true
   self.delay_duration = delay_duration
   self.return_action = return_action
   self.stage:view():remove('turn_cursor')
+
   if MESSAGES[return_action] then
     self.stage:view():get('message'):set(MESSAGES[return_action])
   end
@@ -66,10 +68,12 @@ function Animation:manage_delay_animation(dt)
   end
 end
 
+
+
+--Attack
 function Animation:setup_attack_animation(walking_length, monster_index)
   self.stage.ongoing_state = "animation"
   self.attack_animation = true
-
   self.walked_length = 0
   self.walking_length = walking_length
   self.monster_index = monster_index
@@ -100,29 +104,22 @@ function Animation:manage_attack_animations(dt)
     self.walked_length = 0
     self.waiting_time = 0
     self.attack_animation = false
-    self.missed_attack = true
 
-    local accuracy = math.random()
-    if self.attacker == "Player" then
-      if self.character.crit_ensured or accuracy > self.selected_monster.evasion then
-        self.dmg_dealt, self.crit_attack = self.attack:monster(self.selected_monster)
-        self.getting_hit_animation = true
-        self.missed_attack = false
-      end
-    elseif self.attacker == "Monster" then
-      if accuracy > self.selected_player.evasion then
-        self.dmg_dealt, self.crit_attack = self.attack:player(self.selected_player)
-        self.getting_hit_animation = true
-        self.missed_attack = false
-      end
-    end
+    self.attack:setup_targets(self.selected_monster, self.selected_player)
+    self.missed_attack = self.attack:check_miss(self.attacker)
 
     if self.missed_attack then
       self:setup_delay_animation(1.5, "Missed")
+    else
+      self.attack:enemy(self.attacker)
+      self.getting_hit_animation = true
     end
   end
 end
 
+
+
+--Walking
 function Animation:play_walking_animation(dt, unit_sprite, direction, speed) --luacheck: no self
   local delta_s = direction * speed * dt
 
@@ -132,6 +129,9 @@ function Animation:play_walking_animation(dt, unit_sprite, direction, speed) --l
   unit_sprite.position:add(delta_s)
 end
 
+
+
+--Getting Hit
 function Animation:setup_getting_hit_animation(shaking_length)
   self.stage.ongoing_state = "animation"
   self.shaking_length = shaking_length
@@ -155,6 +155,9 @@ function Animation:manage_getting_hit_animations(dt)
   end
 end
 
+
+
+--Retreat
 function Animation:manage_retreat_animations(dt)
   if self.walked_length < self.walking_length then
     if self.attacker == "Player" then
@@ -189,9 +192,9 @@ function Animation:manage_retreat_animations(dt)
         action = "Fight",
         character = self.character,
         selected = self.selected_monster,
-        dmg_dealt = self.dmg_dealt,
-        became_enraged = self.became_enraged,
-        crit_attack = self.crit_attack,
+        became_enraged = self.attack.became_enraged,
+        dmg_dealt = self.attack.dmg_dealt,
+        crit_attack = self.attack.crit_attack,
       })
     elseif self.attacker == "Monster" then
       self.stage.ongoing_state = "monster_turn"
@@ -208,12 +211,15 @@ function Animation:manage_retreat_animations(dt)
         action = "Fight",
         character = self.character,
         selected = self.selected_player,
-        dmg_dealt = self.dmg_dealt,
+        dmg_dealt = self.attack.dmg_dealt,
       })
     end
   end
 end
 
+
+
+--Shaking
 function Animation:play_shaking_animation(dt, unit, unit_sprite, back_direction)
   local speed = 250 * dt
   local delta_s
@@ -230,6 +236,8 @@ function Animation:play_shaking_animation(dt, unit, unit_sprite, back_direction)
   unit_sprite.position:add(delta_s)
 end
 
+
+--Run Away
 function Animation:setup_run_away_animation()
   self.stage.ongoing_state = "animation"
   self.stage:view():remove('turn_cursor')
@@ -263,6 +271,9 @@ function Animation:manage_run_away_animations(dt)
     return self.stage:pop({ action = "Run" })
   end
 end
+
+
+
 
 function Animation:update_animations(dt)
   if self.attack_animation then
