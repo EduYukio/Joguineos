@@ -6,9 +6,9 @@ local ListMenu = require 'view.list_menu'
 local UI_Info = require 'view.ui_info'
 local Lives = require 'view.lives'
 local State = require 'state'
-local p = require 'database.properties'
 local SOUNDS_DB = require 'database.sounds'
 local Animation = require 'handlers.animation'
+local Condition = require 'handlers.condition'
 
 local PlayerTurnState = require 'common.class' (State)
 
@@ -59,17 +59,24 @@ function PlayerTurnState:enter(params)
   self.items = params.items
   self.p_systems = params.p_systems
   self.turn = params.turn
+  self.monsters = params.monsters
+  self.players = params.players
 
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
+  self.character_sprite = self.atlas:get(self.character)
 
   self.menu = ListMenu(TURN_OPTIONS)
-
-  self.character_sprite = self.atlas:get(self.character)
-  self.monsters = params.monsters
-  self.players = params.players
   self.dmg_dealt = 0
 
+  self:load_ui_elements()
+
+  self.animation = Animation(self)
+  self.condition = Condition(self)
+  self:load_units()
+end
+
+function PlayerTurnState:load_ui_elements()
   local _, right, top, _ = self.battlefield.bounds:get()
   self.ui_info = UI_Info(Vec(right + 250, top + 10))
   self:view():add('ui_info', self.ui_info)
@@ -79,17 +86,20 @@ function PlayerTurnState:enter(params)
   self:view():add('lives', self.lives)
   self.rules:add_ui_lives(self.lives, self.atlas, self.players)
   self.rules:add_ui_lives(self.lives, self.atlas, self.monsters)
+end
 
-  self.animation = Animation(self)
+function PlayerTurnState:load_units()
   if self.attacker == "Player" then
     if self.character == self.players[1] then
-      self:check_condition_turns()
+      self.condition:check_player()
+      if self.condition:check_monster() then
+        return self:pop({ action = "Victory" })
+      end
     end
     self.ongoing_state = "choosing_option"
     self.choosing_list = "menu"
     self.monster_index = 0
     self.player_index = 0
-
     self:_show_menu()
     self:_show_cursor()
     self:_show_stats()
@@ -103,46 +113,9 @@ function PlayerTurnState:enter(params)
   end
 end
 
-function PlayerTurnState:check_condition_turns()
-  for _, player in pairs(self.players) do
-    if player.empowered then
-      if self.turn - player.empowered.turn == self.p_systems:get_lifetime(player, "orange") then
-        player.empowered = false
-      end
-    end
-    if player.energized then
-      if self.turn - player.energized.turn == self.p_systems:get_lifetime(player, "light_blue") then
-        player.energized = false
-      end
-    end
-  end
 
-  for i, monster in pairs(self.monsters) do
-    if monster.sticky then
-      if self.turn - monster.sticky.turn == self.p_systems:get_lifetime(monster, "dark_blue") then
-        monster.sticky = false
-      end
-    end
-    if monster.poisoned then
-      if self.turn - monster.poisoned.turn == self.p_systems:get_lifetime(monster, "pure_black") then
-        monster.poisoned = false
-      end
-      SOUNDS_DB.unit_take_hit:play()
-      monster.hp = monster.hp - p.poison_dmg
-      local spr = self.atlas:get(monster)
-      self.lives:upgrade_life(spr, monster.hp)
 
-      local died = self.rules:remove_if_dead(monster, self.atlas, self.monsters, i, self.lives)
-      local msg = monster.name .. " took " .. tostring(p.poison_dmg) .. " damage from poison."
 
-      if died then
-        msg = msg .. "\nIt died from bandejao's mighty fish..."
-      end
-
-      self:view():get('message'):set(msg)
-    end
-  end
-end
 
 function PlayerTurnState:_show_menu()
   local bfbox = self:view():get('battlefield').bounds
@@ -460,6 +433,7 @@ function PlayerTurnState:update(dt)
   if self.ongoing_state == "animation" then
     self.animation:update_animations(dt)
   end
+
 end
 
 return PlayerTurnState
