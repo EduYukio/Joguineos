@@ -292,35 +292,50 @@ function PlayerTurnState:using_item()
   })
 end
 
+function PlayerTurnState:setup_fight_option()
+  self.ongoing_state = "fighting"
+  self.choosing_list = "monster"
+  self:next_unit("monster")
+end
+
+function PlayerTurnState:setup_run_option()
+  self.ongoing_state = "running_away"
+  self.animation:setup_run_away_animation()
+end
+
+function PlayerTurnState:setup_skill_option()
+  self.ongoing_state = "choosing_skill"
+  self.choosing_list = "menu"
+  self:view():remove('turn_menu', self.menu)
+  self.menu = ListMenu(self.character.skill_set)
+  self:_show_menu()
+end
+
+function PlayerTurnState:setup_item_option()
+  if #self.items == 0 then
+    SOUNDS_DB.fail:play()
+    self:view():get('message'):set(MESSAGES.NoItems)
+    self.ongoing_state = "choosing_option"
+  else
+    self:view():remove('turn_menu', self.menu)
+    self.menu = ListMenu(self.items, "items")
+    self:_show_menu()
+    self.ongoing_state = "choosing_item"
+  end
+  self.choosing_list = "menu"
+end
+
 function PlayerTurnState:choosing_option()
   SOUNDS_DB.select_menu:play()
   local option = TURN_OPTIONS[self.menu:current_option()]
   if option == "Fight" then
-    self.ongoing_state = "fighting"
-    self.choosing_list = "monster"
-    self:next_unit("monster")
+    self:setup_fight_option()
   elseif option == "Run" then
-    self.ongoing_state = "running_away"
-    self.animation:setup_run_away_animation()
+    self:setup_run_option()
   elseif option == "Skill" then
-    self.ongoing_state = "choosing_skill"
-    self.choosing_list = "menu"
-    self:view():remove('turn_menu', self.menu)
-    self.menu = ListMenu(self.character.skill_set)
-    self:_show_menu()
+    self:setup_skill_option()
   elseif option == "Item" then
-    if #self.items == 0 then
-      SOUNDS_DB.fail:play()
-      self:view():get('message'):set(MESSAGES.NoItems)
-      self.ongoing_state = "choosing_option"
-      self.choosing_list = "menu"
-    else
-      self.ongoing_state = "choosing_item"
-      self.choosing_list = "menu"
-      self:view():remove('turn_menu', self.menu)
-      self.menu = ListMenu(self.items, "items")
-      self:_show_menu()
-    end
+    self:setup_item_option()
   end
 end
 
@@ -394,7 +409,6 @@ function PlayerTurnState:update(dt)
   if self.ongoing_state == "animation" then
     self.animation:update_animations(dt)
   end
-
 end
 
 return PlayerTurnState
