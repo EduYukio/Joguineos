@@ -77,7 +77,6 @@ function PlayerTurnState:enter(params)
       self:check_condition_turns()
     end
     self.ongoing_state = "choosing_option"
-    self.selected_monster = nil
     self.monster_index = 0
     self.player_index = 0
 
@@ -89,7 +88,7 @@ function PlayerTurnState:enter(params)
       self.turn = 0
       self.animation:setup_delay_animation(2, "MonsterTurn")
     else
-      self.animation:setup_attack_animation(55)
+      self.animation:setup_attack_animation(55, self.monster_index)
     end
   end
 end
@@ -218,22 +217,7 @@ end
 --Animations
 --
 
-function PlayerTurnState:attack_player()
-  SOUNDS_DB.unit_take_hit:play()
-  self.dmg_dealt = self.rules:take_damage(self.selected_player, self.character.damage)
-end
 
-function PlayerTurnState:attack_monster()
-  self.crit_attack = false
-  local crit_attempt = math.random()
-  if self.character.crit_ensured or crit_attempt < self.character.crit_chance then
-    self.crit_attack = true
-    self.atlas:flash_crit()
-    self.character.crit_ensured = false
-  end
-  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
-  self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
-end
 
 function PlayerTurnState:on_keypressed(key)
   if self.ongoing_state == "fighting" then
@@ -243,7 +227,7 @@ function PlayerTurnState:on_keypressed(key)
       self:prev_unit("monster")
     elseif key == 'return' or key == 'kpenter' then
       SOUNDS_DB.select_menu:play()
-      self.animation:setup_attack_animation(55)
+      self.animation:setup_attack_animation(55, self.monster_index)
     end
   elseif self.ongoing_state == "choosing_skill" then
     if key == 'down' then

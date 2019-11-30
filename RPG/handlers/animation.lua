@@ -24,16 +24,32 @@ function Animation:_init(stage)
   self.p_systems = self.stage.p_systems
   self.monsters = self.stage.monsters
   self.players = self.stage.players
-
-  self.selected_monster = self.stage.selected_monster
   self.character_sprite = self.stage.character_sprite
 
-  self.monster_index = self.stage.monster_index
   self.player_index = self.stage.player_index
+  self.rules = self.stage.rules
+  self.selected_monster = nil
 
   self.waiting_time = 0
   self.left_dir = Vec(-1, 0)
   self.right_dir = Vec(1, 0)
+end
+
+function Animation:attack_player()
+  SOUNDS_DB.unit_take_hit:play()
+  self.dmg_dealt = self.rules:take_damage(self.selected_player, self.character.damage)
+end
+
+function Animation:attack_monster()
+  self.crit_attack = false
+  local crit_attempt = math.random()
+  if self.character.crit_ensured or crit_attempt < self.character.crit_chance then
+    self.crit_attack = true
+    self.atlas:flash_crit()
+    self.character.crit_ensured = false
+  end
+  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
+  self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
 
 function Animation:setup_delay_animation(delay_duration, return_action)
@@ -41,9 +57,9 @@ function Animation:setup_delay_animation(delay_duration, return_action)
   self.stage.delay_animation = true
   self.delay_duration = delay_duration
   self.return_action = return_action
-  self:view():remove('turn_cursor')
+  self.stage:view():remove('turn_cursor')
   if MESSAGES[return_action] then
-    self:view():get('message'):set(MESSAGES[return_action])
+    self.stage:view():get('message'):set(MESSAGES[return_action])
   end
 end
 
@@ -58,22 +74,23 @@ function Animation:manage_delay_animation(dt)
     if act == "Missed" then
       self.stage.retreat_animation = true
     elseif act == "MonsterTurn" then
-      self:setup_attack_animation(55)
+      self:setup_attack_animation(55, self.monster_index)
     elseif act == "Victory" or act == "Defeat" then
-      return self:pop({ action = self.return_action })
+      return self.stage:pop({ action = self.return_action })
     end
   end
 end
 
-function Animation:setup_attack_animation(walking_length)
+function Animation:setup_attack_animation(walking_length, monster_index)
   self.stage.ongoing_state = "animation"
   self.stage.attack_animation = true
 
   self.walked_length = 0
   self.walking_length = walking_length
+  self.monster_index = monster_index
 
   if self.attacker == "Player" then
-    self.selected_monster = self.monsters[self.monster_index]
+    self.selected_monster = self.monsters[monster_index]
     self.selected_monster_sprite = self.atlas:get(self.selected_monster)
   elseif self.attacker == "Monster" then
     self.player_index = math.random(#self.players)
@@ -103,13 +120,13 @@ function Animation:manage_attack_animations(dt)
     local accuracy = math.random()
     if self.attacker == "Player" then
       if self.character.crit_ensured or accuracy > self.selected_monster.evasion then
-        self.stage:attack_monster()
+        self:attack_monster()
         self.stage.getting_hit_animation = true
         self.missed_attack = false
       end
     elseif self.attacker == "Monster" then
       if accuracy > self.selected_player.evasion then
-        self.stage:attack_player()
+        self:attack_player()
         self.stage.getting_hit_animation = true
         self.missed_attack = false
       end
@@ -169,7 +186,7 @@ function Animation:manage_retreat_animations(dt)
     self.stage.retreat_animation = false
 
     if self.missed_attack then
-      return self:pop({})
+      return self.stage:pop({})
     end
 
     if self.attacker == "Player" then
@@ -183,7 +200,7 @@ function Animation:manage_retreat_animations(dt)
         return
       end
 
-      return self:pop({
+      return self.stage:pop({
         action = "Fight",
         character = self.character,
         selected = self.selected_monster,
@@ -202,7 +219,7 @@ function Animation:manage_retreat_animations(dt)
         return
       end
 
-      return self:pop({
+      return self.stage:pop({
         action = "Fight",
         character = self.character,
         selected = self.selected_player,
@@ -230,7 +247,7 @@ end
 
 function Animation:setup_run_away_animation()
   self.stage.ongoing_state = "animation"
-  self:view():remove('turn_cursor')
+  self.stage:view():remove('turn_cursor')
   self.stage.run_away_animation = true
   self.run_away_duration = 0.4
   self.walked_length = 0
@@ -252,13 +269,13 @@ function Animation:manage_run_away_animations(dt)
       self.atlas:remove(player)
       self.lives:remove(player_sprite)
     end
-    self:view():get('message'):set(MESSAGES["Run"])
+    self.stage:view():get('message'):set(MESSAGES["Run"])
   elseif self.waiting_time < self.run_away_duration + 2 then
     return
   else
     self.waiting_time = 0
     self.stage.run_away_animation = false
-    return self:pop({ action = "Run" })
+    return self.stage:pop({ action = "Run" })
   end
 end
 
