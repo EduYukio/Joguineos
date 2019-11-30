@@ -397,7 +397,7 @@ return function (ruleset)
       if e.enraged then return false end
 
       local hp_perc = e.hp/e.max_hp
-      if hp_perc > 0 and hp_perc <= 0.3 then
+      if hp_perc > 0 and hp_perc <= 0.45 then
         e.enraged = true
         e.damage = e.damage + 5
         atlas:enrage_monster(e)
