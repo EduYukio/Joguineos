@@ -18,7 +18,6 @@ function CharacterStats:draw()
 
   local char = self.character
   g.translate(self.position:get())
-
   g.setFont(self.title_font)
   g.setColor(PALETTE_DB.orange)
   g.print(char.name)

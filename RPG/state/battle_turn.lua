@@ -34,12 +34,10 @@ function PlayerTurnState:enter(params)
   self.battlefield = self:view():get('battlefield')
   self.atlas = self:view():get('atlas')
   self.character_sprite = self.atlas:get(self.character)
-
   self.menu = ListMenu(TURN_OPTIONS)
   self.dmg_dealt = 0
 
   self:load_ui_elements()
-
   self.animation = Animation(self)
   self.condition = Condition(self)
   self:load_units()
@@ -175,8 +173,6 @@ function PlayerTurnState:on_keypressed(key)
     end
   end
 end
-
-
 
 function PlayerTurnState:update(dt)
   self.particles:emit_players_particles(dt)

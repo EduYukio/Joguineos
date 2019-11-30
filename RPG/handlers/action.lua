@@ -33,7 +33,6 @@ function Action:_init(stage)
   self.rules = self.stage.rules
   self.turn = self.stage.turn
   self.items = self.stage.items
-
   self.ongoing_state = "choosing_option"
   self.choosing_list = "menu"
   self.function_array = {
@@ -140,7 +139,8 @@ function Action:using_item()
   elseif self.choosing_list == "player" then
     self.target = self.players[self.stage.player_index]
   end
-  self.rules:use_item(self.target, self.selected_item, self.items, self.item_index, self.turn)
+  self.rules:use_item(self.target, self.selected_item,
+       self.items, self.item_index, self.turn)
   return self.stage:pop({
     action = "Item",
     character = self.character,

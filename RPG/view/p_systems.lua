@@ -40,7 +40,6 @@ function PSystems:add(unit, position, color, lifetime)
   if not self.list[unit] then
     self.list[unit] = {}
   end
-
   self.list[unit][color] = p_system
 
   return p_system.sys

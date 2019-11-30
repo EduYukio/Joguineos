@@ -33,7 +33,8 @@ function Attack:monster(selected_monster)
     self.character.crit_ensured = false
   end
 
-  self.dmg_dealt =  self.rules:take_damage(selected_monster, self.character.damage, self.crit_attack)
+  self.dmg_dealt =  self.rules:take_damage(selected_monster,
+                         self.character.damage, self.crit_attack)
   self.became_enraged = self.rules:enrage_if_dying(selected_monster, self.atlas)
 end
 
@@ -71,7 +72,8 @@ end
 
 function Attack:player_aftermath()
   self.stage.ongoing_state = "choosing_option"
-  self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.stage.monster_index, self.lives)
+  self.rules:remove_if_dead(self.selected_monster,
+       self.atlas, self.monsters, self.stage.monster_index, self.lives)
   self.stage.monster_index = 0
 
   if #self.monsters == 0 then
@@ -91,7 +93,8 @@ end
 
 function Attack:monster_aftermath()
   self.stage.ongoing_state = "monster_turn"
-  self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.stage.player_index, self.lives)
+  self.rules:remove_if_dead(self.selected_player, self.atlas,
+       self.players, self.stage.player_index, self.lives)
   self.stage.player_index = 0
 
   if #self.players == 0 then
