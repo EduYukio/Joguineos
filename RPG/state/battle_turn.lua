@@ -46,8 +46,7 @@ function PlayerTurnState:_init(stack)
     choosing_skill = self.choosing_skill,
     using_skill = self.using_skill,
     choosing_item = self.choosing_item,
-    using_item_on_player = self.using_item_on_player,
-    using_item_on_monster = self.using_item_on_monster,
+    using_item = self.using_item,
     choosing_option = self.choosing_option,
   }
 end
@@ -234,6 +233,14 @@ function PlayerTurnState:select_skill_target(category)
   self:view():get('message'):set(MESSAGES.ChooseTarget)
 end
 
+function PlayerTurnState:select_item_target(category)
+  self:next_unit(category)
+  self.ongoing_state = "using_item"
+  self.choosing_list = category
+  self:view():remove('turn_menu', self.menu)
+  self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+end
+
 function PlayerTurnState:using_skill()
   SOUNDS_DB.select_menu:play()
   if self.choosing_list == "monster" then
@@ -259,45 +266,27 @@ function PlayerTurnState:choosing_item()
   self.selected_item = self.items[self.item_index]
   if self.selected_item == "Mud Slap" or self.selected_item == "Bandejao's Fish" then
     self.monster_index = 0
-    self:next_unit("monster")
-    self.ongoing_state = "using_item_on_monster"
-    self.choosing_list = "monster"
-    self:view():remove('turn_menu', self.menu)
-    self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+    self:select_item_target("monster")
   else
     self.player_index = 0
-    self:next_unit("player")
-    self.ongoing_state = "using_item_on_player"
-    self.choosing_list = "player"
-    self:view():remove('turn_menu', self.menu)
-    self:view():get('message'):set(MESSAGES.ChooseItemTarget)
+    self:select_item_target("player")
   end
 end
 
-function PlayerTurnState:using_item_on_player()
+function PlayerTurnState:using_item()
   SOUNDS_DB.select_menu:play()
-  local target = self.players[self.player_index]
-  self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
+  if self.choosing_list == "monster" then
+    self.target = self.monsters[self.monster_index]
+  elseif self.choosing_list == "player" then
+    self.target = self.players[self.player_index]
+  end
+  self.rules:use_item(self.target, self.selected_item, self.items, self.item_index, self.turn)
 
   return self:pop({
     action = "Item",
     character = self.character,
     skill_or_item = self.selected_item,
-    selected = target,
-    msg_complement = MSG_COMPLEMENTS[self.selected_item],
-  })
-end
-
-function PlayerTurnState:using_item_on_monster()
-  SOUNDS_DB.select_menu:play()
-  local target = self.monsters[self.monster_index]
-  self.rules:use_item(target, self.selected_item, self.items, self.item_index, self.turn)
-
-  return self:pop({
-    action = "Item",
-    character = self.character,
-    skill_or_item = self.selected_item,
-    selected = target,
+    selected = self.target,
     msg_complement = MSG_COMPLEMENTS[self.selected_item],
   })
 end
