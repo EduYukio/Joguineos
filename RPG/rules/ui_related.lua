@@ -17,8 +17,8 @@ return function (ruleset)
     end
     function self.apply()
       for _, unit in pairs(units) do
-      local spr = atlas:get(unit)
-      array:add(spr, unit.hp, unit.max_hp)
+        local spr = atlas:get(unit)
+        array:add(spr, unit.hp, unit.max_hp)
       end
     end
   end

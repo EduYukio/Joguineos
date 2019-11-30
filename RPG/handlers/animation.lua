@@ -1,5 +1,4 @@
 
-local SOUNDS_DB = require 'database.sounds'
 local Vec = require 'common.vec'
 local Attack = require 'handlers.attack'
 
@@ -27,7 +26,6 @@ function Animation:_init(stage)
   self.players = self.stage.players
   self.character_sprite = self.stage.character_sprite
 
-  self.player_index = self.stage.player_index
   self.rules = self.stage.rules
   self.selected_monster = nil
 
@@ -82,8 +80,8 @@ function Animation:setup_attack_animation(walking_length, monster_index)
     self.selected_monster = self.monsters[monster_index]
     self.selected_monster_sprite = self.atlas:get(self.selected_monster)
   elseif self.attacker == "Monster" then
-    self.player_index = math.random(#self.players)
-    self.selected_player = self.players[self.player_index]
+    self.stage.player_index = math.random(#self.players)
+    self.selected_player = self.players[self.stage.player_index]
     self.selected_player_sprite = self.atlas:get(self.selected_player)
   end
 
@@ -97,17 +95,14 @@ function Animation:manage_attack_animations(dt)
     elseif self.attacker == "Monster" then
       self:play_walking_animation(dt, self.character_sprite, self.right_dir, 400)
     end
-  elseif self.waiting_time < 0.4 then
+  elseif self.waiting_time < 0.3 then
     self.waiting_time = self.waiting_time + dt
-    return
   else
     self.walked_length = 0
     self.waiting_time = 0
     self.attack_animation = false
-
     self.attack:setup_targets(self.selected_monster, self.selected_player)
     self.missed_attack = self.attack:check_miss(self.attacker)
-
     if self.missed_attack then
       self:setup_delay_animation(1.5, "Missed")
     else
@@ -120,7 +115,7 @@ end
 
 
 --Walking
-function Animation:play_walking_animation(dt, unit_sprite, direction, speed) --luacheck: no self
+function Animation:play_walking_animation(dt, unit_sprite, direction, speed)
   local delta_s = direction * speed * dt
 
   self.walked_length = self.walked_length + speed * dt
@@ -140,13 +135,14 @@ end
 function Animation:manage_getting_hit_animations(dt)
   if self.walked_length < self.shaking_length then
     if self.attacker == "Player" then
-      self:play_shaking_animation(dt, self.selected_monster, self.selected_monster_sprite, self.left_dir)
+      self:play_shaking_animation(dt, self.selected_monster,
+           self.selected_monster_sprite, self.left_dir)
     elseif self.attacker == "Monster" then
-      self:play_shaking_animation(dt, self.selected_player, self.selected_player_sprite, self.right_dir)
+      self:play_shaking_animation(dt, self.selected_player,
+           self.selected_player_sprite, self.right_dir)
     end
-  elseif self.waiting_time < 0.4 then
+  elseif self.waiting_time < 0.3 then
     self.waiting_time = self.waiting_time + dt
-    return
   else
     self.walked_length = 0
     self.waiting_time = 0
@@ -167,52 +163,16 @@ function Animation:manage_retreat_animations(dt)
     end
   elseif self.waiting_time < 0.5 then
     self.waiting_time = self.waiting_time + dt
-    return
   else
     self.walked_length = 0
     self.waiting_time = 0
     self.retreat_animation = false
-
     if self.missed_attack then
       return self.stage:pop({})
     end
-
-    if self.attacker == "Player" then
-      self.stage.ongoing_state = "choosing_option"
-      self.rules:remove_if_dead(self.selected_monster, self.atlas, self.monsters, self.monster_index, self.lives)
-      self.monster_index = 0
-
-      if #self.monsters == 0 then
-        SOUNDS_DB.fanfare:play()
-        self:setup_delay_animation(2.5, "Victory")
-        return
-      end
-
-      return self.stage:pop({
-        action = "Fight",
-        character = self.character,
-        selected = self.selected_monster,
-        became_enraged = self.attack.became_enraged,
-        dmg_dealt = self.attack.dmg_dealt,
-        crit_attack = self.attack.crit_attack,
-      })
-    elseif self.attacker == "Monster" then
-      self.stage.ongoing_state = "monster_turn"
-      self.rules:remove_if_dead(self.selected_player, self.atlas, self.players, self.player_index, self.lives)
-      self.player_index = 0
-
-      if #self.players == 0 then
-        SOUNDS_DB.game_over:play()
-        self:setup_delay_animation(2.5, "Defeat")
-        return
-      end
-
-      return self.stage:pop({
-        action = "Fight",
-        character = self.character,
-        selected = self.selected_player,
-        dmg_dealt = self.attack.dmg_dealt,
-      })
+    self.aftermath = self.attack:aftermath(self.attacker)
+    if self.aftermath == "Victory" or self.aftermath == "Defeat" then
+      self:setup_delay_animation(2.5, self.aftermath)
     end
   end
 end
