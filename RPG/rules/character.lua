@@ -349,8 +349,8 @@ return function (ruleset)
       local hp = e.hp
 
       if crit then
-        final_dmg = amount + 5
         SOUNDS_DB.crit_attack:play()
+        final_dmg = amount + 5
       elseif e.charmed then
         SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount, 0)

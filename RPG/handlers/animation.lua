@@ -1,6 +1,7 @@
 
 local SOUNDS_DB = require 'database.sounds'
 local Vec = require 'common.vec'
+local Attack = require 'handlers.attack'
 
 local MESSAGES = {
   Victory = "You won the encounter!",
@@ -30,26 +31,10 @@ function Animation:_init(stage)
   self.rules = self.stage.rules
   self.selected_monster = nil
 
+  self.attack = Attack(stage)
   self.waiting_time = 0
   self.left_dir = Vec(-1, 0)
   self.right_dir = Vec(1, 0)
-end
-
-function Animation:attack_player()
-  SOUNDS_DB.unit_take_hit:play()
-  self.dmg_dealt = self.rules:take_damage(self.selected_player, self.character.damage)
-end
-
-function Animation:attack_monster()
-  self.crit_attack = false
-  local crit_attempt = math.random()
-  if self.character.crit_ensured or crit_attempt < self.character.crit_chance then
-    self.crit_attack = true
-    self.atlas:flash_crit()
-    self.character.crit_ensured = false
-  end
-  self.dmg_dealt = self.rules:take_damage(self.selected_monster, self.character.damage, self.crit_attack)
-  self.became_enraged = self.rules:enrage_if_dying(self.selected_monster, self.atlas)
 end
 
 function Animation:setup_delay_animation(delay_duration, return_action)
@@ -120,13 +105,13 @@ function Animation:manage_attack_animations(dt)
     local accuracy = math.random()
     if self.attacker == "Player" then
       if self.character.crit_ensured or accuracy > self.selected_monster.evasion then
-        self:attack_monster()
+        self.dmg_dealt, self.crit_attack = self.attack:monster(self.selected_monster)
         self.getting_hit_animation = true
         self.missed_attack = false
       end
     elseif self.attacker == "Monster" then
       if accuracy > self.selected_player.evasion then
-        self:attack_player()
+        self.dmg_dealt, self.crit_attack = self.attack:player(self.selected_player)
         self.getting_hit_animation = true
         self.missed_attack = false
       end
