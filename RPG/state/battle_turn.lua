@@ -44,8 +44,7 @@ function PlayerTurnState:_init(stack)
   self.function_array = {
     fighting = self.fighting,
     choosing_skill = self.choosing_skill,
-    using_skill_on_player = self.using_skill_on_player,
-    using_skill_on_monster = self.using_skill_on_monster,
+    using_skill = self.using_skill,
     choosing_item = self.choosing_item,
     using_item_on_player = self.using_item_on_player,
     using_item_on_monster = self.using_item_on_monster,
@@ -74,6 +73,14 @@ function PlayerTurnState:enter(params)
   self.animation = Animation(self)
   self.condition = Condition(self)
   self:load_units()
+end
+
+function PlayerTurnState:leave()
+  self:view():remove('turn_menu')
+  self:view():remove('turn_cursor')
+  self:view():remove('char_stats')
+  self:view():remove('ui_info')
+  self:view():remove('lives')
 end
 
 function PlayerTurnState:load_ui_elements()
@@ -113,10 +120,6 @@ function PlayerTurnState:load_units()
   end
 end
 
-
-
-
-
 function PlayerTurnState:_show_menu()
   local bfbox = self:view():get('battlefield').bounds
   self.menu:reset_cursor()
@@ -137,19 +140,6 @@ function PlayerTurnState:_show_stats()
   local char_stats = CharacterStats(position, self.character)
   self:view():add('char_stats', char_stats)
 end
-
-function PlayerTurnState:leave()
-  self:view():remove('turn_menu')
-  self:view():remove('turn_cursor')
-  self:view():remove('char_stats')
-  self:view():remove('ui_info')
-  self:view():remove('lives')
-end
-
-
-
-
-
 
 function PlayerTurnState:switch_cursor(category)
   local sprite_instance
@@ -195,6 +185,8 @@ end
 
 
 
+
+
 function PlayerTurnState:cancel_action()
   self.ongoing_state = "choosing_option"
   self.choosing_list = "menu"
@@ -209,16 +201,6 @@ function PlayerTurnState:cancel_action()
   self:switch_cursor("player")
 end
 
-
-
-
-
-
-
-
-
-
---States
 function PlayerTurnState:fighting()
   SOUNDS_DB.select_menu:play()
   self.animation:setup_attack_animation(55, self.monster_index)
@@ -229,18 +211,9 @@ function PlayerTurnState:choosing_skill()
   self.selected_skill = self.character.skill_set[self.menu:current_option()]
   if self.character.mana > 0 then
     if self.selected_skill == "Charm" then
-      self:next_unit("monster")
-      self.ongoing_state = "using_skill_on_monster"
-      self.choosing_list = "monster"
-      self:view():remove('turn_menu', self.menu)
-      self:view():get('message'):set(MESSAGES.ChooseTarget)
+      self:select_skill_target("monster")
     else
-      self.player_index = 0
-      self:next_unit("player")
-      self.ongoing_state = "using_skill_on_player"
-      self.choosing_list = "player"
-      self:view():remove('turn_menu', self.menu)
-      self:view():get('message'):set(MESSAGES.ChooseTarget)
+      self:select_skill_target("player")
     end
   else
     SOUNDS_DB.fail:play()
@@ -252,32 +225,30 @@ function PlayerTurnState:choosing_skill()
   end
 end
 
-function PlayerTurnState:using_skill_on_player()
-  SOUNDS_DB.select_menu:play()
-  local target = self.players[self.player_index]
-  self.rules:cast_skill(target, self.selected_skill, self.turn)
-  self.character.mana = self.character.mana - 1
-
-  return self:pop({
-    action = "Skill",
-    character = self.character,
-    skill_or_item = self.selected_skill,
-    selected = target,
-    msg_complement = MSG_COMPLEMENTS[self.selected_skill],
-  })
+function PlayerTurnState:select_skill_target(category)
+  self.player_index = 0
+  self:next_unit(category)
+  self.ongoing_state = "using_skill"
+  self.choosing_list = category
+  self:view():remove('turn_menu', self.menu)
+  self:view():get('message'):set(MESSAGES.ChooseTarget)
 end
 
-function PlayerTurnState:using_skill_on_monster()
+function PlayerTurnState:using_skill()
   SOUNDS_DB.select_menu:play()
-  local target = self.monsters[self.monster_index]
-  self.rules:cast_skill(target, self.selected_skill, self.turn)
+  if self.choosing_list == "monster" then
+    self.target = self.monsters[self.monster_index]
+  elseif self.choosing_list == "player" then
+    self.target = self.players[self.player_index]
+  end
+  self.rules:cast_skill(self.target, self.selected_skill, self.turn)
   self.character.mana = self.character.mana - 1
 
   return self:pop({
     action = "Skill",
     character = self.character,
     skill_or_item = self.selected_skill,
-    selected = target,
+    selected = self.target,
     msg_complement = MSG_COMPLEMENTS[self.selected_skill],
   })
 end
