@@ -24,6 +24,7 @@ function Animation:_init(stage)
 
   self.rules = self.stage.rules
   self.selected_monster = nil
+  self.running_animation = false
 
   self.attack = Attack(stage)
   self.waiting_time = 0
@@ -32,7 +33,7 @@ function Animation:_init(stage)
 end
 
 function Animation:setup_delay_animation(delay_duration, return_action)
-  self.stage.ongoing_state = "animation"
+  self.running_animation = true
   self.delay_animation = true
   self.delay_duration = delay_duration
   self.return_action = return_action
@@ -62,7 +63,7 @@ function Animation:manage_delay_animation(dt)
 end
 
 function Animation:setup_attack_animation(walking_length, monster_index)
-  self.stage.ongoing_state = "animation"
+  self.running_animation = true
   self.attack_animation = true
   self.walked_length = 0
   self.walking_length = walking_length
@@ -114,7 +115,7 @@ function Animation:play_walking_animation(dt, unit_sprite, direction, speed)
 end
 
 function Animation:setup_getting_hit_animation(shaking_length)
-  self.stage.ongoing_state = "animation"
+  self.running_animation = true
   self.shaking_length = shaking_length
 end
 
@@ -177,7 +178,7 @@ function Animation:play_shaking_animation(dt, unit, unit_sprite, back_direction)
 end
 
 function Animation:setup_run_away_animation()
-  self.stage.ongoing_state = "animation"
+  self.running_animation = true
   self.stage:view():remove('turn_cursor')
   self.run_away_animation = true
   self.run_away_duration = 0.4
@@ -208,16 +209,18 @@ function Animation:manage_run_away_animations(dt)
 end
 
 function Animation:update_animations(dt)
-  if self.attack_animation then
-    self:manage_attack_animations(dt)
-  elseif self.getting_hit_animation then
-    self:manage_getting_hit_animations(dt)
-  elseif self.run_away_animation then
-    self:manage_run_away_animations(dt)
-  elseif self.delay_animation then
-    self:manage_delay_animation(dt)
-  elseif self.retreat_animation then
-    self:manage_retreat_animations(dt)
+  if self.running_animation then
+    if self.attack_animation then
+      self:manage_attack_animations(dt)
+    elseif self.getting_hit_animation then
+      self:manage_getting_hit_animations(dt)
+    elseif self.run_away_animation then
+      self:manage_run_away_animations(dt)
+    elseif self.delay_animation then
+      self:manage_delay_animation(dt)
+    elseif self.retreat_animation then
+      self:manage_retreat_animations(dt)
+    end
   end
 end
 
