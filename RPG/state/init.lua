@@ -6,6 +6,11 @@ local RULESETS = {
   'character',
   'ui_related',
   'existence',
+  'itens',
+  'skills',
+  'char_getters',
+  'char_setters',
+  'combat',
 }
 local RuleEngine = require 'ur-proto' (RULE_MODULES, RULESETS)
 
