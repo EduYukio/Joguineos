@@ -4,8 +4,8 @@ local p = require 'database.properties'
 return {
   name = "Archer",
   appearance = 'archer',
-  max_hp = p.hp.medium*2,
-  damage = p.damage.high*2,
+  max_hp = p.hp.medium,
+  damage = p.damage.high+5,
   resistance = p.resistance.none,
   evasion = p.evasion.medium,
   crit_chance = p.crit_chance.high,

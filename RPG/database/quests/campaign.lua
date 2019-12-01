@@ -3,9 +3,9 @@ return {
   title = 'Campaign',
   party = { 'priest', 'knight', 'archer' },
   encounters = {
-    { 'slime', 'golem', 'ninja', 'ninja' },
-    { 'slime', 'golem', 'ninja' },
-    { 'slime', 'golem', 'ninja', 'golem' },
+    { 'slime', 'slime', 'slime'},
+    { 'slime', 'golem' },
+    { 'slime', 'golem', 'ninja', 'ninja'},
   },
   items = { "Energy Drink", "Mud Slap", "Spinach", "Bandejao's Fish" },
 }
