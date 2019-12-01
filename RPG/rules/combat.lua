@@ -32,6 +32,18 @@ return function (ruleset)
     end
   end
 
+  function ruleset.define:remove_from_array(e, array, index) --luacheck: no unused
+    function self.when()
+      return true
+    end
+    function self.apply()
+      for i = index + 1, #array do
+        array[i-1] = array[i]
+      end
+      array[#array] = nil
+    end
+  end
+
   function ruleset.define:remove_if_dead(e, atlas, unit_array, unit_index, lives)
     function self.when()
       return r:is(e, 'character')

@@ -5,7 +5,6 @@ local RULE_MODULES = { 'rules' }
 local RULESETS = {
   'character',
   'ui_related',
-  'existence',
   'itens',
   'skills',
   'char_getters',
