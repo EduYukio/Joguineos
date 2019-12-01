@@ -12,9 +12,9 @@ local MESSAGES = {
   ChooseItemTarget = "Select the target of the item.",
 }
 local MSG_COMPLEMENTS = {
-  ["Heal"] = "healing 10 points.",
+  ["Heal"] = "healing 15 points.",
   ["War Cry"] = "ensuring the next\nattack is critical.",
-  ["Charm"] = "reducing its\nresistance to 0 for 1 attack.",
+  ["Charm"] = "reducing its\nresistance to 0 for 2 turns!.",
   ["Energy Drink"] = "increasing the\nevasion for 2 turns!",
   ["Mud Slap"] = "decreasing the\nevasion for 2 turns!",
   ["Spinach"] = "raising the strength\nfor 2 turns!",

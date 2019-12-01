@@ -2,6 +2,14 @@
 local p = require 'database.properties'
 local SOUNDS_DB = require 'database.sounds'
 
+local conditions = {
+  "poisoned", "energized", "sticky", "crit_ensured", "charmed", "empowered"
+}
+
+local colors = {
+  "pure_black", "light_blue", "dark_blue", "dark_red", "pink", "orange"
+}
+
 local Condition = require 'common.class' ()
 
 function Condition:_init(stage)
@@ -16,44 +24,39 @@ function Condition:_init(stage)
   self.animation = self.stage.animation
 end
 
-function Condition:check_player()
-  for _, player in pairs(self.players) do
-    if player.empowered then
-      if self.turn - player.empowered.turn ==
-         self.p_systems:get_lifetime(player, "orange") then
-        player.empowered = false
-      end
+function Condition:check_unit(unit, condition, color, index)
+  if unit[condition] then
+    if self.turn - unit[condition].turn ==
+       self.p_systems:get_lifetime(unit, color) then
+      unit[condition] = false
     end
-    if player.energized then
-      if self.turn - player.energized.turn ==
-         self.p_systems:get_lifetime(player, "light_blue") then
-        player.energized = false
-      end
-    end
-  end
-end
-
-function Condition:check_monster()
-  for i, monster in pairs(self.monsters) do
-    if monster.sticky then
-      if self.turn - monster.sticky.turn ==
-         self.p_systems:get_lifetime(monster, "dark_blue") then
-        monster.sticky = false
-      end
-    end
-    if monster.poisoned then
-      if self.turn - monster.poisoned.turn ==
-         self.p_systems:get_lifetime(monster, "pure_black") then
-        monster.poisoned = false
-      end
-      local victory = self:take_poison_dmg(monster, i)
+    if condition == "poisoned" then
+      local victory = self:take_poison_dmg(unit, index)
       if victory then
         self.animation:setup_delay_animation(2.5, "Victory")
         return true
       end
     end
+    return false
   end
-  return false
+end
+
+function Condition:check_all_monsters()
+  local died_from_poison
+  for index, monster in pairs(self.monsters) do
+    for j, condition in ipairs(conditions) do
+      died_from_poison = self:check_unit(monster, condition, colors[j], index)
+    end
+  end
+  return died_from_poison
+end
+
+function Condition:check_all_players()
+  for index, player in pairs(self.players) do
+    for j, condition in ipairs(conditions) do
+      self:check_unit(player, condition, colors[j], index)
+    end
+  end
 end
 
 function Condition:take_poison_dmg(monster, index)

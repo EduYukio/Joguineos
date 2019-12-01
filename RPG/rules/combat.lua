@@ -1,6 +1,7 @@
 return function (ruleset)
 
   local r = ruleset.record
+  local p = require 'database.properties'
   local SOUNDS_DB = require 'database.sounds'
 
   function ruleset.define:take_damage(e, amount, crit)
@@ -13,7 +14,7 @@ return function (ruleset)
 
       if crit then
         SOUNDS_DB.crit_attack:play()
-        final_dmg = amount + 5
+        final_dmg = amount + p.crit_dmg_amplifier
       elseif e.charmed then
         SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount, 0)
@@ -21,7 +22,6 @@ return function (ruleset)
         SOUNDS_DB.unit_take_hit:play()
         final_dmg = math.max(amount - e.resistance, 0)
       end
-      e.charmed = false
 
       if final_dmg > 0 then
         hp = math.max(hp - final_dmg, 0)
@@ -62,7 +62,7 @@ return function (ruleset)
       local hp_perc = e.hp/e.max_hp
       if hp_perc > 0 and hp_perc <= 0.45 then
         e.enraged = true
-        e.damage = e.damage + 5
+        e.damage = e.damage + p.enrage_dmg_amplifier
         atlas:enrage_monster(e)
         return true
       end

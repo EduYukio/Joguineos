@@ -1,6 +1,7 @@
 return function (ruleset)
 
   local r = ruleset.record
+  local p = require 'database.properties'
   local SOUNDS_DB = require 'database.sounds'
 
   function ruleset.define:heal(e)
@@ -9,8 +10,7 @@ return function (ruleset)
     end
 
     function self.apply()
-      local heal_amount = 10
-      e.hp = math.min(e.hp + heal_amount, e.max_hp)
+      e.hp = math.min(e.hp + p.heal_amount, e.max_hp)
       e.p_systems.green:emit(60)
     end
   end

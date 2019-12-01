@@ -68,8 +68,8 @@ end
 function PlayerTurnState:load_units()
   if self.attacker == "Player" then
     if self.character == self.players[1] then
-      self.condition:check_player()
-      if self.condition:check_monster() then
+      self.condition:check_all_players()
+      if self.condition:check_all_monsters() then
         return self:pop({ action = "Victory" })
       end
     end
@@ -152,22 +152,22 @@ function PlayerTurnState:prev_unit(category)
 end
 
 function PlayerTurnState:on_keypressed(key)
-  if key == 'down' then
-    if self.action.choosing_list == "menu" then
-      self.menu:next()
-    else
-      self:next_unit(self.action.choosing_list)
-    end
-  elseif key == 'up' then
-    if self.action.choosing_list == "menu" then
-      self.menu:previous()
-    else
-      self:prev_unit(self.action.choosing_list)
-    end
-  elseif key == 'escape' then
-    self:cancel_action()
-  elseif key == 'return' or key == 'kpenter' then
-    if not self.animation.running_animation then
+  if not self.animation.running_animation then
+    if key == 'down' then
+      if self.action.choosing_list == "menu" then
+        self.menu:next()
+      else
+        self:next_unit(self.action.choosing_list)
+      end
+    elseif key == 'up' then
+      if self.action.choosing_list == "menu" then
+        self.menu:previous()
+      else
+        self:prev_unit(self.action.choosing_list)
+      end
+    elseif key == 'escape' then
+      self.action:cancel_action()
+    elseif key == 'return' or key == 'kpenter' then
       local action = self.action.function_array[self.action.ongoing_state]
       if action then action(self.action) end
     end

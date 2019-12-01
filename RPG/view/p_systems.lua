@@ -3,6 +3,7 @@ local g = love.graphics
 local PSystems = require 'common.class' ()
 local Vec = require 'common.vec'
 local PALETTE_DB = require 'database.palette'
+local p = require 'database.properties'
 
 function PSystems:_init()
   self.list = {}
@@ -10,13 +11,13 @@ end
 
 function PSystems:add_all(unit, position)
   local p_systems = {
-    green = self:add(unit, position, "green", 99),
-    pure_black = self:add(unit, position, "pure_black", 2),
-    light_blue = self:add(unit, position, "light_blue", 2),
-    dark_blue = self:add(unit, position, "dark_blue", 2),
-    dark_red = self:add(unit, position, "dark_red", 99),
-    pink = self:add(unit, position, "pink", 99),
-    orange = self:add(unit, position, "orange", 2),
+    green = self:add(unit, position, "green", p.lifetime.heal),
+    pure_black = self:add(unit, position, "pure_black", p.lifetime.poisoned),
+    light_blue = self:add(unit, position, "light_blue", p.lifetime.energized),
+    dark_blue = self:add(unit, position, "dark_blue", p.lifetime.sticky),
+    dark_red = self:add(unit, position, "dark_red", p.lifetime.crit_ensured),
+    pink = self:add(unit, position, "pink", p.lifetime.charmed),
+    orange = self:add(unit, position, "orange", p.lifetime.empowered),
   }
 
   return p_systems
