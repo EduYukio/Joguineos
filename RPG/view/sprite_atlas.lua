@@ -1,6 +1,7 @@
 
 local ATLAS_DB    = require 'database.atlas'
 local PALLETE_DB  = require 'database.palette'
+local g = love.graphics
 
 local AtlasRenderer = require 'common.class' ()
 
@@ -59,9 +60,7 @@ function AtlasRenderer:clear()
 end
 
 function AtlasRenderer:draw()
-  local g = love.graphics
   g.push()
-
   for _, instance in pairs(self.instances) do
     local tex, sprite = self.texture, self.sprites[instance.sprite_id]
     local x, y = instance.position:get()
@@ -75,13 +74,11 @@ function AtlasRenderer:draw()
     g.draw(tex, sprite.quad, x, y, 0, 4, 4,
            ATLAS_DB.frame_width/2, ATLAS_DB.frame_height/2)
   end
-
   if self.flash_timer > 0 then
     self.flash_timer = self.flash_timer - 0.1
     g.setColor(1,1,1, self.flash_timer)
     g.draw(self.white_tex, 0, 0)
   end
-
   g.pop()
 end
 
