@@ -26,14 +26,8 @@ function EncounterState:_init(stack)
   self.p_systems = P_Systems()
 end
 
-function EncounterState:enter(params)
-  self.turn = 0
-  self.atlas = SpriteAtlas()
-  self.items = params.items
-  local battlefield = BattleField()
-  local bfbox = battlefield.bounds
-  local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
-  local party_origin = battlefield:east_team_origin()
+function EncounterState:build_players_array(params)
+  local party_origin = self.battlefield:east_team_origin()
   self.players = {}
   self.next_player = 1
   local n = 1
@@ -46,8 +40,10 @@ function EncounterState:enter(params)
       self.atlas:add(character, pos, character.appearance)
     end
   end
+end
 
-  local encounter_origin = battlefield:west_team_origin()
+function EncounterState:build_monsters_array(params)
+  local encounter_origin = self.battlefield:west_team_origin()
   self.monsters = {}
   self.next_monster = 1
   for i, character in ipairs(params.encounter) do
@@ -56,8 +52,21 @@ function EncounterState:enter(params)
     self.monsters[i] = character
     self.atlas:add(character, pos, character.appearance)
   end
+end
+
+function EncounterState:enter(params)
+  self.turn = 0
+  self.atlas = SpriteAtlas()
+  self.items = params.items
+  self.battlefield = BattleField()
+  local bfbox = self.battlefield.bounds
+  local message = MessageBox(Vec(bfbox.left, bfbox.bottom + 16))
+
+  self:build_players_array(params)
+  self:build_monsters_array(params)
+
   self:view():add('atlas', self.atlas)
-  self:view():add('battlefield', battlefield)
+  self:view():add('battlefield', self.battlefield)
   self:view():add('message', message)
   self:fg_view():add('p_systems', self.p_systems)
   message:set("You stumble upon an encounter")
@@ -71,88 +80,108 @@ function EncounterState:leave()
   self:fg_view():remove('p_systems')
 end
 
+function EncounterState:set_monster_turn()
+  self.attacker = "Monster"
+  self.current_character = self.monsters[self.next_monster]
+  self.next_monster = self.next_monster + 1
+end
 
-
-function EncounterState:update(_)
-  local current_character
-  local attacker
-  if self.next_monster > #self.monsters then
-    self.next_player = 1
-    self.next_monster = 1
+function EncounterState:set_player_turn()
+  if self.next_player == 1 then
+    self.turn = self.turn + 1
   end
+  self.attacker = "Player"
+  self.current_character = self.players[self.next_player]
+  self.next_player = self.next_player + 1
+end
 
-  if self.next_player > #self.players then
-    --turno dos monstros
-    attacker = "Monster"
-    current_character = self.monsters[self.next_monster]
-    self.next_monster = self.next_monster + 1
-  else
-    --turno dos players
-    if self.next_player == 1 then
-      self.turn = self.turn + 1
-    end
-    attacker = "Player"
-    current_character = self.players[self.next_player]
-    self.next_player = self.next_player + 1
-  end
-
-  --setup battle turn
-  local params = {
-    current_character = current_character,
-    attacker = attacker,
+function EncounterState:set_battle_params()
+  return {
+    current_character = self.current_character,
+    attacker = self.attacker,
     monsters = self.monsters,
     players = self.players,
     items = self.items,
     p_systems = self.p_systems,
     turn = self.turn,
   }
+end
+
+function EncounterState:update(_)
+  if self.next_monster > #self.monsters then
+    self.next_player = 1
+    self.next_monster = 1
+  end
+
+  if self.next_player > #self.players then
+    self:set_monster_turn()
+  else
+    self:set_player_turn()
+  end
+  local params = self:set_battle_params()
   return self:push('battle_turn', params)
 end
 
+function EncounterState:handle_fight_action(params)
+  if params.crit_attack then
+    self.message = "Critical attack!\n"
+  end
+
+  self.message = self.message .. MESSAGES[params.action]:format(
+    params.character.name,
+    self.selected.name,
+    params.dmg_dealt
+  )
+
+  if self.selected.hp <= 0 then
+    self.message = self.message .. "\n" .. self.selected.name .. " died."
+  elseif params.became_enraged then
+    self.message = self.message .. "\n" .. self.selected.name ..
+         " became enraged, increasing its damage!"
+  end
+end
+
+function EncounterState:handle_skills_or_item_action(params)
+  self.message = self.message .. MESSAGES[params.action]:format(
+      params.character.name,
+      params.skill_or_item,
+      self.selected.name,
+      params.msg_complement
+    )
+end
+
+function EncounterState:handle_defeat_action()
+  for _, monster in pairs(self.monsters) do
+    for _, p_system in pairs(monster.p_systems) do
+      p_system:reset()
+    end
+  end
+
+  return self:pop({ action = "Defeat" })
+end
+
+function EncounterState:handle_run_or_victory_action()
+  for _, player in pairs(self.players) do
+    self.rules:reset_conditions(player)
+  end
+
+  return self:pop()
+end
+
 function EncounterState:resume(params)
-  local message = ""
-  local selected = params.selected
+  self.message = ""
+  self.selected = params.selected
 
   if params.action == 'Fight' then
-    if params.crit_attack then
-      message = "Critical attack!\n"
-    end
-
-    message = message .. MESSAGES[params.action]:format(
-      params.character.name,
-      selected.name,
-      params.dmg_dealt
-    )
-
-    if selected.hp <= 0 then
-      message = message .. "\n" .. selected.name .. " died."
-    elseif params.became_enraged then
-      message = message .. "\n" .. selected.name ..
-                " became enraged, increasing its damage!"
-    end
+    self:handle_fight_action(params)
   elseif params.action == "Skill" or params.action == "Item" then
-    message = message .. MESSAGES[params.action]:format(
-        params.character.name,
-        params.skill_or_item,
-        selected.name,
-        params.msg_complement
-      )
+    self:handle_skills_or_item_action(params)
   elseif params.action == "Defeat" then
-    for _, monster in pairs(self.monsters) do
-      for _, p_system in pairs(monster.p_systems) do
-        p_system:reset()
-      end
-    end
-
-    return self:pop({ action = "Defeat" })
+    return self:handle_defeat_action()
   elseif params.action == "Run" or params.action == "Victory" then
-    for _, player in pairs(self.players) do
-      self.rules:reset_conditions(player)
-    end
-
-    return self:pop()
+    return self:handle_run_or_victory_action()
   end
-  self:view():get('message'):set(message)
+  self:view():get('message'):set(self.message)
 end
 
 return EncounterState
