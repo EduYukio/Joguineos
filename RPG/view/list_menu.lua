@@ -1,6 +1,7 @@
 
 local Vec = require 'common.vec'
 local SOUNDS_DB = require 'database.sounds'
+local g = love.graphics
 
 local ListMenu = require 'common.class' ()
 
@@ -17,22 +18,26 @@ function ListMenu:_init(options, category)
   self.font:setFilter('nearest', 'nearest')
   self.options = {}
   self.position = Vec()
-  local vert_offset = 0
-  local max_width = 0
+  self.vert_offset = 0
+  self.max_width = 0
+  self:build_options_array(options)
+  self.size = Vec(self.max_width, self.vert_offset)
+  self.current = 1
+end
+
+function ListMenu:build_options_array(options)
   for i, option in ipairs(options) do
     self.options[i] = love.graphics.newText(self.font, option)
     local width, height = self.options[i]:getDimensions()
-    if width > max_width then
-      max_width = width
+    if width > self.max_width then
+      self.max_width = width
     end
-    if category == "items" then
-      vert_offset = vert_offset + height + ListMenu.GAP
+    if self.category == "items" then
+      self.vert_offset = self.vert_offset + height + ListMenu.GAP
     else
-      vert_offset = vert_offset + 36 + ListMenu.GAP
+      self.vert_offset = self.vert_offset + 36 + ListMenu.GAP
     end
   end
-  self.size = Vec(max_width, vert_offset)
-  self.current = 1
 end
 
 function ListMenu:reset_cursor()
@@ -57,20 +62,7 @@ function ListMenu:get_dimensions()
   return (self.size + ListMenu.PADDING * 2):get()
 end
 
-function ListMenu:draw()
-  local g = love.graphics
-  local size = self.size + ListMenu.PADDING * 2
-  local voffset = 0
-  g.push()
-  g.translate(self.position:get())
-  if self.category == "items" then
-    g.translate(Vec(0, 55):get())
-  end
-  g.setColor(1, 1, 1)
-  g.setLineWidth(4)
-  g.translate(Vec(-5,40):get())
-  g.rectangle('line', 0, 0, size:get())
-  g.translate(ListMenu.PADDING:get())
+function ListMenu:draw_options(voffset)
   for i, option in ipairs(self.options) do
     local height = option:getHeight()
     if i == self.current then
@@ -83,8 +75,25 @@ function ListMenu:draw()
     g.draw(option, 0, voffset)
     voffset = voffset + height + ListMenu.GAP
   end
+end
+
+function ListMenu:draw()
+  local size = self.size + ListMenu.PADDING * 2
+  local voffset = 0
+  g.push()
+
+  g.translate(self.position:get())
+  if self.category == "items" then
+    g.translate(Vec(0, 55):get())
+  end
+  g.setColor(1, 1, 1)
+  g.setLineWidth(4)
+  g.translate(Vec(-5,40):get())
+  g.rectangle('line', 0, 0, size:get())
+  g.translate(ListMenu.PADDING:get())
+  self:draw_options(voffset)
+
   g.pop()
 end
 
 return ListMenu
-

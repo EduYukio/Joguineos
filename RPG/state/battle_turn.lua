@@ -169,9 +169,7 @@ function PlayerTurnState:on_keypressed(key)
   elseif key == 'return' or key == 'kpenter' then
     if not self.animation.running_animation then
       local action = self.action.function_array[self.action.ongoing_state]
-      if action then
-        action(self.action)
-      end
+      if action then action(self.action) end
     end
   end
 end
