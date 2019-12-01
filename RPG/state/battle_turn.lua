@@ -167,9 +167,11 @@ function PlayerTurnState:on_keypressed(key)
   elseif key == 'escape' then
     self:cancel_action()
   elseif key == 'return' or key == 'kpenter' then
-    local action = self.action.function_array[self.action.ongoing_state]
-    if action then
-      action(self.action)
+    if not self.animation.running_animation then
+      local action = self.action.function_array[self.action.ongoing_state]
+      if action then
+        action(self.action)
+      end
     end
   end
 end
